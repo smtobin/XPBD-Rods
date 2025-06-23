@@ -112,7 +112,7 @@ int main(int, char*[])
     vtkNew<vtkNamedColors> colors;
 
     Rod::CircleCrossSection cross_section(0.1, 30);
-    Rod::XPBDRod rod(20, 1.0, Vec3r(0,0,0), Mat3r::Identity(), &cross_section);
+    Rod::XPBDRod rod(20, 1.0, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
 
     // get poly data for rod
     vtkNew<vtkPolyData> rod_poly_data;
@@ -147,7 +147,7 @@ int main(int, char*[])
     rod_actor->GetProperty()->SetOcclusionStrength(1.0);
     
     // create renderer for actors in the scene
-    vtkNew<vtkOpenGLRenderer> renderer;
+    auto renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
     // vtkNew<vtkRenderer> renderer;
     renderer->AddActor(rod_actor);
     renderer->SetBackground(1.0, 1.0, 1.0);
