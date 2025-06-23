@@ -17,25 +17,32 @@ class XPBDRod
     struct Node
     {
         Vec3r position;
+        Vec3r velocity;
         Mat3r orientation;
+        Vec3r ang_velocity;
     };
 
     template <typename CrossSectionType_>
-    XPBDRod(int num_nodes, Real length, const Vec3r& p0, const Mat3r& R0, 
+    XPBDRod(int num_nodes, Real length, Real density, Real E, Real G, const Vec3r& p0, const Mat3r& R0, 
         const CrossSectionType_& cross_section)
-        : _num_nodes(num_nodes), _length(length)
+        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _G(G)
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);
 
+        // initialize rod state
         _nodes.resize(num_nodes);
 
         _nodes[0].position = p0;
+        _nodes[0].velocity = Vec3r(0,0,0);
         _nodes[0].orientation = R0;
+        _nodes[0].ang_velocity = Vec3r(0,0,0);
         for (int i = 1; i < _num_nodes; i++)
         {
             _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/_num_nodes);
+            _nodes[i].velocity = _nodes[i-1].velocity;
             _nodes[i].orientation = _nodes[i-1].orientation;
+            _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
         }
 
         _cross_section = std::make_unique<CrossSectionType_>(cross_section);
@@ -44,15 +51,40 @@ class XPBDRod
     const std::vector<Node> nodes() const { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
-    void update();
+    void setup();
+    void update(Real dt, Real g_accel);
+
+    private:
+    void _inertialUpdate(Real dt, Real g_accel);
+    void _computeConstraintVec();
+    void _computeConstraintGradients();
+    void _velocityUpdate(Real dt);
+    
 
     private:
     int _num_nodes;
     Real _length;
+    Real _dl;
+
+    // material properties
+    Real _density;  // density
+    Real _E;    // elastic modulus
+    Real _G;    // shear modulus
+
+    // mass/inertia properties
+    Real _m_total;  // total mass
+    Real _m_node    // mass associated with a single node
+    Eigen::DiagonalMatrix<Real,3> _I_rot;
+    Eigen::DiagonalMatrix<Real,3> _I_rot_inv;
+
+    // pre-allocated vectors to store constraints and constraint gradients
+    VecXr _C_vec;
+    MatXr _delC_mat;
 
     std::unique_ptr<CrossSection> _cross_section;
 
     std::vector<Node> _nodes;
+    std::vector<Node> _prev_nodes;
 
 
 };
