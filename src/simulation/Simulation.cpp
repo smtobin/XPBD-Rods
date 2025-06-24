@@ -10,7 +10,7 @@ namespace Sim
 
 Simulation::Simulation()
     : _setup(false),
-      _time(0), _time_step(1e-3), _end_time(10),
+      _time(0), _time_step(1e-4), _end_time(100),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
       _should_render(false)
 {
@@ -21,11 +21,11 @@ void Simulation::renderCallback(vtkObject* /*caller*/, long unsigned int /*event
 {
     
     Simulation* simulation = static_cast<Simulation*>(client_data);
-    std::cout << "Callback! t=" << simulation->_time << std::endl;
+    // std::cout << "Callback! t=" << simulation->_time << std::endl;
     if (simulation->_should_render.exchange(false))
     {
-        std::cout << "Rendering... t=" << simulation->_time << std::endl;
-        // simulation->_render_window->Render();
+        // std::cout << "Rendering... t=" << simulation->_time << std::endl;
+        simulation->_render_window->Render();
     }
     
        
@@ -38,9 +38,10 @@ void Simulation::setup()
 
     // create rod(s)
     Rod::CircleCrossSection cross_section(0.1, 20);
-    Rod::XPBDRod rod(25, 1.0, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
+    Rod::XPBDRod rod(20, 1.0, 1150, 0.05e9, 0.02e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
 
     _rods.push_back(std::move(rod));
+    _rods.back().setup();
     _rod_graphics_objects.emplace_back(&_rods.back());
     _rod_graphics_objects.back().setup();
 
@@ -164,9 +165,15 @@ int Simulation::run()
 
 void Simulation::_timeStep()
 {
+    std::cout << "\n\n\nt=" << _time << std::endl;
     for (auto& rod : _rods)
     {
-        rod.update();
+        rod.update(_time_step, _g_accel);
+        
+        const Vec3r& tip_pos = rod.nodes().back().position;
+        const Mat3r& tip_or = rod.nodes().back().orientation;
+        std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
+        std::cout << "Tip orientation:\n" << tip_or << std::endl;
     }
 
     _time += _time_step;

@@ -39,7 +39,7 @@ class XPBDRod
         _nodes[0].ang_velocity = Vec3r(0,0,0);
         for (int i = 1; i < _num_nodes; i++)
         {
-            _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/_num_nodes);
+            _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));
             _nodes[i].velocity = _nodes[i-1].velocity;
             _nodes[i].orientation = _nodes[i-1].orientation;
             _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
@@ -58,6 +58,7 @@ class XPBDRod
     void _inertialUpdate(Real dt, Real g_accel);
     void _computeConstraintVec();
     void _computeConstraintGradients();
+    void _positionUpdate();
     void _velocityUpdate(Real dt);
     
 
@@ -73,13 +74,20 @@ class XPBDRod
 
     // mass/inertia properties
     Real _m_total;  // total mass
-    Real _m_node    // mass associated with a single node
-    Eigen::DiagonalMatrix<Real,3> _I_rot;
-    Eigen::DiagonalMatrix<Real,3> _I_rot_inv;
+    Real _m_node;    // mass associated with a single node
+    Vec3r _I_rot;
+    Vec3r _I_rot_inv;
 
     // pre-allocated vectors to store constraints and constraint gradients
     VecXr _C_vec;
     MatXr _delC_mat;
+    MatXr _LHS_mat;
+    VecXr _RHS_vec;
+    VecXr _inertia_mat_inv;
+    VecXr _alpha;
+    VecXr _lambda;
+    VecXr _dlam;
+    VecXr _dx;
 
     std::unique_ptr<CrossSection> _cross_section;
 

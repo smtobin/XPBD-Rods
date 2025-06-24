@@ -111,8 +111,8 @@ int main(int, char*[])
     //
     vtkNew<vtkNamedColors> colors;
 
-    Rod::CircleCrossSection cross_section(0.1, 30);
-    Rod::XPBDRod rod(20, 1.0, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
+    Rod::CircleCrossSection cross_section(0.1, 20);
+    Rod::XPBDRod rod(25, 1.0, 1150, 0.05e9, 0.02e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
 
     // get poly data for rod
     vtkNew<vtkPolyData> rod_poly_data;
