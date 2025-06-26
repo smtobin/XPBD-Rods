@@ -42,6 +42,12 @@ void XPBDRod::setup()
     _lambda.conservativeResize(6*_num_nodes);
     _dlam.conservativeResize(6*_num_nodes);
     _dx.conservativeResize(6*_num_nodes);
+
+    _diag_gradient_blocks.resize(_num_nodes);
+    _off_diag_gradient_blocks.resize(_num_nodes-1);
+
+    _diag_CMC_blocks.resize(_num_nodes);
+    _off_diag_CMC_blocks.resize(_num_nodes-1);
     
 }
 
@@ -54,19 +60,45 @@ void XPBDRod::update(Real dt, Real g_accel)
     for (int gi = 0; gi < 1; gi++)
     {
         _computeConstraintVec();
-        _computeConstraintGradients();
+        // _computeConstraintGradients();
+        _computeConstraintGradientBlocks();
+
+        Vec6r inertia_mat_inv_node(1.0/_m_node, 1.0/_m_node, 1.0/_m_node, _I_rot_inv[0], _I_rot_inv[1], _I_rot_inv[2]); 
+        _diag_CMC_blocks[0] = _diag_gradient_blocks[0] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[0].transpose();
+        for (int ci = 1; ci < _diag_gradient_blocks.size(); ci++)
+        {
+            _diag_CMC_blocks[ci] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _off_diag_gradient_blocks[ci-1].transpose() +
+                _diag_gradient_blocks[ci] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci];
+            _diag_CMC_blocks[ci] += (_alpha(Eigen::seqN(0,6)) / (dt*dt)).asDiagonal();
+            
+            _off_diag_CMC_blocks[ci-1] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci-1].transpose();
+        }
+
+        _RHS_vec = -_C_vec - (_alpha / (dt*dt)).asDiagonal() * _lambda;
+
+        _solver.solve(_diag_CMC_blocks, _off_diag_CMC_blocks, _RHS_vec, _dlam);
+
+        // compute dx
+        for (int ni = 0; ni < _num_nodes-1; ni++)
+        {
+            const Vec6r& dlam_ni = _dlam( Eigen::seqN(6*ni, 6) );
+            const Vec6r& dlam_niplus1 = _dlam( Eigen::seqN(6*(ni+1), 6) );
+            _dx( Eigen::seqN(6*ni, 6) ) = inertia_mat_inv_node.asDiagonal() * (_diag_CMC_blocks[ni].transpose() * dlam_ni + _off_diag_CMC_blocks[ni].transpose() * dlam_niplus1);
+        }
+        _dx( Eigen::seqN(6*(_num_nodes-1), 6) ) = inertia_mat_inv_node.asDiagonal() * _diag_CMC_blocks.back().transpose() * _dlam( Eigen::seqN(6*(_num_nodes-1), 6) );
 
         // std::cout << "Constraint vector:\n" << _C_vec << std::endl;
         // std::cout << "Constraint gradients:\n" << _delC_mat << std::endl;
 
-        _LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
-        _LHS_mat += (_alpha / (dt*dt)).asDiagonal();
-        // std::cout << "LHS:\n" << _LHS_mat << std::endl;
-        _RHS_vec = -_C_vec - (_alpha / (dt*dt)).asDiagonal() * _lambda;
-        _dlam = _LHS_mat.llt().solve(_RHS_vec);
+        // Assembly of whole matrix approach
+        // _LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
+        // _LHS_mat += (_alpha / (dt*dt)).asDiagonal();
+        // // std::cout << "LHS:\n" << _LHS_mat << std::endl;
+        // _RHS_vec = -_C_vec - (_alpha / (dt*dt)).asDiagonal() * _lambda;
+        // _dlam = _LHS_mat.llt().solve(_RHS_vec);
 
         // std::cout << "dlam:\n" << _dlam << std::endl;
-        _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
+        // _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
         // std::cout << "dx:\n" << _dx << std::endl;
         _positionUpdate(); 
 
@@ -85,8 +117,8 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
 
         // position inertial update
         Vec3r F_ext = _m_node * Vec3r(0,-g_accel,0);
-        if (i==_num_nodes-1)
-            F_ext = Vec3r(10000,0,0);
+        // if (i==_num_nodes-1)
+        //     F_ext = Vec3r(100,0,0);
         node.position += dt*node.velocity + dt*dt/_m_node*F_ext;
 
         // orientation inertial update
@@ -158,6 +190,44 @@ void XPBDRod::_computeConstraintGradients()
         _delC_mat.block<3,3>(6*ci+3, 6*(ci-1)+3) = dCu_dor_iminus1;
         _delC_mat.block<3,3>(6*ci+3, 6*ci+3) = dCu_dor_i;
     }
+}
+
+void XPBDRod::_computeConstraintGradientBlocks()
+{
+    // fixed base constraint gradient
+    const Vec3r dtheta0 = Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
+    const Mat3r jac_inv0 = ExpMap_Jacobian(dtheta0).inverse();
+    _diag_gradient_blocks[0].block<3,3>(0,0) = Mat3r::Identity();
+    _diag_gradient_blocks[0].block<3,3>(3,3) = jac_inv0;
+
+    // elastic rod constraints
+    for (int ci = 1; ci < _num_nodes; ci++)
+    {
+        // computing the constraint gradients for the (ci)th segment, which involves nodes (ci-1) and ci
+        const Mat3r dCv_dp_iminus1 = -0.5*(_nodes[ci-1].orientation.transpose() + _nodes[ci].orientation.transpose()) / _dl;
+        const Mat3r dCv_dp_i = -dCv_dp_iminus1;
+        
+        const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
+        const Mat3r dCv_dor_iminus1 = 0.5*Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
+        const Mat3r dCv_dor_i = 0.5*Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
+
+        const Vec3r dtheta = Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
+        const Mat3r jac_inv = ExpMap_Jacobian(dtheta).inverse();
+        const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
+        const Mat3r dCu_dor_i = jac_inv / _dl;
+
+        _diag_gradient_blocks[ci].block<3,3>(0,0) = dCv_dp_i;
+        _diag_gradient_blocks[ci].block<3,3>(0,3) = dCv_dor_i;
+        _diag_gradient_blocks[ci].block<3,3>(3,0) = Mat3r::Zero();
+        _diag_gradient_blocks[ci].block<3,3>(3,3) = dCu_dor_i;
+
+        _off_diag_gradient_blocks[ci-1].block<3,3>(0,0) = dCv_dp_iminus1;
+        _off_diag_gradient_blocks[ci-1].block<3,3>(0,3) = dCv_dor_iminus1;
+        _off_diag_gradient_blocks[ci-1].block<3,3>(3,0) = Mat3r::Zero();
+        _off_diag_gradient_blocks[ci-1].block<3,3>(3,3) = dCu_dor_iminus1;
+    }
+
+    
 }
 
 void XPBDRod::_positionUpdate()

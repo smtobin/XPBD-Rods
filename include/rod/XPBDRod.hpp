@@ -4,6 +4,7 @@
 #include "common/common.hpp"
 
 #include "rod/CrossSection.hpp"
+#include "solver/BlockThomasSolver.hpp"
 
 #include <memory>
 
@@ -25,10 +26,13 @@ class XPBDRod
     template <typename CrossSectionType_>
     XPBDRod(int num_nodes, Real length, Real density, Real E, Real G, const Vec3r& p0, const Mat3r& R0, 
         const CrossSectionType_& cross_section)
-        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _G(G)
+        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _solver(num_nodes)
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);
+
+        // compute shear modulus
+        _G = E / (2 * (1+0.3));
 
         // initialize rod state
         _nodes.resize(num_nodes);
@@ -58,6 +62,7 @@ class XPBDRod
     void _inertialUpdate(Real dt, Real g_accel);
     void _computeConstraintVec();
     void _computeConstraintGradients();
+    void _computeConstraintGradientBlocks();
     void _positionUpdate();
     void _velocityUpdate(Real dt);
     
@@ -89,10 +94,18 @@ class XPBDRod
     VecXr _dlam;
     VecXr _dx;
 
+    std::vector<Mat6r> _diag_gradient_blocks;
+    std::vector<Mat6r> _off_diag_gradient_blocks;
+
+    std::vector<Mat6r> _diag_CMC_blocks;
+    std::vector<Mat6r> _off_diag_CMC_blocks;
+
     std::unique_ptr<CrossSection> _cross_section;
 
     std::vector<Node> _nodes;
     std::vector<Node> _prev_nodes;
+
+    Solver::SymmetricBlockThomasSolver<6> _solver;
 
 
 };

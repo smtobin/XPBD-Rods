@@ -47,12 +47,20 @@ target_link_libraries(TestThomas Solver Eigen3::Eigen)
 add_executable(TestVTK test/test_vtk.cpp)
 target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} Rod)
 
+add_executable(TestPBR test/test_pbr.cpp)
+target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
+
 add_executable(RunSim src/exec/main.cpp)
 target_link_libraries(RunSim Simulation ${VTK_LIBRARIES})
 
 # vtk_module_autoinit is needed
 vtk_module_autoinit(
   TARGETS TestVTK
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS TestPBR
   MODULES ${VTK_LIBRARIES}
 )
 

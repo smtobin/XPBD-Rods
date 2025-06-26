@@ -8,7 +8,7 @@
 constexpr static int NumIters = 100;
 constexpr static int BlockSize = 6;
 constexpr static int NumBlocks = 50;
-using SolverType = Solver::BlockThomasSolver<NumBlocks*BlockSize, BlockSize>;
+using SolverType = Solver::FixedSizeSymmetricBlockThomasSolver<NumBlocks*BlockSize, BlockSize>;
 
 SolverType::BlockMatType generateRandomSPDBlockMat()
 {

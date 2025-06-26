@@ -36,8 +36,8 @@ void RodGraphicsObject::setup()
 
     // create the actor for the rod
     _vtk_actor->SetMapper(_vtk_poly_data_mapper);
-    // rod_actor->GetProperty()->SetInterpolationToPBR();
-    _vtk_actor->GetProperty()->SetInterpolationToFlat();
+    _vtk_actor->GetProperty()->SetInterpolationToPBR();
+    // _vtk_actor->GetProperty()->SetInterpolationToFlat();
     _vtk_actor->GetProperty()->SetColor(0.75, 0.75, 0.75); // Base color (albedo)
     
     // PBR Material Properties - adjusted for better visibility
@@ -45,8 +45,6 @@ void RodGraphicsObject::setup()
     // _vtk_actor->GetProperty()->SetRoughness(0.3);       
     // _vtk_actor->GetProperty()->SetAnisotropy(0.0);     
     // _vtk_actor->GetProperty()->SetBaseIOR(1.5);  
-    
-    _vtk_actor->GetProperty()->SetOcclusionStrength(1.0);
 }
 
 void RodGraphicsObject::update()
