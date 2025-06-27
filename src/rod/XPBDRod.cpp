@@ -124,8 +124,8 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
 
         // position inertial update
         Vec3r F_ext = _m_node * Vec3r(0,-g_accel,0);
-        // if (i==_num_nodes-1)
-        //     F_ext = Vec3r(100,0,0);
+        if (i==_num_nodes-1)
+            F_ext = Vec3r(0,-10,0);
         node.position += dt*node.velocity + dt*dt/_m_node*F_ext;
 
         // orientation inertial update

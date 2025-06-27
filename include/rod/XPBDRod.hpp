@@ -24,7 +24,7 @@ class XPBDRod
     };
 
     template <typename CrossSectionType_>
-    XPBDRod(int num_nodes, Real length, Real density, Real E, Real G, const Vec3r& p0, const Mat3r& R0, 
+    XPBDRod(int num_nodes, Real length, Real density, Real E, const Vec3r& p0, const Mat3r& R0, 
         const CrossSectionType_& cross_section)
         : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _solver(num_nodes)
     {

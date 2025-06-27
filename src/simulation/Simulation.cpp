@@ -3,7 +3,40 @@
 #include <chrono>
 #include <thread>
 
-#include <vtkCallbackCommand.h>
+#include <vtkActor.h>
+#include <vtkCamera.h>
+#include <vtkCubeSource.h>
+#include <vtkSphereSource.h>
+#include <vtkPlaneSource.h>
+#include <vtkHDRReader.h>
+#include <vtkImageFlip.h>
+#include <vtkImageReader2.h>
+#include <vtkImageReader2Factory.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkLight.h>
+#include <vtkNamedColors.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkOpenGLTexture.h>
+#include <vtkPBRIrradianceTexture.h>
+#include <vtkPNGReader.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyDataTangents.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSkybox.h>
+#include <vtkTexture.h>
+#include <vtkTriangleFilter.h>
+
+#include <vtkSequencePass.h>
+#include <vtkShadowMapBakerPass.h>
+#include <vtkShadowMapPass.h>
+#include <vtkCameraPass.h>
+#include <vtkRenderPassCollection.h>
+#include <vtkRenderStepsPass.h>
+#include <vtkToneMappingPass.h>
+#include <vtkLightsPass.h>
+#include <vtkOpaquePass.h>
 
 namespace Sim
 {
@@ -38,7 +71,7 @@ void Simulation::setup()
 
     // create rod(s)
     Rod::CircleCrossSection cross_section(0.00156, 20);
-    Rod::XPBDRod rod(100, 0.1, 650, 60e9, 0.02e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
+    Rod::XPBDRod rod(1000, 0.1, 650, 60e9, Vec3r(0,0.05,0), Mat3r::Identity(), cross_section);
 
     _rods.push_back(std::move(rod));
     _rods.back().setup();
@@ -57,40 +90,60 @@ void Simulation::setup()
     
     _renderer->SetBackground(1.0, 1.0, 1.0);
 
-    // _renderer->SetAutomaticLightCreation(false);
+    _renderer->SetAutomaticLightCreation(false);
 
+    vtkNew<vtkTexture> hdr_texture;
+    vtkNew<vtkHDRReader> reader;
+    reader->SetFileName("../resource/studio_1k.hdr");
+    hdr_texture->SetInputConnection(reader->GetOutputPort());
+    hdr_texture->SetColorModeToDirectScalars();
+    hdr_texture->MipmapOn();
+    hdr_texture->InterpolateOn();
 
-    // create environment texture
-    // vtkNew<vtkImageData> env_image;
-    // env_image->SetDimensions(256, 256, 1);
-    // env_image->AllocateScalars(VTK_FLOAT, 3);
+    vtkNew<vtkSkybox> skybox;
+    skybox->SetTexture(hdr_texture);
+    skybox->SetFloorRight(0,0,1);
+    skybox->SetProjection(vtkSkybox::Sphere);
+    _renderer->AddActor(skybox);
 
-    // // Fill with uniform white HDR values
-    // vtkSmartPointer<vtkFloatArray> scalars = vtkFloatArray::SafeDownCast(env_image->GetPointData()->GetScalars());
-    // for (int i = 0; i < 256 * 256; i++) 
-    // {
-    //     scalars->SetTuple3(i, 0.3f, 0.3f, 0.3f);  // Uniform white (you can increase for brighter)
-    // }
+    _renderer->UseImageBasedLightingOn();
+    _renderer->UseSphericalHarmonicsOn();
+    _renderer->SetEnvironmentTexture(hdr_texture, false);
 
-    // vtkNew<vtkTexture> env_texture;
-    // env_texture->SetInputData(env_image);
-    // env_texture->SetColorModeToDirectScalars();
-    // env_texture->MipmapOn();
-    // env_texture->InterpolateOn();
+    vtkNew<vtkLight> light;
+    light->SetPosition(0.0, 10, 0.0);
+    light->SetFocalPoint(0, 0, 0);
+    light->SetColor(1.0, 1.0, 1.0);
+    light->SetIntensity(1.0);
+    _renderer->AddLight(light);
 
+    vtkNew<vtkPlaneSource> plane;
+    plane->SetCenter(0.0, 0.0, 0.0);
+    plane->SetNormal(0.0, 1.0, 0.0);
+    // plane->SetResolution(10, 10);
+    plane->Update();
 
-    // Enable PBR rendering features
-    // renderer->UseImageBasedLightingOn();     // Enable IBL
-    // renderer->UseSphericalHarmonicsOff();     // Enable spherical harmonics for diffuse IBL
-    // renderer->SetEnvironmentTexture(env_texture, true);
+    vtkNew<vtkPolyDataMapper> plane_mapper;
+    plane_mapper->SetInputData(plane->GetOutput());
 
-    // vtkNew<vtkLight> light;
-    // light->SetPosition(1.0, 0, 0.5);
-    // light->SetFocalPoint(0, 0, 0.5);
-    // light->SetColor(1.0, 1.0, 1.0);
-    // light->SetIntensity(3.0);
-    // light->SetLightType(VTK_LIGHT_TYPE_SCENE_LIGHT);
-    // renderer->AddLight(light);
+    vtkNew<vtkPNGReader> plane_tex_reader;
+    plane_tex_reader->SetFileName("../resource/textures/ground_plane_texture.png");
+    vtkNew<vtkTexture> plane_color;
+    plane_color->UseSRGBColorSpaceOn();
+    plane_color->SetMipmap(true);
+    plane_color->InterpolateOn();
+    plane_color->SetInputConnection(plane_tex_reader->GetOutputPort());
+
+    vtkNew<vtkActor> plane_actor;
+    plane_actor->SetMapper(plane_mapper);
+    // plane_actor->GetProperty()->SetColor(0.9, 0.9, 0.9);
+    plane_actor->GetProperty()->SetInterpolationToPBR();
+    plane_actor->GetProperty()->SetMetallic(0.0);
+    plane_actor->GetProperty()->SetRoughness(0.3);
+    plane_actor->SetScale(0.1,1.0,0.1);
+
+    plane_actor->GetProperty()->SetBaseColorTexture(plane_color);
+    _renderer->AddActor(plane_actor);
 
     // create the render window
     _render_window = vtkSmartPointer<vtkRenderWindow>::New();
@@ -102,6 +155,34 @@ void Simulation::setup()
     vtkNew<vtkInteractorStyleTrackballCamera> style;
     _interactor->SetInteractorStyle(style);
     _interactor->SetRenderWindow(_render_window);
+
+    // rendering settings
+    _render_window->SetMultiSamples(10);
+    
+    vtkNew<vtkSequencePass> seqP;
+    vtkNew<vtkOpaquePass> opaqueP;
+    vtkNew<vtkLightsPass> lightsP;
+
+    vtkNew<vtkShadowMapPass> shadows;
+    shadows->GetShadowMapBakerPass()->SetResolution(1024);
+
+    vtkNew<vtkRenderPassCollection> passes;
+    passes->AddItem(lightsP);
+    passes->AddItem(opaqueP);
+    passes->AddItem(shadows->GetShadowMapBakerPass());
+    passes->AddItem(shadows);
+    seqP->SetPasses(passes);
+
+    vtkNew<vtkCameraPass> cameraP;
+    cameraP->SetDelegatePass(seqP);
+
+    vtkNew<vtkToneMappingPass> toneMappingP;
+    toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
+    toneMappingP->SetGenericFilmicDefaultPresets();
+    toneMappingP->SetDelegatePass(cameraP);
+    toneMappingP->SetExposure(0.5);
+
+    _renderer->SetPass(toneMappingP);
 
     // _render_window->Render();
     // _interactor->Start();
@@ -118,10 +199,10 @@ void Simulation::update()
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
         
         // if the simulation is ahead of the current elapsed wall time, stall
-        // if (_time > wall_time_elapsed_s)
-        // {
-        //     continue;
-        // }
+        if (_time > wall_time_elapsed_s)
+        {
+            continue;
+        }
 
         _timeStep();
 

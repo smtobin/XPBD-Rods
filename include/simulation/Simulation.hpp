@@ -6,29 +6,12 @@
 #include "rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkConeSource.h>
-#include <vtkNamedColors.h>
-#include <vtkNew.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderer.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkCellArray.h>
-#include <vtkPolyData.h>
-#include <vtkTriangle.h>
-#include <vtkPolygon.h>
-#include <vtkQuad.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkLight.h>
-#include <vtkImageData.h>
-#include <vtkFloatArray.h>
-#include <vtkTexture.h>
-#include <vtkPointData.h>
+#include <vtkSmartPointer.h>
+#include <vtkCallbackCommand.h>
 
 #include <vector>
 #include <atomic>
@@ -70,7 +53,7 @@ class Simulation
     std::vector<Rod::XPBDRod> _rods;
 
     // graphics
-    vtkSmartPointer<vtkRenderer> _renderer;
+    vtkSmartPointer<vtkOpenGLRenderer> _renderer;
     vtkSmartPointer<vtkRenderWindow> _render_window;
     vtkSmartPointer<vtkRenderWindowInteractor> _interactor;
 
