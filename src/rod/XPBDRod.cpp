@@ -68,8 +68,8 @@ void XPBDRod::update(Real dt, Real g_accel)
         for (int ci = 1; ci < _diag_gradient_blocks.size(); ci++)
         {
             _diag_CMC_blocks[ci] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _off_diag_gradient_blocks[ci-1].transpose() +
-                _diag_gradient_blocks[ci] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci];
-            _diag_CMC_blocks[ci] += (_alpha(Eigen::seqN(0,6)) / (dt*dt)).asDiagonal();
+                _diag_gradient_blocks[ci] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci].transpose();
+            _diag_CMC_blocks[ci] += (_alpha(Eigen::seqN(6,6)) / (dt*dt)).asDiagonal();
             
             _off_diag_CMC_blocks[ci-1] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci-1].transpose();
         }
@@ -83,22 +83,29 @@ void XPBDRod::update(Real dt, Real g_accel)
         {
             const Vec6r& dlam_ni = _dlam( Eigen::seqN(6*ni, 6) );
             const Vec6r& dlam_niplus1 = _dlam( Eigen::seqN(6*(ni+1), 6) );
-            _dx( Eigen::seqN(6*ni, 6) ) = inertia_mat_inv_node.asDiagonal() * (_diag_CMC_blocks[ni].transpose() * dlam_ni + _off_diag_CMC_blocks[ni].transpose() * dlam_niplus1);
+            _dx( Eigen::seqN(6*ni, 6) ) = inertia_mat_inv_node.asDiagonal() * (_diag_gradient_blocks[ni].transpose() * dlam_ni + _off_diag_gradient_blocks[ni].transpose() * dlam_niplus1);
         }
-        _dx( Eigen::seqN(6*(_num_nodes-1), 6) ) = inertia_mat_inv_node.asDiagonal() * _diag_CMC_blocks.back().transpose() * _dlam( Eigen::seqN(6*(_num_nodes-1), 6) );
+        _dx( Eigen::seqN(6*(_num_nodes-1), 6) ) = inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks.back().transpose() * _dlam( Eigen::seqN(6*(_num_nodes-1), 6) );
+
+        // std::cout << "THOMAS dlam:\n" << _dlam << std::endl;
+        // std::cout << "THOMAS dx:\n" << _dx << std::endl;
 
         // std::cout << "Constraint vector:\n" << _C_vec << std::endl;
         // std::cout << "Constraint gradients:\n" << _delC_mat << std::endl;
 
         // Assembly of whole matrix approach
+        // _computeConstraintGradients();
         // _LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
         // _LHS_mat += (_alpha / (dt*dt)).asDiagonal();
         // // std::cout << "LHS:\n" << _LHS_mat << std::endl;
         // _RHS_vec = -_C_vec - (_alpha / (dt*dt)).asDiagonal() * _lambda;
         // _dlam = _LHS_mat.llt().solve(_RHS_vec);
 
-        // std::cout << "dlam:\n" << _dlam << std::endl;
+        // // std::cout << "dlam:\n" << _dlam << std::endl;
         // _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
+
+        // std::cout << "FULL dlam:\n" << _dlam << std::endl;
+        // std::cout << "FULL dx:\n" << _dx << std::endl;
         // std::cout << "dx:\n" << _dx << std::endl;
         _positionUpdate(); 
 

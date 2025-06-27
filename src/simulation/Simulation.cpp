@@ -10,7 +10,7 @@ namespace Sim
 
 Simulation::Simulation()
     : _setup(false),
-      _time(0), _time_step(1e-3), _end_time(100),
+      _time(0), _time_step(1e-3), _end_time(10),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
       _should_render(false)
 {
@@ -37,8 +37,8 @@ void Simulation::setup()
     _setup = true;
 
     // create rod(s)
-    Rod::CircleCrossSection cross_section(0.1, 20);
-    Rod::XPBDRod rod(100, 10.0, 1150, 0.05e9, 0.02e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
+    Rod::CircleCrossSection cross_section(0.00156, 20);
+    Rod::XPBDRod rod(100, 0.1, 650, 60e9, 0.02e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
 
     _rods.push_back(std::move(rod));
     _rods.back().setup();
@@ -118,10 +118,10 @@ void Simulation::update()
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
         
         // if the simulation is ahead of the current elapsed wall time, stall
-        if (_time > wall_time_elapsed_s)
-        {
-            continue;
-        }
+        // if (_time > wall_time_elapsed_s)
+        // {
+        //     continue;
+        // }
 
         _timeStep();
 
@@ -165,15 +165,15 @@ int Simulation::run()
 
 void Simulation::_timeStep()
 {
-    std::cout << "\n\n\nt=" << _time << std::endl;
+    std::cout << "t=" << _time << std::endl;
     for (auto& rod : _rods)
     {
         rod.update(_time_step, _g_accel);
         
         const Vec3r& tip_pos = rod.nodes().back().position;
         const Mat3r& tip_or = rod.nodes().back().orientation;
-        std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
-        std::cout << "Tip orientation:\n" << tip_or << std::endl;
+        // std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
+        // std::cout << "Tip orientation:\n" << tip_or << std::endl;
     }
 
     _time += _time_step;
