@@ -5,13 +5,7 @@
 
 #include "rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
-
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkCallbackCommand.h>
+#include "graphics/GraphicsScene.hpp"
 
 #include <vector>
 #include <atomic>
@@ -24,18 +18,13 @@ class Simulation
     public:
     explicit Simulation();
 
-    static void renderCallback(vtkObject* caller, long unsigned int event_id, void* client_data, void* call_data);
-
     void setup();
 
     int run();
 
     void update();
 
-    void interactorStart() { _interactor->Start(); }
-
     private:
-    void _createRodPolyData(const Rod::XPBDRod* rod, vtkPolyData* rod_poly_data);
 
     void _timeStep();
 
@@ -53,13 +42,7 @@ class Simulation
     std::vector<Rod::XPBDRod> _rods;
 
     // graphics
-    vtkSmartPointer<vtkOpenGLRenderer> _renderer;
-    vtkSmartPointer<vtkRenderWindow> _render_window;
-    vtkSmartPointer<vtkRenderWindowInteractor> _interactor;
-
-    std::vector<Graphics::RodGraphicsObject> _rod_graphics_objects;
-
-    std::atomic<bool> _should_render;
+    Graphics::GraphicsScene _graphics_scene;
 };
 
 } // namespace Simulation

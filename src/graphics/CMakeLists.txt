@@ -6,10 +6,12 @@ set(GRAPHICS_SRC_DIR "./")
 
 set(GRAPHICS_HEADERS
     ${GRAPHICS_INCLUDE_DIR}/RodGraphicsObject.hpp
+    ${GRAPHICS_INCLUDE_DIR}/GraphicsScene.hpp
 )
 
 set(GRAPHICS_SOURCES
     ${GRAPHICS_SRC_DIR}/RodGraphicsObject.cpp
+    ${GRAPHICS_SRC_DIR}/GraphicsScene.cpp
 )
 
 target_sources(Graphics
