@@ -1,0 +1,9 @@
+g-accel: 9.81
+time-step: 1e-3
+end-time: 2
+
+hdr-image-filename: "../resource/sky.hdr"
+create-skybox: True
+
+# rods:
+#   - name: "rod1"

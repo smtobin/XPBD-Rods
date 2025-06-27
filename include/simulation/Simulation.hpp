@@ -7,6 +7,9 @@
 #include "graphics/RodGraphicsObject.hpp"
 #include "graphics/GraphicsScene.hpp"
 
+#include "config/SimulationConfig.hpp"
+#include "config/SimulationRenderConfig.hpp"
+
 #include <vector>
 #include <atomic>
 
@@ -17,6 +20,8 @@ class Simulation
 {
     public:
     explicit Simulation();
+
+    explicit Simulation(const Config::SimulationConfig& sim_config, const Config::SimulationRenderConfig& sim_render_config);
 
     void setup();
 
@@ -43,6 +48,8 @@ class Simulation
 
     // graphics
     Graphics::GraphicsScene _graphics_scene;
+
+    Config::SimulationConfig _config;
 };
 
 } // namespace Simulation

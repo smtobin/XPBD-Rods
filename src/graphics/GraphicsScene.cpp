@@ -38,10 +38,16 @@
 namespace Graphics
 {
 
-GraphicsScene::GraphicsScene()
-    : _should_render(false)
+GraphicsScene::GraphicsScene(const Config::SimulationRenderConfig& render_config)
+    : _should_render(false), _render_config(render_config)
 {
+    std::optional<std::string> hdr_filename = render_config.hdrImageFilename();
+    std::cout << "hdr has value: " << hdr_filename.has_value() << std::endl;
+}
 
+GraphicsScene::GraphicsScene()
+    : _should_render(false), _render_config()
+{
 }
 
 void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*event_id*/, void* client_data, void* /*call_data*/)
@@ -62,32 +68,50 @@ void GraphicsScene::setup()
     // create renderer for actors in the scene
     _renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
     
+    // add all the rods that may have been added before we set up
     for (const auto& graphics_obj : _rod_graphics_objects)
     {
         _renderer->AddActor(graphics_obj.getVtkActor());
     }
     
-    _renderer->SetBackground(1.0, 1.0, 1.0);
 
+    _renderer->SetBackground(1.0, 1.0, 1.0);
     _renderer->SetAutomaticLightCreation(false);
 
-    vtkNew<vtkTexture> hdr_texture;
-    vtkNew<vtkHDRReader> reader;
-    reader->SetFileName("../resource/studio_1k.hdr");
-    hdr_texture->SetInputConnection(reader->GetOutputPort());
-    hdr_texture->SetColorModeToDirectScalars();
-    hdr_texture->MipmapOn();
-    hdr_texture->InterpolateOn();
+    //////////////////////////////////////////////////////////
+    // Create HDR lighting (if specified in the config)
+    /////////////////////////////////////////////////////////
 
-    vtkNew<vtkSkybox> skybox;
-    skybox->SetTexture(hdr_texture);
-    skybox->SetFloorRight(0,0,1);
-    skybox->SetProjection(vtkSkybox::Sphere);
-    _renderer->AddActor(skybox);
+    std::optional<std::string> hdr_filename = _render_config.hdrImageFilename();
+    std::cout << "hdr has value: " << hdr_filename.has_value() << std::endl;
+    if (hdr_filename.has_value())
+    {
+        vtkNew<vtkTexture> hdr_texture;
+        vtkNew<vtkHDRReader> reader;
+        reader->SetFileName(hdr_filename.value().c_str());
+        hdr_texture->SetInputConnection(reader->GetOutputPort());
+        hdr_texture->SetColorModeToDirectScalars();
+        hdr_texture->MipmapOn();
+        hdr_texture->InterpolateOn();
 
-    _renderer->UseImageBasedLightingOn();
-    _renderer->UseSphericalHarmonicsOn();
-    _renderer->SetEnvironmentTexture(hdr_texture, false);
+        if (_render_config.createSkybox())
+        {
+            vtkNew<vtkSkybox> skybox;
+            skybox->SetTexture(hdr_texture);
+            skybox->SetFloorRight(0,0,1);
+            skybox->SetProjection(vtkSkybox::Sphere);
+            _renderer->AddActor(skybox);
+        }
+
+        _renderer->UseImageBasedLightingOn();
+        _renderer->UseSphericalHarmonicsOn();
+        _renderer->SetEnvironmentTexture(hdr_texture, false);
+    }
+    
+
+    ////////////////////////////////////////////////////////
+    // Add lights
+    ////////////////////////////////////////////////////////
 
     vtkNew<vtkLight> light;
     light->SetPosition(0.0, 10, 0.0);
@@ -95,6 +119,11 @@ void GraphicsScene::setup()
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
     _renderer->AddLight(light);
+
+
+    ///////////////////////////////////////////////////////
+    // Set up ground plane
+    ///////////////////////////////////////////////////////
 
     vtkNew<vtkPlaneSource> plane;
     plane->SetCenter(0.0, 0.0, 0.0);
@@ -124,7 +153,9 @@ void GraphicsScene::setup()
     plane_actor->GetProperty()->SetBaseColorTexture(plane_color);
     _renderer->AddActor(plane_actor);
 
-    // create the render window
+    //////////////////////////////////////////////////////
+    // Create the render window and interactor
+    //////////////////////////////////////////////////////
     _render_window = vtkSmartPointer<vtkRenderWindow>::New();
     _render_window->AddRenderer(_renderer);
     _render_window->SetSize(600, 600);
@@ -135,7 +166,11 @@ void GraphicsScene::setup()
     _interactor->SetInteractorStyle(style);
     _interactor->SetRenderWindow(_render_window);
 
-    // rendering settings
+    
+    
+    /////////////////////////////////////////////////////////
+    // Create the rendering passes and settings
+    ////////////////////////////////////////////////////////
     _render_window->SetMultiSamples(10);
     
     vtkNew<vtkSequencePass> seqP;
@@ -159,7 +194,7 @@ void GraphicsScene::setup()
     toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
     toneMappingP->SetGenericFilmicDefaultPresets();
     toneMappingP->SetDelegatePass(cameraP);
-    toneMappingP->SetExposure(0.5);
+    toneMappingP->SetExposure(_render_config.exposure());
 
     _renderer->SetPass(toneMappingP);
 
@@ -181,9 +216,9 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const Rod::XPBDRod* rod)
+void GraphicsScene::addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* render_config)
 {
-    _rod_graphics_objects.emplace_back(rod);
+    _rod_graphics_objects.emplace_back(rod, render_config);
     _rod_graphics_objects.back().setup();
 
     _renderer->AddActor(_rod_graphics_objects.back().getVtkActor());

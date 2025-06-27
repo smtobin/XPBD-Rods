@@ -4,6 +4,8 @@
 #include "rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 
+#include "config/SimulationRenderConfig.hpp"
+
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
@@ -25,12 +27,13 @@ class GraphicsScene
     void interactorStart() { _interactor->Start(); }
 
     explicit GraphicsScene();
+    explicit GraphicsScene(const Config::SimulationRenderConfig& sim_render_config);
 
     void setup();
 
     void update();
 
-    void addObject(const Rod::XPBDRod* rod);
+    void addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* render_config);
 
     private:
     vtkSmartPointer<vtkOpenGLRenderer> _renderer;
@@ -40,6 +43,8 @@ class GraphicsScene
     std::vector<Graphics::RodGraphicsObject> _rod_graphics_objects;
 
     std::atomic<bool> _should_render;
+
+    Config::SimulationRenderConfig _render_config;
 };
 
 } // namespace Graphics

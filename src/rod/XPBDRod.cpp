@@ -135,7 +135,7 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
         Vec3r so3_update = dt*node.ang_velocity + dt*dt*_I_rot_inv.asDiagonal()*(T_ext - node.ang_velocity.cross(_I_rot.asDiagonal()*node.ang_velocity));
         // std::cout << "ang velocity:\n" << node.ang_velocity << std::endl;
         // std::cout << "so3_update:\n" << so3_update << std::endl;
-        node.orientation = Plus_SO3(node.orientation, so3_update);
+        node.orientation = Math::Plus_SO3(node.orientation, so3_update);
 
         // std::cout << "Node " << i << " position:\n" << node.position << std::endl;
         // std::cout << "Node " << i << " orientation:\n" << node.orientation << std::endl;
@@ -146,7 +146,7 @@ void XPBDRod::_computeConstraintVec()
 {
     // fixed base constraint
     _C_vec( Eigen::seqN(0,3) ) = _nodes[0].position - _prev_nodes[0].position;
-    _C_vec( Eigen::seqN(3,3) ) = Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
+    _C_vec( Eigen::seqN(3,3) ) = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
 
     // elastic rod constraints
     for (int ci = 1; ci < _num_nodes; ci++)
@@ -155,7 +155,7 @@ void XPBDRod::_computeConstraintVec()
         const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
         // std::cout << "dp:\n" << dp << std::endl;
         const Vec3r C_v = (_nodes[ci].orientation.transpose() + _nodes[ci-1].orientation.transpose()) * 0.5 * dp / _dl - Vec3r(0,0,1);
-        const Vec3r C_u = Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation) / _dl;
+        const Vec3r C_u = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation) / _dl;
 
         // std::cout << "Cv_" << ci << ":\n" << C_v << std::endl;
         _C_vec( Eigen::seqN(6*ci,3) ) = C_v;
@@ -168,8 +168,8 @@ void XPBDRod::_computeConstraintGradients()
     _delC_mat = MatXr::Zero(6*_num_nodes, 6*_num_nodes);
 
     // fixed base constraint gradient
-    const Vec3r dtheta0 = Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
-    const Mat3r jac_inv0 = ExpMap_Jacobian(dtheta0).inverse();
+    const Vec3r dtheta0 = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
+    const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
     _delC_mat.block<3,3>(0,0) = Mat3r::Identity();
     _delC_mat.block<3,3>(3,3) = jac_inv0;
 
@@ -181,11 +181,11 @@ void XPBDRod::_computeConstraintGradients()
         const Mat3r dCv_dp_i = -dCv_dp_iminus1;
         
         const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
-        const Mat3r dCv_dor_iminus1 = 0.5*Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
-        const Mat3r dCv_dor_i = 0.5*Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
+        const Mat3r dCv_dor_iminus1 = 0.5*Math::Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
+        const Mat3r dCv_dor_i = 0.5*Math::Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
 
-        const Vec3r dtheta = Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
-        const Mat3r jac_inv = ExpMap_Jacobian(dtheta).inverse();
+        const Vec3r dtheta = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
+        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
         const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
         const Mat3r dCu_dor_i = jac_inv / _dl;
 
@@ -202,8 +202,8 @@ void XPBDRod::_computeConstraintGradients()
 void XPBDRod::_computeConstraintGradientBlocks()
 {
     // fixed base constraint gradient
-    const Vec3r dtheta0 = Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
-    const Mat3r jac_inv0 = ExpMap_Jacobian(dtheta0).inverse();
+    const Vec3r dtheta0 = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
+    const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
     _diag_gradient_blocks[0].block<3,3>(0,0) = Mat3r::Identity();
     _diag_gradient_blocks[0].block<3,3>(3,3) = jac_inv0;
 
@@ -215,11 +215,11 @@ void XPBDRod::_computeConstraintGradientBlocks()
         const Mat3r dCv_dp_i = -dCv_dp_iminus1;
         
         const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
-        const Mat3r dCv_dor_iminus1 = 0.5*Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
-        const Mat3r dCv_dor_i = 0.5*Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
+        const Mat3r dCv_dor_iminus1 = 0.5*Math::Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
+        const Mat3r dCv_dor_i = 0.5*Math::Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
 
-        const Vec3r dtheta = Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
-        const Mat3r jac_inv = ExpMap_Jacobian(dtheta).inverse();
+        const Vec3r dtheta = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
+        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
         const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
         const Mat3r dCu_dor_i = jac_inv / _dl;
 
@@ -244,7 +244,7 @@ void XPBDRod::_positionUpdate()
         const Vec3r dp = _dx( Eigen::seqN(6*i,3) );
         const Vec3r dor = _dx( Eigen::seqN(6*i+3,3) );
         _nodes[i].position += dp;
-        _nodes[i].orientation = Plus_SO3(_nodes[i].orientation, dor);
+        _nodes[i].orientation = Math::Plus_SO3(_nodes[i].orientation, dor);
 
         // std::cout << "New orientation " << i << ":\n" << _nodes[i].orientation << std::endl;
     }
@@ -257,8 +257,8 @@ void XPBDRod::_velocityUpdate(Real dt)
         _nodes[i].velocity = (_nodes[i].position - _prev_nodes[i].position)/dt;
         // std::cout << "Orientation " << i << ":\n" << _nodes[i].orientation << std::endl;
         // std::cout << "Prev orientation " << i << ":\n" << _prev_nodes[i].orientation << std::endl;
-        // std::cout << "Orientation velocity update Minus_SO3:\n" << Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation) << std::endl;
-        _nodes[i].ang_velocity = Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation)/dt;
+        // std::cout << "Orientation velocity update Math::Minus_SO3:\n" << Math::Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation) << std::endl;
+        _nodes[i].ang_velocity = Math::Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation)/dt;
     }
 }
 

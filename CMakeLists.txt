@@ -39,7 +39,7 @@ target_link_libraries(Graphics Eigen3::Eigen ${VTK_LIBRARIES} Rod)
 
 add_library(Simulation)
 add_subdirectory("src/simulation")
-target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} Rod Solver Graphics)
+target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} Rod Solver Graphics yaml-cpp)
 
 add_executable(TestThomas test/test_thomas.cpp)
 target_link_libraries(TestThomas Solver Eigen3::Eigen)

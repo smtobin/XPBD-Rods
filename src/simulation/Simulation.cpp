@@ -1,4 +1,5 @@
 #include "simulation/Simulation.hpp"
+#include "common/math.hpp"
 
 #include <chrono>
 #include <thread>
@@ -9,7 +10,18 @@ namespace Sim
 Simulation::Simulation()
     : _setup(false),
       _time(0), _time_step(1e-3), _end_time(10),
-      _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0)
+      _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
+      _graphics_scene()
+{
+
+}
+
+Simulation::Simulation(const Config::SimulationConfig& sim_config, const Config::SimulationRenderConfig& sim_render_config)
+    : _setup(false), _time(0),
+    _time_step(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
+    _viewer_refresh_time_ms(1000.0/30.0),
+    _graphics_scene(sim_render_config),
+    _config(sim_config)
 {
 
 }
@@ -23,15 +35,21 @@ void Simulation::setup()
     _graphics_scene.setup();
 
     // create rod(s)
-    Rod::CircleCrossSection cross_section(0.00156, 20);
-    Rod::XPBDRod rod(1000, 0.1, 650, 60e9, Vec3r(0,0.05,0), Mat3r::Identity(), cross_section);
+    for (const auto& rod_config : _config.rodConfigs())
+    {
+        Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+        Mat3r base_rot_mat = Math::RotMatFromXYZEulerAngles(rod_config.initialBaseRotation());
+        Rod::XPBDRod rod(rod_config.nodes(), rod_config.length(), rod_config.density(), rod_config.E(), rod_config.nu(), rod_config.initialBasePosition(), base_rot_mat, cross_section);
 
-    _rods.push_back(std::move(rod));
-    _rods.back().setup();
+        _rods.push_back(std::move(rod));
+        _rods.back().setup();
+
+        // add new rod to graphics scene to be visualized
+        _graphics_scene.addObject(&_rods.back(), &rod_config.renderConfig());
+    }
 
 
-    // add new rod(s) to graphics scene to be visualized
-    _graphics_scene.addObject(&_rods.back());
+    
 }
 
 void Simulation::update()
@@ -84,7 +102,7 @@ int Simulation::run()
 
 void Simulation::_timeStep()
 {
-    std::cout << "t=" << _time << std::endl;
+    // std::cout << "t=" << _time << std::endl;
     for (auto& rod : _rods)
     {
         rod.update(_time_step, _g_accel);

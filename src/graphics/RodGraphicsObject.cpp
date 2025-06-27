@@ -16,12 +16,13 @@
 #include <vtkImageData.h>
 
 #include <filesystem>
+#include <optional>
 
 namespace Graphics
 {
 
-RodGraphicsObject::RodGraphicsObject(const Rod::XPBDRod* rod)
-    : _rod(rod)
+RodGraphicsObject::RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* config)
+    : _rod(rod), _render_config(config)
 {
 
 }
@@ -35,16 +36,23 @@ void RodGraphicsObject::setup()
 
     _generateInitialPolyData();
 
-    // vtkNew<vtkTriangleFilter> triangulation;
-    // triangulation->SetInputData(_vtk_poly_data);
-
-    // vtkNew<vtkCleanPolyData> cleaner;
-    // cleaner->SetInputConnection(triangulation->GetOutputPort());
-    // cleaner->Update();
+    // select rendering type
+    Config::ObjectRenderConfig::RenderType render_type = _render_config->renderType();
+    if (render_type == Config::ObjectRenderConfig::RenderType::FLAT)
+    {
+        _vtk_actor->GetProperty()->SetInterpolationToFlat();
+    }
+    else if (render_type == Config::ObjectRenderConfig::RenderType::PHONG)
+    {
+        _vtk_actor->GetProperty()->SetInterpolationToPhong();
+    }
+    else if (render_type == Config::ObjectRenderConfig::RenderType::PBR)
+    {
+        _vtk_actor->GetProperty()->SetInterpolationToPBR();
+    }
 
     // Add this step for smooth normals
     vtkNew<vtkPolyDataNormals> normalGenerator;
-    // normalGenerator->SetInputConnection(cleaner->GetOutputPort());
     normalGenerator->SetInputData(_vtk_poly_data);
     normalGenerator->SetFeatureAngle(30.0); // Force smooth normals
     normalGenerator->SplittingOff();
@@ -57,76 +65,55 @@ void RodGraphicsObject::setup()
 
     vtkNew<vtkPolyDataTangents> tangents;
     tangents->SetInputConnection(normalGenerator->GetOutputPort());
-    // tangents->SetInputData(_vtk_poly_data);
-    tangents->SetComputePointTangents(true);
     tangents->Update();
 
     vtkNew<vtkPolyDataMapper> mapper;
     mapper->SetInputConnection(tangents->GetOutputPort());
-
-    std::filesystem::path pbr_texture_folder("../resource/textures/Metal050A_4K-PNG");
-    std::string orm_filename = pbr_texture_folder.filename().string() + "_ORM.png";
-    std::string normals_filename = pbr_texture_folder.filename().string() + "_NormalGL.png";
-    std::string color_filename = pbr_texture_folder.filename().string() + "_Color.png";
-    
-    std::filesystem::path orm_file(pbr_texture_folder); orm_file.append(orm_filename);
-    std::filesystem::path normals_file(pbr_texture_folder); normals_file.append(normals_filename);
-    std::filesystem::path color_file(pbr_texture_folder); color_file.append(color_filename);
-
-    vtkNew<vtkPNGReader> orm_reader;
-    orm_reader->SetFileName(orm_file.c_str());
-    vtkNew<vtkTexture> material;
-    material->InterpolateOn();
-    material->SetInputConnection(orm_reader->GetOutputPort());
-
-    vtkNew<vtkPNGReader> color_reader;
-    color_reader->SetFileName(color_file.c_str());
-    vtkNew<vtkTexture> color;
-    color->UseSRGBColorSpaceOn();
-    color->InterpolateOn();
-    color->SetInputConnection(color_reader->GetOutputPort());
-
-    vtkNew<vtkPNGReader> normals_reader;
-    normals_reader->SetFileName(normals_file.c_str());
-    vtkNew<vtkTexture> normals;
-    normals->SetMipmap(true);
-    normals->InterpolateOn();
-    normals->SetMaximumAnisotropicFiltering(8);
-    normals->SetInputConnection(normals_reader->GetOutputPort());
-
     _vtk_actor->SetMapper(mapper);
-    _vtk_actor->GetProperty()->SetInterpolationToPBR();
-    // _vtk_actor->GetProperty()->SetInterpolationToPhong();
-    // actor->GetProperty()->SetColor(0.75, 0.75, 0.75);
-    // actor->GetProperty()->SetMetallic(1.0);
-    // actor->GetProperty()->SetRoughness(0.0);
-    _vtk_actor->GetProperty()->SetMetallic(1.0);
-    _vtk_actor->GetProperty()->SetRoughness(1.0);
-    // actor->GetProperty()->SetNormalScale(0.1);
-    // actor->GetProperty()->SetSpecular(0.0);
-    // actor->GetProperty()->SetSpecularPower(1.0);
-    // actor->GetProperty()->SetCoatColor(colors->GetColor3d("White").GetData());
 
-    _vtk_actor->GetProperty()->SetBaseColorTexture(color);
-    _vtk_actor->GetProperty()->SetORMTexture(material);
-    // _vtk_actor->GetProperty()->SetNormalTexture(normals);
-    // actor->GetProperty()->SetNormalTexture(nullptr);
+    std::optional<std::string> orm_file = _render_config->ormTextureFilename();
+    if (orm_file.has_value())
+    {
+        vtkNew<vtkPNGReader> orm_reader;
+        orm_reader->SetFileName(orm_file.value().c_str());
+        vtkNew<vtkTexture> material;
+        material->InterpolateOn();
+        material->SetInputConnection(orm_reader->GetOutputPort());
+        _vtk_actor->GetProperty()->SetORMTexture(material);
+    }
 
-    // Create a simple test normal texture
-    // vtkNew<vtkImageData> testNormalMap;
-    // testNormalMap->SetDimensions(256, 256, 1);
-    // testNormalMap->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
+    std::optional<std::string> base_color_file = _render_config->baseColorTextureFilename();
+    if (base_color_file.has_value())
+    {
+        vtkNew<vtkPNGReader> color_reader;
+        color_reader->SetFileName(base_color_file.value().c_str());
+        vtkNew<vtkTexture> color;
+        color->UseSRGBColorSpaceOn();
+        color->InterpolateOn();
+        color->SetInputConnection(color_reader->GetOutputPort());
+        _vtk_actor->GetProperty()->SetBaseColorTexture(color);
+    }
 
-    // unsigned char* pixels = static_cast<unsigned char*>(testNormalMap->GetScalarPointer());
-    // for (int i = 0; i < 256 * 256; i++) {
-    //     pixels[i*3 + 0] = 128; // X normal
-    //     pixels[i*3 + 1] = 128; // Y normal  
-    //     pixels[i*3 + 2] = 255; // Z normal (pointing out)
-    // }
+    std::optional<std::string> normals_file = _render_config->normalsTextureFilename();
+    if (normals_file.has_value())
+    {
+        vtkNew<vtkPNGReader> normals_reader;
+        normals_reader->SetFileName(normals_file.value().c_str());
+        vtkNew<vtkTexture> normals;
+        normals->SetMipmap(true);
+        normals->InterpolateOn();
+        normals->SetMaximumAnisotropicFiltering(8);
+        normals->SetInputConnection(normals_reader->GetOutputPort());
+        _vtk_actor->GetProperty()->SetNormalTexture(normals);
+    }
 
-    // vtkNew<vtkTexture> normalTexture;
-    // normalTexture->SetInputData(testNormalMap);
-    // _vtk_actor->GetProperty()->SetNormalTexture(normalTexture);
+    
+
+    const Vec3r& solid_color = _render_config->color();
+    _vtk_actor->GetProperty()->SetColor(solid_color[0], solid_color[1], solid_color[2]);
+
+    _vtk_actor->GetProperty()->SetMetallic(_render_config->metallic());
+    _vtk_actor->GetProperty()->SetRoughness(_render_config->roughness());
 }
 
 void RodGraphicsObject::update()
@@ -164,13 +151,6 @@ void RodGraphicsObject::_generateInitialPolyData()
             const int v2 = (pi != cross_section_points.size()-1) ? v1 + 1 : ni*cross_section_points.size();
             const int v3 = v2 + cross_section_points.size();
             const int v4 = v1 + cross_section_points.size();
-
-            // create VTK quad
-            // vtkNew<vtkQuad> quad;
-            // quad->GetPointIds()->SetId(0, v1);
-            // quad->GetPointIds()->SetId(1, v2);
-            // quad->GetPointIds()->SetId(2, v3);
-            // quad->GetPointIds()->SetId(3, v4);
 
             vtkNew<vtkTriangle> tri1;
             tri1->GetPointIds()->SetId(0, v1);

@@ -24,15 +24,15 @@ class XPBDRod
     };
 
     template <typename CrossSectionType_>
-    XPBDRod(int num_nodes, Real length, Real density, Real E, const Vec3r& p0, const Mat3r& R0, 
+    XPBDRod(int num_nodes, Real length, Real density, Real E, Real nu, const Vec3r& p0, const Mat3r& R0, 
         const CrossSectionType_& cross_section)
-        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _solver(num_nodes)
+        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _nu(nu), _solver(num_nodes)
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);
 
         // compute shear modulus
-        _G = E / (2 * (1+0.3));
+        _G = E / (2 * (1+_nu));
 
         // initialize rod state
         _nodes.resize(num_nodes);
@@ -75,6 +75,7 @@ class XPBDRod
     // material properties
     Real _density;  // density
     Real _E;    // elastic modulus
+    Real _nu;   // Poisson ratio
     Real _G;    // shear modulus
 
     // mass/inertia properties

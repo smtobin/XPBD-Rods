@@ -11,6 +11,8 @@
 =========================================================================*/
 
 #include "rod/XPBDRod.hpp"
+#include "config/RodConfig.hpp"
+#include "common/math.hpp"
 
 #include <math.h>
 
@@ -111,8 +113,11 @@ int main(int, char*[])
     //
     vtkNew<vtkNamedColors> colors;
 
-    Rod::CircleCrossSection cross_section(0.1, 20);
-    Rod::XPBDRod rod(25, 1.0, 1150, 0.05e9, Vec3r(0,0,0), Mat3r::Identity(), cross_section);
+    Config::RodConfig rod_config = Config::RodConfig();
+    Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+    Mat3r base_rot_mat = Math::RotMatFromXYZEulerAngles(rod_config.initialBaseRotation());
+    Rod::XPBDRod rod(rod_config.nodes(), rod_config.length(), rod_config.density(), rod_config.E(), rod_config.nu(), rod_config.initialBasePosition(), base_rot_mat, cross_section);
+
 
     // get poly data for rod
     vtkNew<vtkPolyData> rod_poly_data;
