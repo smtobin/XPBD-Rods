@@ -21,7 +21,7 @@ class Simulation
     public:
     explicit Simulation();
 
-    explicit Simulation(const Config::SimulationConfig& sim_config, const Config::SimulationRenderConfig& sim_render_config);
+    explicit Simulation(const Config::SimulationConfig& sim_config);
 
     void setup();
 

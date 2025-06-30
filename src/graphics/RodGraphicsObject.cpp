@@ -21,7 +21,7 @@
 namespace Graphics
 {
 
-RodGraphicsObject::RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* config)
+RodGraphicsObject::RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& config)
     : _rod(rod), _render_config(config)
 {
 
@@ -37,7 +37,7 @@ void RodGraphicsObject::setup()
     _generateInitialPolyData();
 
     // select rendering type
-    Config::ObjectRenderConfig::RenderType render_type = _render_config->renderType();
+    Config::ObjectRenderConfig::RenderType render_type = _render_config.renderType();
     if (render_type == Config::ObjectRenderConfig::RenderType::FLAT)
     {
         _vtk_actor->GetProperty()->SetInterpolationToFlat();
@@ -71,7 +71,7 @@ void RodGraphicsObject::setup()
     mapper->SetInputConnection(tangents->GetOutputPort());
     _vtk_actor->SetMapper(mapper);
 
-    std::optional<std::string> orm_file = _render_config->ormTextureFilename();
+    std::optional<std::string> orm_file = _render_config.ormTextureFilename();
     if (orm_file.has_value())
     {
         vtkNew<vtkPNGReader> orm_reader;
@@ -82,7 +82,7 @@ void RodGraphicsObject::setup()
         _vtk_actor->GetProperty()->SetORMTexture(material);
     }
 
-    std::optional<std::string> base_color_file = _render_config->baseColorTextureFilename();
+    std::optional<std::string> base_color_file = _render_config.baseColorTextureFilename();
     if (base_color_file.has_value())
     {
         vtkNew<vtkPNGReader> color_reader;
@@ -94,7 +94,7 @@ void RodGraphicsObject::setup()
         _vtk_actor->GetProperty()->SetBaseColorTexture(color);
     }
 
-    std::optional<std::string> normals_file = _render_config->normalsTextureFilename();
+    std::optional<std::string> normals_file = _render_config.normalsTextureFilename();
     if (normals_file.has_value())
     {
         vtkNew<vtkPNGReader> normals_reader;
@@ -109,11 +109,11 @@ void RodGraphicsObject::setup()
 
     
 
-    const Vec3r& solid_color = _render_config->color();
+    const Vec3r& solid_color = _render_config.color();
     _vtk_actor->GetProperty()->SetColor(solid_color[0], solid_color[1], solid_color[2]);
 
-    _vtk_actor->GetProperty()->SetMetallic(_render_config->metallic());
-    _vtk_actor->GetProperty()->SetRoughness(_render_config->roughness());
+    _vtk_actor->GetProperty()->SetMetallic(_render_config.metallic());
+    _vtk_actor->GetProperty()->SetRoughness(_render_config.roughness());
 }
 
 void RodGraphicsObject::update()

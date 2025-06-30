@@ -20,7 +20,7 @@ class RodGraphicsObject
 {
 
     public:
-    explicit RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* render_config);
+    explicit RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
     void setup();
     void update();
@@ -39,7 +39,7 @@ class RodGraphicsObject
     vtkSmartPointer<vtkPolyDataMapper> _vtk_poly_data_mapper;
     vtkSmartPointer<vtkActor> _vtk_actor;
 
-    const Config::ObjectRenderConfig* _render_config;
+    Config::ObjectRenderConfig _render_config;
 
 
 

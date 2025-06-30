@@ -14,7 +14,8 @@ class SimulationRenderConfig : public Config
     explicit SimulationRenderConfig()
         : Config()
     {
-
+        std::cout << "Default constructor" << std::endl;
+        assert(0);
     }
 
     explicit SimulationRenderConfig(const YAML::Node& node)

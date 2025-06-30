@@ -52,7 +52,7 @@ class XPBDRod
         _cross_section = std::make_unique<CrossSectionType_>(cross_section);
     }
 
-    const std::vector<Node> nodes() const { return _nodes; }
+    const std::vector<Node>& nodes() const { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
     void setup();

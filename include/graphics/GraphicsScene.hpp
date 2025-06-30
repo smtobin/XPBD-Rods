@@ -33,7 +33,7 @@ class GraphicsScene
 
     void update();
 
-    void addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* render_config);
+    void addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
     private:
     vtkSmartPointer<vtkOpenGLRenderer> _renderer;

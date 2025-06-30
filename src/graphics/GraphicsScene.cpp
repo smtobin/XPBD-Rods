@@ -41,8 +41,6 @@ namespace Graphics
 GraphicsScene::GraphicsScene(const Config::SimulationRenderConfig& render_config)
     : _should_render(false), _render_config(render_config)
 {
-    std::optional<std::string> hdr_filename = render_config.hdrImageFilename();
-    std::cout << "hdr has value: " << hdr_filename.has_value() << std::endl;
 }
 
 GraphicsScene::GraphicsScene()
@@ -75,7 +73,7 @@ void GraphicsScene::setup()
     }
     
 
-    _renderer->SetBackground(1.0, 1.0, 1.0);
+    _renderer->SetBackground(0.3, 0.3, 0.3);
     _renderer->SetAutomaticLightCreation(false);
 
     //////////////////////////////////////////////////////////
@@ -83,7 +81,6 @@ void GraphicsScene::setup()
     /////////////////////////////////////////////////////////
 
     std::optional<std::string> hdr_filename = _render_config.hdrImageFilename();
-    std::cout << "hdr has value: " << hdr_filename.has_value() << std::endl;
     if (hdr_filename.has_value())
     {
         vtkNew<vtkTexture> hdr_texture;
@@ -114,8 +111,12 @@ void GraphicsScene::setup()
     ////////////////////////////////////////////////////////
 
     vtkNew<vtkLight> light;
-    light->SetPosition(0.0, 10, 0.0);
-    light->SetFocalPoint(0, 0, 0);
+    light->SetLightTypeToSceneLight();
+    light->SetPositional(true);
+    light->SetPosition(0.0, 10, 0);
+    light->SetFocalPoint(0,0,0);
+    light->SetConeAngle(90);
+    light->SetAttenuationValues(1,0,0);
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
     _renderer->AddLight(light);
@@ -216,7 +217,7 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig* render_config)
+void GraphicsScene::addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
 {
     _rod_graphics_objects.emplace_back(rod, render_config);
     _rod_graphics_objects.back().setup();

@@ -65,9 +65,9 @@ class ObjectRenderConfig : public Config
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PHONG); 
 
     // PBR texture filenames
-    ConfigParameter<std::optional<std::string>> _orm_texture_filename = ConfigParameter<std::optional<std::string>>("");
-    ConfigParameter<std::optional<std::string>> _normals_texture_filename = ConfigParameter<std::optional<std::string>>("");
-    ConfigParameter<std::optional<std::string>> _base_color_texture_filename = ConfigParameter<std::optional<std::string>>("");
+    ConfigParameter<std::optional<std::string>> _orm_texture_filename = ConfigParameter<std::optional<std::string>>(std::nullopt);
+    ConfigParameter<std::optional<std::string>> _normals_texture_filename = ConfigParameter<std::optional<std::string>>(std::nullopt);
+    ConfigParameter<std::optional<std::string>> _base_color_texture_filename = ConfigParameter<std::optional<std::string>>(std::nullopt);
 
     ConfigParameter<Real> _metallic = ConfigParameter<Real>(0.0);
     ConfigParameter<Real> _roughness = ConfigParameter<Real>(0.5);

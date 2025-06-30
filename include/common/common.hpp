@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <math.h>
+#include <iostream>
 
 /* Escape sequences to set print colors */
 #define RST  "\x1B[0m"

@@ -16,11 +16,11 @@ Simulation::Simulation()
 
 }
 
-Simulation::Simulation(const Config::SimulationConfig& sim_config, const Config::SimulationRenderConfig& sim_render_config)
+Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
     _time_step(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
     _viewer_refresh_time_ms(1000.0/30.0),
-    _graphics_scene(sim_render_config),
+    _graphics_scene(sim_config.renderConfig()),
     _config(sim_config)
 {
 
@@ -35,6 +35,7 @@ void Simulation::setup()
     _graphics_scene.setup();
 
     // create rod(s)
+    _rods.reserve(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
     for (const auto& rod_config : _config.rodConfigs())
     {
         Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
@@ -45,7 +46,7 @@ void Simulation::setup()
         _rods.back().setup();
 
         // add new rod to graphics scene to be visualized
-        _graphics_scene.addObject(&_rods.back(), &rod_config.renderConfig());
+        _graphics_scene.addObject(&_rods.back(), rod_config.renderConfig());
     }
 
 

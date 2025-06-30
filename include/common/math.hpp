@@ -102,6 +102,8 @@ static Mat3r RotMatFromXYZEulerAngles(const Vec3r& euler_xyz)
     rot_mat(2,0) = -std::sin(y);
     rot_mat(2,1) = std::sin(x)*std::cos(y);
     rot_mat(2,2) = std::cos(x)*std::cos(y);
+
+    return rot_mat;
 }
 
 };
