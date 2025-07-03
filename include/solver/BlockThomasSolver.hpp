@@ -102,6 +102,23 @@ class SymmetricBlockThomasSolver
             x.template block<BlockSize, 1>(BlockSize*i, 0) = 
                 _H_ii[i].matrixU().solve( _c_i[i] - _H_iplus1_i[i] * x.template block<BlockSize, 1>(BlockSize*(i+1), 0) );
         }
+
+        // for (unsigned i = 0; i < _H_ii.size(); i++)
+        // {
+        //     std::cout << "H_ii[" << i << "].matrixL:\n" << BlockMatType(_H_ii[i].matrixL()) << std::endl;
+        // }
+
+        // for (unsigned i = 0; i < _H_iplus1_i.size(); i++)
+        // {
+        //     std::cout << "H_iplus1_i[" << i << "]:\n" << _H_iplus1_i[i] << std::endl;
+        // }
+
+        // for (unsigned i = 0; i < _c_i.size(); i++)
+        // {
+        //     std::cout << "c_i[" << i << "]:\n" << _c_i[i] << std::endl;
+        // }
+
+        // std::cout << "x:\n" << x << std::endl;
     }
 
     void setNumDiagBlocks(int num_diag_blocks)

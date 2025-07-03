@@ -44,6 +44,12 @@ target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} Rod Solver Graph
 add_executable(TestThomas test/test_thomas.cpp)
 target_link_libraries(TestThomas Solver Eigen3::Eigen)
 
+add_executable(TestBanded test/test_banded.cpp)
+target_link_libraries(TestBanded Solver Eigen3::Eigen)
+
+add_executable(TestThomasVsBanded test/test_thomas_vs_banded.cpp)
+target_link_libraries(TestThomasVsBanded Solver Eigen3::Eigen)
+
 add_executable(TestVTK test/test_vtk.cpp)
 target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} Rod)
 
