@@ -55,18 +55,23 @@ class SymmetricBlockBandedSolver
             x.block<BlockSize,1>(BlockSize*i,0) = _modified_diagonal[i].matrixU().solve(rhs);
         }
 
-        // for (int i = 0; i < _modified_diagonal.size(); i++)
+        // for (unsigned i = 0; i < _modified_diagonal.size(); i++)
         // {
         //     std::cout << "mod_diag[" << i << "].matrixL:\n" << BlockMatType(_modified_diagonal[i].matrixL()) << std::endl;
         // }
-        // for (int i = 0; i < _modified_off_diagonals[0].size(); i++)
+        // for (unsigned i = 0; i < _modified_off_diagonals[0].size(); i++)
         // {
         //     std::cout << "mod_off_diag[0][" << i << "]:\n" << _modified_off_diagonals[0][i] << std::endl;
         // }
 
+        // for (unsigned i = 0; i < _modified_off_diagonals[1].size(); i++)
+        // {
+        //     std::cout << "mod_off_diag[1][" << i << "]:\n" << _modified_off_diagonals[1][i] << std::endl;
+        // }
+
         // std::cout << "b:\n" << b << std::endl;
 
-        std::cout << "x:\n" << x << std::endl;
+        // std::cout << "x:\n" << x << std::endl;
 
     }
 

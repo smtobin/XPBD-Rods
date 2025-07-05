@@ -5,9 +5,9 @@
 #include <iostream>
 #include <chrono>
 
-constexpr static int NumIters = 1;
-constexpr static int BlockSize = 2;
-constexpr static int NumBlocks = 6;
+constexpr static int NumIters = 20;
+constexpr static int BlockSize = 6;
+constexpr static int NumBlocks = 100;
 constexpr static int Bandwidth = 2;
 using BandedSolverType = Solver::SymmetricBlockBandedSolver<BlockSize>;
 
@@ -20,7 +20,7 @@ BandedSolverType::BlockMatType generateRandomSPDBlockMat()
     mat = 0.5*(mat*mat.transpose());
 
     // make diagonally dominant
-    mat += BandedSolverType::BlockSize * BandedSolverType::BlockMatType::Identity();
+    mat += BandedSolverType::BlockSize * NumBlocks * BandedSolverType::BlockMatType::Identity();
 
     return mat;
 }
@@ -49,11 +49,8 @@ MatXr fullMatFromDiagonals(std::vector<std::vector<BandedSolverType::BlockMatTyp
 
 int main() 
 {
-    std::vector<BandedSolverType::BlockMatType> A_diag_vec(NumBlocks);
-    std::vector<BandedSolverType::BlockMatType> A_off_diag_vec(NumBlocks-1);
-    VecXr b = VecXr::Random(NumBlocks*BlockSize);
-
-    std::cout << "=== BANDED SOLVER ===" << std::endl;
+    
+    // create diagonals of matrix according to bandwidth
     std::vector<std::vector<BandedSolverType::BlockMatType>> diagonals(Bandwidth+1);
     for (int b = 0; b < Bandwidth+1; b++)
     {
@@ -70,34 +67,43 @@ int main()
             }
         }
     }
-
-    VecXr x1(NumBlocks*BlockSize);
-    BandedSolverType banded_solver(Bandwidth, NumBlocks);
-    banded_solver.solve(diagonals, b, x1);
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < NumIters; i++)
-        banded_solver.solve(diagonals, b, x1);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    const double ms1 = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() / 1.0e6;
-    std::cout << "Elapsed solve time (" <<  NumIters << " iterations): " << ms1 << " ms" << std::endl;
-    std::cout << "Average time per solve: " << ms1 / NumIters << " ms" << std::endl;
-
-    std::cout << "=== FULL MATRIX SOLVER ===" << std::endl;
+    VecXr b = VecXr::Random(NumBlocks*BlockSize);
     MatXr full_mat = fullMatFromDiagonals(diagonals);
 
+    // test banded solver
+    std::cout << "=== BANDED SOLVER ===" << std::endl;
+    
 
-    VecXr x2(NumBlocks*BlockSize);
-    auto t3 = std::chrono::high_resolution_clock::now();
+    VecXr x_banded(NumBlocks*BlockSize);
+    BandedSolverType banded_solver(Bandwidth, NumBlocks);
+
+    auto t_start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < NumIters; i++)
-        x2 = full_mat.ldlt().solve(b);
-    auto t4 = std::chrono::high_resolution_clock::now();
-    const double ms2 = std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count() / 1.0e6;
-    std::cout << "Elapsed solve time (" <<  NumIters << " iterations): " << ms2 << " ms" << std::endl;
-    std::cout << "Average time per solve: " << ms2 / NumIters << " ms" << std::endl;
+        banded_solver.solve(diagonals, b, x_banded);
+    auto t_end = std::chrono::high_resolution_clock::now();
+    double ms_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t_end - t_start).count() / 1.0e6;
+    std::cout << "Elapsed solve time (" <<  NumIters << " iterations): " << ms_elapsed << " ms" << std::endl;
+    std::cout << "Average time per solve: " << ms_elapsed / NumIters << " ms" << std::endl;
 
-    std::cout << "Full mat:\n" << full_mat << std::endl;
-    std::cout << "x:\n" << x2 << std::endl;
+    std::cout << "Solution residual: " << (full_mat * x_banded - b).norm() << std::endl;
 
-    std::cout << "Residual: " << (x1 - x2).norm() << std::endl;
+    std::cout << "\n=== FULL MATRIX LLT SOLVER ===" << std::endl;
+
+
+    VecXr x_llt(NumBlocks*BlockSize);
+    t_start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < NumIters; i++)
+    {
+        Eigen::LLT<Eigen::MatrixXd> full_llt(full_mat);
+        if (!full_mat.isApprox(full_mat.transpose()) || full_llt.info() == Eigen::NumericalIssue)
+            throw std::runtime_error("Possibly non semi-positive definite full matrix!");
+
+        x_llt = full_llt.solve(b);
+    }
+    t_end = std::chrono::high_resolution_clock::now();
+    ms_elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t_end - t_start).count() / 1.0e6;
+    std::cout << "Elapsed solve time (" <<  NumIters << " iterations): " << ms_elapsed << " ms" << std::endl;
+    std::cout << "Average time per solve: " << ms_elapsed / NumIters << " ms" << std::endl;
+
+    std::cout << "Solution residual: " << (full_mat * x_llt - b).norm() << std::endl;
 }
