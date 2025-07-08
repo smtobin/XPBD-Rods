@@ -4,7 +4,10 @@
 #include "common/common.hpp"
 
 #include "rod/CrossSection.hpp"
+#include "rod/XPBDRodNode.hpp"
 #include "solver/BlockThomasSolver.hpp"
+#include "constraint/RodElasticConstraint.hpp"
+#include "constraint/AttachmentConstraint.hpp"
 
 #include <memory>
 
@@ -14,14 +17,6 @@ namespace Rod
 class XPBDRod
 {
     public:
-
-    struct Node
-    {
-        Vec3r position;
-        Vec3r velocity;
-        Mat3r orientation;
-        Vec3r ang_velocity;
-    };
 
     template <typename CrossSectionType_>
     XPBDRod(int num_nodes, Real length, Real density, Real E, Real nu, const Vec3r& p0, const Mat3r& R0, 
@@ -36,13 +31,14 @@ class XPBDRod
 
         // initialize rod state
         _nodes.resize(num_nodes);
-
+        _nodes[0].index = 0;
         _nodes[0].position = p0;
         _nodes[0].velocity = Vec3r(0,0,0);
         _nodes[0].orientation = R0;
         _nodes[0].ang_velocity = Vec3r(0,0,0);
         for (int i = 1; i < _num_nodes; i++)
         {
+            _nodes[i].index = i;
             _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));
             _nodes[i].velocity = _nodes[i-1].velocity;
             _nodes[i].orientation = _nodes[i-1].orientation;
@@ -52,7 +48,7 @@ class XPBDRod
         _cross_section = std::make_unique<CrossSectionType_>(cross_section);
     }
 
-    const std::vector<Node>& nodes() const { return _nodes; }
+    const std::vector<XPBDRodNode>& nodes() const { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
     void setup();
@@ -103,10 +99,13 @@ class XPBDRod
 
     std::unique_ptr<CrossSection> _cross_section;
 
-    std::vector<Node> _nodes;
-    std::vector<Node> _prev_nodes;
+    std::vector<XPBDRodNode> _nodes;
+    std::vector<XPBDRodNode> _prev_nodes;
 
     Solver::SymmetricBlockThomasSolver<6> _solver;
+
+    std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
+    std::vector<Constraint::AttachmentConstraint> _attachment_constraints;
 
 
 };

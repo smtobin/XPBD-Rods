@@ -1,6 +1,8 @@
 #include "rod/XPBDRod.hpp"
 #include "common/math.hpp"
 
+#include "constraint/RodElasticConstraint.hpp"
+
 #include <iostream>
 
 namespace Rod
@@ -9,6 +11,20 @@ namespace Rod
 void XPBDRod::setup()
 {
     _dl = _length / (_num_nodes - 1);
+    
+    Vec6r alpha_elastic = 1/_dl * Vec6r( 1.0 / (_G * _cross_section->area()), 1.0 / (_G * _cross_section->area()), 1.0 / (_E * _cross_section->area()),
+                                         1.0 / (_E * _cross_section->Ix()),   1.0 / (_E * _cross_section->Iy()),   1.0 / (_G * _cross_section->Iz()) );
+    // create elastic constraints
+    _elastic_constraints.reserve(_num_nodes-1);
+    for (int i = 0; i < _num_nodes-1; i++)
+    {
+        _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], alpha_elastic);
+    }
+
+    // add a rigid attachment constraint at the base
+    _attachment_constraints.emplace_back(&_nodes[0], Vec6r::Zero(), _nodes[0].position, _nodes[0].orientation);
+
+    
     // std::cout << "_dl: " << _dl << std::endl;
 
     // compute mass/inertia properties
@@ -69,7 +85,7 @@ void XPBDRod::update(Real dt, Real g_accel)
         {
             _diag_CMC_blocks[ci] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _off_diag_gradient_blocks[ci-1].transpose() +
                 _diag_gradient_blocks[ci] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci].transpose();
-            _diag_CMC_blocks[ci] += (_alpha(Eigen::seqN(6,6)) / (dt*dt)).asDiagonal();
+            _diag_CMC_blocks[ci] += (_elastic_constraints[ci-1].alpha() / (dt*dt)).asDiagonal();
             
             _off_diag_CMC_blocks[ci-1] = _off_diag_gradient_blocks[ci-1] * inertia_mat_inv_node.asDiagonal() * _diag_gradient_blocks[ci-1].transpose();
         }
@@ -133,33 +149,19 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
         // if (i==_num_nodes - 1)
         //     T_ext = Vec3r(0,0,10000);
         Vec3r so3_update = dt*node.ang_velocity + dt*dt*_I_rot_inv.asDiagonal()*(T_ext - node.ang_velocity.cross(_I_rot.asDiagonal()*node.ang_velocity));
-        // std::cout << "ang velocity:\n" << node.ang_velocity << std::endl;
-        // std::cout << "so3_update:\n" << so3_update << std::endl;
         node.orientation = Math::Plus_SO3(node.orientation, so3_update);
-
-        // std::cout << "Node " << i << " position:\n" << node.position << std::endl;
-        // std::cout << "Node " << i << " orientation:\n" << node.orientation << std::endl;
     }
 }
 
 void XPBDRod::_computeConstraintVec()
 {
     // fixed base constraint
-    _C_vec( Eigen::seqN(0,3) ) = _nodes[0].position - _prev_nodes[0].position;
-    _C_vec( Eigen::seqN(3,3) ) = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
+    _C_vec( Eigen::seqN(0,6) ) = _attachment_constraints[0].evaluate();
 
     // elastic rod constraints
-    for (int ci = 1; ci < _num_nodes; ci++)
+    for (int ci = 0; ci < _num_nodes-1; ci++)
     {
-        // computing the constraints for the (ci)th segment, which involves nodes (ci-1) and ci
-        const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
-        // std::cout << "dp:\n" << dp << std::endl;
-        const Vec3r C_v = (_nodes[ci].orientation.transpose() + _nodes[ci-1].orientation.transpose()) * 0.5 * dp / _dl - Vec3r(0,0,1);
-        const Vec3r C_u = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation) / _dl;
-
-        // std::cout << "Cv_" << ci << ":\n" << C_v << std::endl;
-        _C_vec( Eigen::seqN(6*ci,3) ) = C_v;
-        _C_vec( Eigen::seqN(6*ci+3,3) ) = C_u;
+        _C_vec( Eigen::seqN(6*(ci+1),6) ) = _elastic_constraints[ci].evaluate();
     }
 }
 
@@ -202,36 +204,14 @@ void XPBDRod::_computeConstraintGradients()
 void XPBDRod::_computeConstraintGradientBlocks()
 {
     // fixed base constraint gradient
-    const Vec3r dtheta0 = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
-    const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
-    _diag_gradient_blocks[0].block<3,3>(0,0) = Mat3r::Identity();
-    _diag_gradient_blocks[0].block<3,3>(3,3) = jac_inv0;
+    _diag_gradient_blocks[0] = _attachment_constraints[0].gradient();
 
     // elastic rod constraints
-    for (int ci = 1; ci < _num_nodes; ci++)
+    for (int ci = 0; ci < _num_nodes-1; ci++)
     {
-        // computing the constraint gradients for the (ci)th segment, which involves nodes (ci-1) and ci
-        const Mat3r dCv_dp_iminus1 = -0.5*(_nodes[ci-1].orientation.transpose() + _nodes[ci].orientation.transpose()) / _dl;
-        const Mat3r dCv_dp_i = -dCv_dp_iminus1;
-        
-        const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
-        const Mat3r dCv_dor_iminus1 = 0.5*Math::Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
-        const Mat3r dCv_dor_i = 0.5*Math::Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
-
-        const Vec3r dtheta = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-        const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
-        const Mat3r dCu_dor_i = jac_inv / _dl;
-
-        _diag_gradient_blocks[ci].block<3,3>(0,0) = dCv_dp_i;
-        _diag_gradient_blocks[ci].block<3,3>(0,3) = dCv_dor_i;
-        _diag_gradient_blocks[ci].block<3,3>(3,0) = Mat3r::Zero();
-        _diag_gradient_blocks[ci].block<3,3>(3,3) = dCu_dor_i;
-
-        _off_diag_gradient_blocks[ci-1].block<3,3>(0,0) = dCv_dp_iminus1;
-        _off_diag_gradient_blocks[ci-1].block<3,3>(0,3) = dCv_dor_iminus1;
-        _off_diag_gradient_blocks[ci-1].block<3,3>(3,0) = Mat3r::Zero();
-        _off_diag_gradient_blocks[ci-1].block<3,3>(3,3) = dCu_dor_iminus1;
+        const Constraint::RodElasticConstraint::GradientMatType gradient = _elastic_constraints[ci].gradient();
+        _diag_gradient_blocks[ci+1] = gradient.block<6,6>(0,6);
+        _off_diag_gradient_blocks[ci] = gradient.block<6,6>(0,0);
     }
 
     

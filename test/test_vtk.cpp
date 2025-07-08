@@ -43,7 +43,7 @@
 
 void createRodPolyData(const Rod::XPBDRod* rod, vtkPolyData* rod_poly_data)
 {
-    const std::vector<Rod::XPBDRod::Node>& nodes = rod->nodes();
+    const std::vector<Rod::XPBDRodNode>& nodes = rod->nodes();
     const std::vector<Vec3r>& cross_section_points = rod->crossSection()->crossSectionPoints();
     int num_vertices = nodes.size() * cross_section_points.size() + 2;
 

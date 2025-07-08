@@ -124,7 +124,7 @@ void RodGraphicsObject::update()
 
 void RodGraphicsObject::_generateInitialPolyData()
 {
-    const std::vector<Rod::XPBDRod::Node>& nodes = _rod->nodes();
+    const std::vector<Rod::XPBDRodNode>& nodes = _rod->nodes();
     const std::vector<Vec3r>& cross_section_points = _rod->crossSection()->crossSectionPoints();
 
     // insert cross-section vertices
@@ -236,7 +236,7 @@ void RodGraphicsObject::_updatePolyData()
 {
     // TODO: use vtkPoints::setData and vtkFloatArray? supposed to be faster
 
-    const std::vector<Rod::XPBDRod::Node>& nodes = _rod->nodes();
+    const std::vector<Rod::XPBDRodNode>& nodes = _rod->nodes();
     const std::vector<Vec3r>& cross_section_points = _rod->crossSection()->crossSectionPoints();
 
     vtkPoints* points = _vtk_poly_data->GetPoints();

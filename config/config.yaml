@@ -11,9 +11,10 @@ rods:
     name: "rod1"
     initial-base-position: [0, 0.1, -0.5]
     initial-base-rotation: [-60, 0, 0]
-
+    nodes: 50
     render-type: "PBR"
-    orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 1.0
-    roughness: 1.0
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]

@@ -29,9 +29,13 @@ add_library(Solver)
 add_subdirectory("src/solver")
 target_link_libraries(Solver Eigen3::Eigen)
 
+add_library(Constraint)
+add_subdirectory("src/constraint")
+target_link_libraries(Constraint Eigen3::Eigen)
+
 add_library(Rod)
 add_subdirectory("src/rod")
-target_link_libraries(Rod Eigen3::Eigen)
+target_link_libraries(Rod Eigen3::Eigen Constraint)
 
 add_library(Graphics)
 add_subdirectory("src/graphics")
