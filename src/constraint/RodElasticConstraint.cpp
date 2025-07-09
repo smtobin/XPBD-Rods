@@ -24,7 +24,7 @@ RodElasticConstraint::ConstraintVecType RodElasticConstraint::evaluate() const
     return C;
 }
 
-RodElasticConstraint::GradientMatType RodElasticConstraint::gradient() const
+RodElasticConstraint::GradientMatType RodElasticConstraint::gradient(bool update_cache) const
 {
     GradientMatType grad;  // 6x12 matrix
     // computing the constraint gradients for the (ci)th segment, which involves nodes (ci-1) and ci
@@ -50,11 +50,31 @@ RodElasticConstraint::GradientMatType RodElasticConstraint::gradient() const
     grad.block<3,3>(3, 6) = Mat3r::Zero();
     grad.block<3,3>(3, 9) = dCu_dor2;
 
+    // update cache if specified to
+    if (update_cache)
+    {
+        _cached_gradients[0] = grad.block<6,6>(0,0);
+        _cached_gradients[1] = grad.block<6,6>(0,6);
+    }
+    
+
     return grad;
 }
 
-RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNodeGradient(int node_index) const
+RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNodeGradient(int node_index, bool use_cache) const
 {
+    if (use_cache)
+    {
+        if (node_index == _node1->index)
+        {
+            return _cached_gradients[0];
+        }
+        else if (node_index == _node2->index)
+        {
+            return _cached_gradients[1];
+        }
+    }
+
     if (node_index == _node1->index)
     {
         const Mat3r dCv_dp1 = -0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;

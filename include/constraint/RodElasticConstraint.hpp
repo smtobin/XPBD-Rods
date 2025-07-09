@@ -14,9 +14,9 @@ class RodElasticConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2
     RodElasticConstraint(const Rod::XPBDRodNode* node1, const Rod::XPBDRodNode* node2, const AlphaVecType& alpha);
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient() const override;
+    virtual GradientMatType gradient(bool update_cache=true) const override;
 
-    virtual SingleNodeGradientMatType singleNodeGradient(int node_index) const override;
+    virtual SingleNodeGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const override;
 
 
     private:

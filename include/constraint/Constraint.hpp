@@ -20,6 +20,7 @@ class XPBDConstraint
     using GradientMatType = Eigen::Matrix<Real, ConstraintDim_, StateDim>;
     using SingleNodeGradientMatType = Eigen::Matrix<Real, ConstraintDim_, Rod::XPBDRodNode::NODE_DOF>; 
     using NodeIndexArray = std::array<int, NumNodes>;
+    using CachedSingleNodeGradientArray = std::array<SingleNodeGradientMatType, NumNodes>;
 
     public:
     XPBDConstraint(const AlphaVecType& alpha)
@@ -28,9 +29,9 @@ class XPBDConstraint
     }
 
     virtual ConstraintVecType evaluate() const = 0;
-    virtual GradientMatType gradient() const = 0;
+    virtual GradientMatType gradient(bool update_cache=true) const = 0;
 
-    virtual SingleNodeGradientMatType singleNodeGradient(int node_index) const = 0;
+    virtual SingleNodeGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const = 0;
 
     const AlphaVecType& alpha() const { return _alpha; }
     const NodeIndexArray& nodeIndices() const { return _node_indices; }
@@ -38,6 +39,7 @@ class XPBDConstraint
     protected:
     AlphaVecType _alpha;
     NodeIndexArray _node_indices;
+    mutable CachedSingleNodeGradientArray _cached_gradients;
 };
 
 } // namespace Constraint

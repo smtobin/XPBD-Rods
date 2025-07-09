@@ -20,7 +20,7 @@ AttachmentConstraint::ConstraintVecType AttachmentConstraint::evaluate() const
     return C;
 }
 
-AttachmentConstraint::GradientMatType AttachmentConstraint::gradient() const
+AttachmentConstraint::GradientMatType AttachmentConstraint::gradient(bool update_cache) const
 {
     GradientMatType grad = GradientMatType::Zero();
     // fixed base constraint gradient
@@ -29,13 +29,21 @@ AttachmentConstraint::GradientMatType AttachmentConstraint::gradient() const
     grad.block<3,3>(0,0) = Mat3r::Identity();
     grad.block<3,3>(3,3) = jac_inv0;
 
+    if (update_cache)
+    {
+        _cached_gradients[0] = grad;
+    }
+
     return grad;
 }
 
-AttachmentConstraint::SingleNodeGradientMatType AttachmentConstraint::singleNodeGradient(int node_index) const
+AttachmentConstraint::SingleNodeGradientMatType AttachmentConstraint::singleNodeGradient(int node_index, bool use_cache) const
 {
     if (node_index == _node->index)
     {
+        if (use_cache)
+            return _cached_gradients[0];
+        
         SingleNodeGradientMatType grad = SingleNodeGradientMatType::Zero();
         // fixed base constraint gradient
         const Vec3r dtheta0 = Math::Minus_SO3(_node->orientation, _ref_orientation);

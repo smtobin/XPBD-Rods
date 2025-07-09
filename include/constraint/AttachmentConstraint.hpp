@@ -13,9 +13,9 @@ class AttachmentConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 1
     AttachmentConstraint(const Rod::XPBDRodNode* node, const AlphaVecType& alpha, const Vec3r& ref_position, const Mat3r& ref_orientation);
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient() const override;
+    virtual GradientMatType gradient(bool update_cache=true) const override;
 
-    virtual SingleNodeGradientMatType singleNodeGradient(int node_index) const override;
+    virtual SingleNodeGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const override;
 
     const Vec3r& referencePosition() const { return _ref_position; }
     void setReferencePosition(const Vec3r& new_pos) { _ref_position = new_pos; }

@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <set>
+#include <variant>
 
 namespace Rod
 {
@@ -19,6 +20,7 @@ namespace Rod
 class XPBDRod
 {
     public:
+    using ConstraintConstPtrVariantType = std::variant<const Constraint::RodElasticConstraint*, const Constraint::AttachmentConstraint*>;
 
     template <typename CrossSectionType_>
     XPBDRod(int num_nodes, Real length, Real density, Real E, Real nu, const Vec3r& p0, const Mat3r& R0, 
@@ -64,6 +66,8 @@ class XPBDRod
     void _positionUpdate();
     void _velocityUpdate(Real dt);
 
+    int _orderConstraints();
+
     struct ConstraintGradientProduct
     {
         ConstraintGradientProduct(const Vec6r& node_inv_inertia_mat) : _node_inv_inertia_mat(node_inv_inertia_mat) { }
@@ -104,13 +108,13 @@ class XPBDRod
             
             for (const auto& node_index : overlapping_indices)
             {
-                grad_prod += constraint1->singleNodeGradient(node_index) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleNodeGradient(node_index).transpose();
+                grad_prod += constraint1->singleNodeGradient(node_index, true) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleNodeGradient(node_index, true).transpose();
             }
 
             return grad_prod;
         }
 
-        Vec6r _node_inv_inertia_mat;
+        const Vec6r& _node_inv_inertia_mat;
     };
 
     struct ComputePositionUpdateForConstraint
@@ -124,7 +128,7 @@ class XPBDRod
             typename ConstraintType::NodeIndexArray node_indices = constraint->nodeIndices();
             for (const auto& node_index : node_indices)
             {
-                (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index).transpose() * _dlam_ptr;
+                (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index, true).transpose() * _dlam_ptr;
             }
         }
 
@@ -154,33 +158,44 @@ class XPBDRod
     // pre-allocated vectors to store constraints and constraint gradients
     VecXr _C_vec;
     MatXr _delC_mat;
-    MatXr _LHS_mat;
     VecXr _RHS_vec;
     VecXr _inertia_mat_inv;
-    VecXr _alpha;
     VecXr _lambda;
     VecXr _dlam;
     VecXr _dx;
 
-    std::vector<Mat6r> _diag_gradient_blocks;
-    std::vector<Mat6r> _off_diag_gradient_blocks;
-
-    std::vector<Mat6r> _diag_CMC_blocks;
-    std::vector<Mat6r> _off_diag_CMC_blocks;
+    // diagonals of the lambda system matrix (fed into the solver)
+    std::vector<std::vector<Mat6r>> _diagonals;
 
     std::unique_ptr<CrossSection> _cross_section;
 
     std::vector<XPBDRodNode> _nodes;
     std::vector<XPBDRodNode> _prev_nodes;
 
-    // Solver::SymmetricBlockThomasSolver<6> _solver;
+    /** Solves the linear lambda system.
+     * The lambda system matrix has a block-banded structure, so we can solve the linear system in O(n) time.
+     */
     Solver::SymmetricBlockBandedSolver<6> _solver;
-
+    
+    /** Stores the elastic rod constraints.
+     * One elastic rod constraint is defined per each rod segment between two nodes (so there is N-1 elastic constraints).
+     * The elastic constraints penalize strain energy in the rod.
+     */
     std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
 
-    // store attachment constraints in a multiset so that they are ordered (according to node index they apply to)
+    /** Stores attachment constraints.
+     * Attachment constraints are external constraints that fix a node (potentially with some compliance) to some reference position and orientation.
+     * We store them in a multiset that sorts the attachment constraints by node index. Having a sorted container makes it much easier to order all the constraints properly.
+     */
     std::multiset<Constraint::AttachmentConstraint> _attachment_constraints;
 
+    /** All constraints will be "ordered" based on which nodes they affect.
+     *   i.e. constraints that affect node 0 will come before constraints that affect node 1, etc.
+     * This creates a block banded structure in the lambda system matrix that we can solve efficiently with a block banded solver.
+     * Since the elastic rod constraints don't change throughout the simulation, we only need to recompute the ordering of constraints when a new
+     * external constraint (such as an attachment constraint) is added.
+     */
+    std::vector<ConstraintConstPtrVariantType> _ordered_constraints;
 
 };
 

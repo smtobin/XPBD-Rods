@@ -34,6 +34,11 @@ class SymmetricBlockBandedSolver
     {
         std::vector<std::vector<BlockMatType>> diagonals = input_diagonals;
         VecXr b = input_b;
+        solveInPlace(diagonals, b, x);
+    }
+
+    void solveInPlace(std::vector<std::vector<BlockMatType>>& diagonals, VecXr& b, VecXr& x)
+    {
         for (int i = 0; i < _N; i++)
         {
             _reduceSubsystem(i, diagonals, b);
@@ -54,24 +59,27 @@ class SymmetricBlockBandedSolver
 
             x.block<BlockSize,1>(BlockSize*i,0) = _modified_diagonal[i].matrixU().solve(rhs);
         }
+    }
 
-        // for (unsigned i = 0; i < _modified_diagonal.size(); i++)
-        // {
-        //     std::cout << "mod_diag[" << i << "].matrixL:\n" << BlockMatType(_modified_diagonal[i].matrixL()) << std::endl;
-        // }
-        // for (unsigned i = 0; i < _modified_off_diagonals[0].size(); i++)
-        // {
-        //     std::cout << "mod_off_diag[0][" << i << "]:\n" << _modified_off_diagonals[0][i] << std::endl;
-        // }
+    void setNumDiagBlocks(int num_diag_blocks)
+    {
+        _N = num_diag_blocks;
 
-        // for (unsigned i = 0; i < _modified_off_diagonals[1].size(); i++)
-        // {
-        //     std::cout << "mod_off_diag[1][" << i << "]:\n" << _modified_off_diagonals[1][i] << std::endl;
-        // }
+        _modified_diagonal.resize(num_diag_blocks);
+        for (int i = 0; i < _bandwidth; i++)
+        {
+            _modified_off_diagonals[i].resize(num_diag_blocks);
+        }
+    }
 
-        // std::cout << "b:\n" << b << std::endl;
-
-        // std::cout << "x:\n" << x << std::endl;
+    void setBandwidth(int bandwidth)
+    {
+        _bandwidth = bandwidth;
+        _modified_off_diagonals.resize(_bandwidth);
+        for (int i = 0; i < _bandwidth; i++)
+        {
+            _modified_off_diagonals[i].resize(_N);
+        }
 
     }
 

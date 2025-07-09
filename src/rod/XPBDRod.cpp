@@ -24,9 +24,20 @@ void XPBDRod::setup()
 
     // add a rigid attachment constraint at the base
     _attachment_constraints.emplace(&_nodes[0], Vec6r::Zero(), _nodes[0].position, _nodes[0].orientation);
+    // _attachment_constraints.emplace(&_nodes.back(), Vec6r::Zero(), _nodes.back().position, _nodes.back().orientation);
+    _attachment_constraints.emplace(&_nodes[_num_nodes/2], Vec6r::Zero(), _nodes[_num_nodes/2].position, _nodes[_num_nodes/2].orientation);
 
     
-    // std::cout << "_dl: " << _dl << std::endl;
+
+    // order constraints appropriately
+    int num_diagonals = _orderConstraints();
+    // resize diagonals
+    _diagonals.resize(num_diagonals);
+    for (int i = 0; i < num_diagonals; i++)
+        _diagonals[i].resize(_elastic_constraints.size() + _attachment_constraints.size());
+
+    _solver.setNumDiagBlocks( _ordered_constraints.size() );
+    _solver.setBandwidth(num_diagonals-1);
 
     // compute mass/inertia properties
     _m_total = _length * _cross_section->area() * _density;
@@ -37,128 +48,70 @@ void XPBDRod::setup()
     // std::cout << "I_rot:\n" << _I_rot << std::endl;
     // std::cout << "I_rot_inv:\n" << _I_rot_inv << std::endl;
 
-    _inertia_mat_inv.conservativeResize(6*_num_nodes);
-    for (int i = 0; i < _num_nodes; i++)
-    {
-        _inertia_mat_inv.block<3,1>(6*i,0) = 1.0/_m_node * Vec3r::Ones();
-        _inertia_mat_inv.block<3,1>(6*i+3,0) = _I_rot_inv;
-    }
-
-    _alpha.conservativeResize(6*_num_nodes);
-    _alpha.block<6,1>(0,0) = Vec6r::Zero();
-    for (int i = 1; i < _num_nodes; i++)
-    {
-        _alpha.block<6,1>(6*i,0) = 1/_dl * Vec6r( 1.0 / (_G * _cross_section->area()), 1.0 / (_G * _cross_section->area()), 1.0 / (_E * _cross_section->area()),
-                                                  1.0 / (_E * _cross_section->Ix()),   1.0 / (_E * _cross_section->Iy()),   1.0 / (_G * _cross_section->Iz()) );
-    }
-
     // reserve space for constraints and constraint gradients
-    _C_vec.conservativeResize(6*_num_nodes);
-    _delC_mat.conservativeResize(6*_num_nodes, 6*_num_nodes);
-    _LHS_mat.conservativeResize(6*_num_nodes, 6*_num_nodes);
-    _RHS_vec.conservativeResize(6*_num_nodes);
-    _lambda.conservativeResize(6*_num_nodes);
-    _dlam.conservativeResize(6*_num_nodes);
+    _RHS_vec.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
+    _lambda.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
+    _dlam.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
     _dx.conservativeResize(6*_num_nodes);
-
-    _diag_gradient_blocks.resize(_num_nodes);
-    _off_diag_gradient_blocks.resize(_num_nodes-1);
-
-    _diag_CMC_blocks.resize(_num_nodes);
-    _off_diag_CMC_blocks.resize(_num_nodes-1);
     
 }
 
 void XPBDRod::update(Real dt, Real g_accel)
 {
-    _lambda = VecXr::Zero(6*_num_nodes);
+    _lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
     _prev_nodes = _nodes;
     _inertialUpdate(dt, g_accel);
 
     for (int gi = 0; gi < 1; gi++)
     {
-        // _computeConstraintVec();
-        // _computeConstraintGradients();
-        // _computeConstraintGradientBlocks();
-
-        // compute elastic gradients
-        // std::vector<Constraint::RodElasticConstraint::GradientMatType> _elastic_constraint_gradients(_elastic_constraints.size());
-        // for (unsigned i = 0; i < _elastic_constraints.size(); i++)
-        // {
-        //     _elastic_constraint_gradients[i] = _elastic_constraints[i].gradient();
-        // }
-        // // compute attachment constraint gradients
-        // std::vector<Constraint::AttachmentConstraint::GradientMatType> _attachment_constraint_gradients(_attachment_constraints.size());
-        // int attachment_constraint_index = 0;
-        // for (const auto& attachment_constraint : _attachment_constraints)
-        // {
-        //     _attachment_constraint_gradients[attachment_constraint_index++] = _attachment_constraint.gradient();
-        // }
-        
-        // order constraints
-        std::vector<std::variant<const Constraint::RodElasticConstraint*, const Constraint::AttachmentConstraint*>>
-             _constraints_in_order(_elastic_constraints.size() + _attachment_constraints.size());
-
-        int constraint_index = 0;
-        int num_diagonals = 2;
-        auto attachment_constraints_it = _attachment_constraints.begin();
-        for (unsigned ei = 0; ei < _elastic_constraints.size(); ei++)
+        // compute gradients (this will update the caches in the constraints so we won't have to recompute them)
+        for (auto& c : _elastic_constraints)
         {
-            int num_constraints_affecting_node_i = (ei == 0 || ei == _elastic_constraints.size()-1) ? 1 : 2;
-            while (attachment_constraints_it != _attachment_constraints.end() && attachment_constraints_it->nodeIndices()[0] == _elastic_constraints[ei].nodeIndices()[0])
-            {
-                _constraints_in_order[constraint_index++] = &(*attachment_constraints_it);
-                attachment_constraints_it++;
-                num_constraints_affecting_node_i++;
-            }
-            num_diagonals = std::max(num_constraints_affecting_node_i, num_diagonals);
-            _constraints_in_order[constraint_index++] = &_elastic_constraints[ei];
+            c.gradient(true);
+        }
+
+        for (auto& c : _attachment_constraints)
+        {
+            c.gradient(true);
         }
 
         // compute RHS vector
-        for (unsigned i = 0; i < _constraints_in_order.size(); i++)
+        for (unsigned i = 0; i < _ordered_constraints.size(); i++)
         {    
-            _C_vec( Eigen::seqN(6*i, 6) ) = std::visit([](const auto& constraint_ptr) -> Vec6r {
-                return constraint_ptr->evaluate();
-            }, _constraints_in_order[i]);
+            Vec6r C_i = std::visit([](const auto& constraint_ptr) -> Vec6r { return constraint_ptr->evaluate(); }, _ordered_constraints[i]);
+            Vec6r alpha = std::visit([](const auto& constraint_ptr) -> Vec6r { return constraint_ptr->alpha(); }, _ordered_constraints[i]);
 
-            Vec6r alpha = std::visit([](const auto& constraint_ptr) -> Vec6r {return constraint_ptr->alpha(); }, _constraints_in_order[i]);
-
-            _RHS_vec( Eigen::seqN(6*i, 6) ) = -_C_vec( Eigen::seqN(6*i, 6) ).array() - alpha.array() * _lambda( Eigen::seqN(6*i, 6) ).array() / (dt*dt);
+            _RHS_vec( Eigen::seqN(6*i, 6) ) = -C_i.array() - alpha.array() * _lambda( Eigen::seqN(6*i, 6) ).array() / (dt*dt);
         }
 
         // compute system matrix diagonals
         Vec6r inertia_mat_inv_node(1.0/_m_node, 1.0/_m_node, 1.0/_m_node, _I_rot_inv[0], _I_rot_inv[1], _I_rot_inv[2]); 
-        std::vector<std::vector<Mat6r>> diagonals(num_diagonals);
-        for (int i = 0; i < num_diagonals; i++)
-            diagonals[i].resize(_elastic_constraints.size() + _attachment_constraints.size());
-
-        for (unsigned i = 0; i < _constraints_in_order.size(); i++)
+        for (unsigned i = 0; i < _ordered_constraints.size(); i++)
         {
-            for (int d = 0; d < num_diagonals; d++)
+            for (unsigned d = 0; d < _diagonals.size(); d++)
             {
-                if (i + d >= _constraints_in_order.size())
+                if (i + d >= _ordered_constraints.size())
                     break;
                 
-                diagonals[d][i] = std::visit(ConstraintGradientProduct{inertia_mat_inv_node}, _constraints_in_order[i+d], _constraints_in_order[i]);
+                _diagonals[d][i] = std::visit(ConstraintGradientProduct{inertia_mat_inv_node}, _ordered_constraints[i+d], _ordered_constraints[i]);
             }
 
-            Vec6r alpha = std::visit([](const auto& constraint_ptr) -> Vec6r {return constraint_ptr->alpha(); }, _constraints_in_order[i]);
-            diagonals[0][i] += (alpha / (dt*dt)).asDiagonal();
+            Vec6r alpha = std::visit([](const auto& constraint_ptr) -> Vec6r {return constraint_ptr->alpha(); }, _ordered_constraints[i]);
+            _diagonals[0][i] += (alpha / (dt*dt)).asDiagonal();
         }
         
 
 
         
         // solve system
-        _solver.solve(diagonals, _RHS_vec, _dlam);
+        _solver.solveInPlace(_diagonals, _RHS_vec, _dlam);
 
         // compute position update
         _dx = VecXr::Zero(6*_num_nodes);
-        for (unsigned ci = 0; ci < _constraints_in_order.size(); ci++)
+        for (unsigned ci = 0; ci < _ordered_constraints.size(); ci++)
         {
             const Vec6r& dlam_ci = _dlam( Eigen::seqN(6*ci, 6) );
-            std::visit(ComputePositionUpdateForConstraint{dlam_ci, &_dx, inertia_mat_inv_node}, _constraints_in_order[ci]);
+            std::visit(ComputePositionUpdateForConstraint{dlam_ci, &_dx, inertia_mat_inv_node}, _ordered_constraints[ci]);
         }
 
         // apply position updates
@@ -169,6 +122,39 @@ void XPBDRod::update(Real dt, Real g_accel)
 
 
     _velocityUpdate(dt);
+}
+
+int XPBDRod::_orderConstraints()
+{
+    // order constraints
+    _ordered_constraints.resize(_elastic_constraints.size() + _attachment_constraints.size());
+
+    int constraint_index = 0;
+    int num_diagonals = 2;
+    auto attachment_constraints_it = _attachment_constraints.begin();
+    for (unsigned ei = 0; ei < _elastic_constraints.size(); ei++)
+    {
+        int num_constraints_affecting_node_i = (ei == 0) ? 1 : 2;
+        while (attachment_constraints_it != _attachment_constraints.end() && attachment_constraints_it->nodeIndices()[0] == _elastic_constraints[ei].nodeIndices()[0])
+        {
+            _ordered_constraints[constraint_index++] = &(*attachment_constraints_it);
+            attachment_constraints_it++;
+            num_constraints_affecting_node_i++;
+        }
+        num_diagonals = std::max(num_constraints_affecting_node_i, num_diagonals);
+        _ordered_constraints[constraint_index++] = &_elastic_constraints[ei];
+    }
+
+    int num_constraints_affecting_last_node = 1;
+    while (attachment_constraints_it != _attachment_constraints.end())
+    {
+        _ordered_constraints[constraint_index++] = &(*attachment_constraints_it);
+        attachment_constraints_it++;
+        num_constraints_affecting_last_node++;
+    }
+    num_diagonals = std::max(num_diagonals, num_constraints_affecting_last_node);
+
+    return num_diagonals;
 }
 
 void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
@@ -190,70 +176,6 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
         Vec3r so3_update = dt*node.ang_velocity + dt*dt*_I_rot_inv.asDiagonal()*(T_ext - node.ang_velocity.cross(_I_rot.asDiagonal()*node.ang_velocity));
         node.orientation = Math::Plus_SO3(node.orientation, so3_update);
     }
-}
-
-void XPBDRod::_computeConstraintVec()
-{
-    // fixed base constraint
-    _C_vec( Eigen::seqN(0,6) ) = _attachment_constraints.begin()->evaluate();
-
-    // elastic rod constraints
-    for (int ci = 0; ci < _num_nodes-1; ci++)
-    {
-        _C_vec( Eigen::seqN(6*(ci+1),6) ) = _elastic_constraints[ci].evaluate();
-    }
-}
-
-void XPBDRod::_computeConstraintGradients()
-{
-    _delC_mat = MatXr::Zero(6*_num_nodes, 6*_num_nodes);
-
-    // fixed base constraint gradient
-    const Vec3r dtheta0 = Math::Minus_SO3(_nodes[0].orientation, _prev_nodes[0].orientation);
-    const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
-    _delC_mat.block<3,3>(0,0) = Mat3r::Identity();
-    _delC_mat.block<3,3>(3,3) = jac_inv0;
-
-    // elastic rod constraints
-    for (int ci = 1; ci < _num_nodes; ci++)
-    {
-        // computing the constraint gradients for the (ci)th segment, which involves nodes (ci-1) and ci
-        const Mat3r dCv_dp_iminus1 = -0.5*(_nodes[ci-1].orientation.transpose() + _nodes[ci].orientation.transpose()) / _dl;
-        const Mat3r dCv_dp_i = -dCv_dp_iminus1;
-        
-        const Vec3r dp = _nodes[ci].position - _nodes[ci-1].position;
-        const Mat3r dCv_dor_iminus1 = 0.5*Math::Skew3(_nodes[ci-1].orientation.transpose() * dp / _dl);
-        const Mat3r dCv_dor_i = 0.5*Math::Skew3(_nodes[ci].orientation.transpose() * dp / _dl);
-
-        const Vec3r dtheta = Math::Log_SO3(_nodes[ci-1].orientation.transpose() * _nodes[ci].orientation);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-        const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
-        const Mat3r dCu_dor_i = jac_inv / _dl;
-
-        // submatrices in correct spot in overall delC matrix
-        _delC_mat.block<3,3>(6*ci, 6*(ci-1)) = dCv_dp_iminus1;
-        _delC_mat.block<3,3>(6*ci, 6*(ci-1)+3) = dCv_dor_iminus1;
-        _delC_mat.block<3,3>(6*ci, 6*ci) = dCv_dp_i;
-        _delC_mat.block<3,3>(6*ci, 6*ci+3) = dCv_dor_i;
-        _delC_mat.block<3,3>(6*ci+3, 6*(ci-1)+3) = dCu_dor_iminus1;
-        _delC_mat.block<3,3>(6*ci+3, 6*ci+3) = dCu_dor_i;
-    }
-}
-
-void XPBDRod::_computeConstraintGradientBlocks()
-{
-    // fixed base constraint gradient
-    _diag_gradient_blocks[0] = _attachment_constraints.begin()->gradient();
-
-    // elastic rod constraints
-    for (int ci = 0; ci < _num_nodes-1; ci++)
-    {
-        const Constraint::RodElasticConstraint::GradientMatType gradient = _elastic_constraints[ci].gradient();
-        _diag_gradient_blocks[ci+1] = gradient.block<6,6>(0,6);
-        _off_diag_gradient_blocks[ci] = gradient.block<6,6>(0,0);
-    }
-
-    
 }
 
 void XPBDRod::_positionUpdate()
