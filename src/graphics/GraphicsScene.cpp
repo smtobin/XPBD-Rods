@@ -126,33 +126,33 @@ void GraphicsScene::setup()
     // Set up ground plane
     ///////////////////////////////////////////////////////
 
-    vtkNew<vtkPlaneSource> plane;
-    plane->SetCenter(0.0, 0.0, 0.0);
-    plane->SetNormal(0.0, 1.0, 0.0);
-    // plane->SetResolution(10, 10);
-    plane->Update();
+    // vtkNew<vtkPlaneSource> plane;
+    // plane->SetCenter(0.0, 0.0, 0.0);
+    // plane->SetNormal(0.0, 1.0, 0.0);
+    // // plane->SetResolution(10, 10);
+    // plane->Update();
 
-    vtkNew<vtkPolyDataMapper> plane_mapper;
-    plane_mapper->SetInputData(plane->GetOutput());
+    // vtkNew<vtkPolyDataMapper> plane_mapper;
+    // plane_mapper->SetInputData(plane->GetOutput());
 
-    vtkNew<vtkPNGReader> plane_tex_reader;
-    plane_tex_reader->SetFileName("../resource/textures/ground_plane_texture.png");
-    vtkNew<vtkTexture> plane_color;
-    plane_color->UseSRGBColorSpaceOn();
-    plane_color->SetMipmap(true);
-    plane_color->InterpolateOn();
-    plane_color->SetInputConnection(plane_tex_reader->GetOutputPort());
+    // vtkNew<vtkPNGReader> plane_tex_reader;
+    // plane_tex_reader->SetFileName("../resource/textures/ground_plane_texture.png");
+    // vtkNew<vtkTexture> plane_color;
+    // plane_color->UseSRGBColorSpaceOn();
+    // plane_color->SetMipmap(true);
+    // plane_color->InterpolateOn();
+    // plane_color->SetInputConnection(plane_tex_reader->GetOutputPort());
 
-    vtkNew<vtkActor> plane_actor;
-    plane_actor->SetMapper(plane_mapper);
-    // plane_actor->GetProperty()->SetColor(0.9, 0.9, 0.9);
-    plane_actor->GetProperty()->SetInterpolationToPBR();
-    plane_actor->GetProperty()->SetMetallic(0.0);
-    plane_actor->GetProperty()->SetRoughness(0.3);
-    plane_actor->SetScale(0.1,1.0,0.1);
+    // vtkNew<vtkActor> plane_actor;
+    // plane_actor->SetMapper(plane_mapper);
+    // // plane_actor->GetProperty()->SetColor(0.9, 0.9, 0.9);
+    // plane_actor->GetProperty()->SetInterpolationToPBR();
+    // plane_actor->GetProperty()->SetMetallic(0.0);
+    // plane_actor->GetProperty()->SetRoughness(0.3);
+    // plane_actor->SetScale(0.1,1.0,0.1);
 
-    plane_actor->GetProperty()->SetBaseColorTexture(plane_color);
-    _renderer->AddActor(plane_actor);
+    // plane_actor->GetProperty()->SetBaseColorTexture(plane_color);
+    // _renderer->AddActor(plane_actor);
 
     //////////////////////////////////////////////////////
     // Create the render window and interactor

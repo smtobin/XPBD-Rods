@@ -6,10 +6,12 @@
 #include "rod/CrossSection.hpp"
 #include "rod/XPBDRodNode.hpp"
 #include "solver/BlockThomasSolver.hpp"
+#include "solver/BlockBandedSolver.hpp"
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/AttachmentConstraint.hpp"
 
 #include <memory>
+#include <set>
 
 namespace Rod
 {
@@ -21,7 +23,7 @@ class XPBDRod
     template <typename CrossSectionType_>
     XPBDRod(int num_nodes, Real length, Real density, Real E, Real nu, const Vec3r& p0, const Mat3r& R0, 
         const CrossSectionType_& cross_section)
-        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _nu(nu), _solver(num_nodes)
+        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _nu(nu), _solver(1, num_nodes)
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);
@@ -61,6 +63,75 @@ class XPBDRod
     void _computeConstraintGradientBlocks();
     void _positionUpdate();
     void _velocityUpdate(Real dt);
+
+    struct ConstraintGradientProduct
+    {
+        ConstraintGradientProduct(const Vec6r& node_inv_inertia_mat) : _node_inv_inertia_mat(node_inv_inertia_mat) { }
+
+        template<typename ConstraintType1, typename ConstraintType2>
+        Mat6r operator()(const ConstraintType1* constraint1, const ConstraintType2* constraint2)
+        {
+            typename ConstraintType1::NodeIndexArray node_indices1 = constraint1->nodeIndices();
+            typename ConstraintType2::NodeIndexArray node_indices2 = constraint2->nodeIndices();
+
+            // find if nodes overlap (assuming that node indices are sorted)
+            unsigned ind1 = 0;
+            unsigned ind2 = 0;
+            std::vector<int> overlapping_indices;
+            while (ind1 < node_indices1.size() && ind2 < node_indices2.size())
+            {
+                if (node_indices1[ind1] > node_indices2[ind2])
+                {
+                    ind2++;
+                }
+                else if (node_indices1[ind1] < node_indices2[ind2])
+                {
+                    ind1++;
+                }
+                else    // equal!
+                {
+                    overlapping_indices.push_back(node_indices1[ind1]);
+                    ind1++;
+                    ind2++;
+                }
+
+            }
+
+            Mat6r grad_prod = Mat6r::Zero();
+            if (overlapping_indices.empty())
+                return grad_prod;
+            
+            
+            for (const auto& node_index : overlapping_indices)
+            {
+                grad_prod += constraint1->singleNodeGradient(node_index) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleNodeGradient(node_index).transpose();
+            }
+
+            return grad_prod;
+        }
+
+        Vec6r _node_inv_inertia_mat;
+    };
+
+    struct ComputePositionUpdateForConstraint
+    {
+        ComputePositionUpdateForConstraint(const Vec6r& dlam_ptr, VecXr* dx_ptr, const Vec6r& node_inv_inertia_mat)
+            : _dlam_ptr(dlam_ptr), _dx_ptr(dx_ptr), _node_inv_inertia_mat(node_inv_inertia_mat) { }
+
+        template <typename ConstraintType>
+        void operator()(const ConstraintType* constraint)
+        {
+            typename ConstraintType::NodeIndexArray node_indices = constraint->nodeIndices();
+            for (const auto& node_index : node_indices)
+            {
+                (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index).transpose() * _dlam_ptr;
+            }
+        }
+
+        const Vec6r& _dlam_ptr;
+        VecXr* _dx_ptr;
+        const Vec6r& _node_inv_inertia_mat;
+    };
     
 
     private:
@@ -102,10 +173,13 @@ class XPBDRod
     std::vector<XPBDRodNode> _nodes;
     std::vector<XPBDRodNode> _prev_nodes;
 
-    Solver::SymmetricBlockThomasSolver<6> _solver;
+    // Solver::SymmetricBlockThomasSolver<6> _solver;
+    Solver::SymmetricBlockBandedSolver<6> _solver;
 
     std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
-    std::vector<Constraint::AttachmentConstraint> _attachment_constraints;
+
+    // store attachment constraints in a multiset so that they are ordered (according to node index they apply to)
+    std::multiset<Constraint::AttachmentConstraint> _attachment_constraints;
 
 
 };

@@ -7,7 +7,7 @@
 namespace Constraint
 {
 
-class RodElasticConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2*Rod::XPBDRodNode::NODE_DOF>
+class RodElasticConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2>
 {
     public:
 
@@ -15,6 +15,8 @@ class RodElasticConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
+
+    virtual SingleNodeGradientMatType singleNodeGradient(int node_index) const override;
 
 
     private:

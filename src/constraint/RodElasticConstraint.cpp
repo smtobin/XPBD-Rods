@@ -5,10 +5,11 @@ namespace Constraint
 {
 
 RodElasticConstraint::RodElasticConstraint(const Rod::XPBDRodNode* node1, const Rod::XPBDRodNode* node2, const AlphaVecType& alpha)
-    : XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2*Rod::XPBDRodNode::NODE_DOF>(alpha),
+    : XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2>(alpha),
      _node1(node1), _node2(node2), _dl( (node2->position - node1->position).norm() )
 {
-
+    _node_indices[0] = _node1->index;
+    _node_indices[1] = _node2->index;
 }
 
 RodElasticConstraint::ConstraintVecType RodElasticConstraint::evaluate() const
@@ -27,29 +28,70 @@ RodElasticConstraint::GradientMatType RodElasticConstraint::gradient() const
 {
     GradientMatType grad;  // 6x12 matrix
     // computing the constraint gradients for the (ci)th segment, which involves nodes (ci-1) and ci
-    const Mat3r dCv_dp_iminus1 = -0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
-    const Mat3r dCv_dp_i = -dCv_dp_iminus1;
+    const Mat3r dCv_dp1 = -0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
+    const Mat3r dCv_dp2 = -dCv_dp1;
     
     const Vec3r dp = _node2->position - _node1->position;
-    const Mat3r dCv_dor_iminus1 = 0.5*Math::Skew3(_node1->orientation.transpose() * dp / _dl);
-    const Mat3r dCv_dor_i = 0.5*Math::Skew3(_node2->orientation.transpose() * dp / _dl);
+    const Mat3r dCv_dor1 = 0.5*Math::Skew3(_node1->orientation.transpose() * dp / _dl);
+    const Mat3r dCv_dor2 = 0.5*Math::Skew3(_node2->orientation.transpose() * dp / _dl);
 
     const Vec3r dtheta = Math::Log_SO3(_node1->orientation.transpose() * _node2->orientation);
     const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-    const Mat3r dCu_dor_iminus1 = -jac_inv / _dl;
-    const Mat3r dCu_dor_i = jac_inv / _dl;
+    const Mat3r dCu_dor1 = -jac_inv / _dl;
+    const Mat3r dCu_dor2 = jac_inv / _dl;
 
     // submatrices in correct spot in overall delC matrix
-    grad.block<3,3>(0, 0) = dCv_dp_iminus1;
-    grad.block<3,3>(0, 3) = dCv_dor_iminus1;
-    grad.block<3,3>(0, 6) = dCv_dp_i;
-    grad.block<3,3>(0, 9) = dCv_dor_i;
+    grad.block<3,3>(0, 0) = dCv_dp1;
+    grad.block<3,3>(0, 3) = dCv_dor1;
+    grad.block<3,3>(0, 6) = dCv_dp2;
+    grad.block<3,3>(0, 9) = dCv_dor2;
     grad.block<3,3>(3, 0) = Mat3r::Zero();
-    grad.block<3,3>(3, 3) = dCu_dor_iminus1;
+    grad.block<3,3>(3, 3) = dCu_dor1;
     grad.block<3,3>(3, 6) = Mat3r::Zero();
-    grad.block<3,3>(3, 9) = dCu_dor_i;
+    grad.block<3,3>(3, 9) = dCu_dor2;
 
     return grad;
+}
+
+RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNodeGradient(int node_index) const
+{
+    if (node_index == _node1->index)
+    {
+        const Mat3r dCv_dp1 = -0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
+        const Vec3r dp = _node2->position - _node1->position;
+        const Mat3r dCv_dor1 = 0.5*Math::Skew3(_node1->orientation.transpose() * dp / _dl);
+
+        const Vec3r dtheta = Math::Log_SO3(_node1->orientation.transpose() * _node2->orientation);
+        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
+        const Mat3r dCu_dor1 = -jac_inv / _dl;
+
+        SingleNodeGradientMatType grad;
+        grad.block<3,3>(0,0) = dCv_dp1;
+        grad.block<3,3>(0,3) = dCv_dor1;
+        grad.block<3,3>(3,0) = Mat3r::Zero();
+        grad.block<3,3>(3,3) = dCu_dor1;
+        return grad;
+    }
+    else if (node_index == _node2->index)
+    {
+        const Mat3r dCv_dp2 = 0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
+        const Vec3r dp = _node2->position - _node1->position;
+        const Mat3r dCv_dor2 = 0.5*Math::Skew3(_node2->orientation.transpose() * dp / _dl);
+        const Vec3r dtheta = Math::Log_SO3(_node1->orientation.transpose() * _node2->orientation);
+        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
+        const Mat3r dCu_dor2 = jac_inv / _dl;
+
+        SingleNodeGradientMatType grad;
+        grad.block<3,3>(0,0) = dCv_dp2;
+        grad.block<3,3>(0,3) = dCv_dor2;
+        grad.block<3,3>(3,0) = Mat3r::Zero();
+        grad.block<3,3>(3,3) = dCu_dor2;
+        return grad;
+    }
+    else
+    {
+        return SingleNodeGradientMatType::Zero();
+    }
 }
 
 } // namespace Constraint
