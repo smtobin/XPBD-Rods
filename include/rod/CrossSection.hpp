@@ -6,19 +6,27 @@
 namespace Rod
 {
 
+/** Represents a generic cross section of the rod.
+ */
 class CrossSection
 {
     public:
+    /** Returns a vector of points corresponding to the points of the cross-section in the XY plane. Used for making graphics objects. */
     const std::vector<Vec3r>& crossSectionPoints() const { return _points; }
+    /** Second moment of area about x-axis. */
     virtual Real Ix() const = 0;
+    /** Second moment of area about y-axis. */
     virtual Real Iy() const = 0;
+    /** Polar moment of area. */
     virtual Real Iz() const = 0;
+    /** Area of cross-section. */
     virtual Real area() const = 0;
 
     protected:
     std::vector<Vec3r> _points;
 };
 
+/** Represents a circular cross section. */
 class CircleCrossSection : public CrossSection
 {
     public:

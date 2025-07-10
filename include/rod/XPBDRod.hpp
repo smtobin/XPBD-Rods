@@ -12,14 +12,30 @@
 
 #include <memory>
 #include <set>
+#include <map>
 #include <variant>
 
 namespace Rod
 {
 
+/** A class that computes the dynamics of a discretized Cosserat rod using XPBD.
+ * 
+ * The XPBD formulation accommodates both position and orientation, and treats orientation carefully as to keep it in SO(3). Rotation matrices are used as the
+ * underlying representation for SO(3) orientation.
+ * 
+ * Each rod has two sets of compliant "constraints": elastic (internal) and everything else (external).
+ *   The elastic constraints are formulated to penalize strain energy and are physically derived from the discretized Cosserat strain variables.
+ *   Other constraints (like attachment constraints) impose arbitrary external constraints on the nodes of the rod. E.g. for attachment constraints,
+ *   one node is fixed (potentially with some compliance) to a reference position and orientation.
+ * 
+ * The linear subsystem that is solved for the change in lambda is solved directly (i.e. NOT solved iteratively using Gauss-Seidel).
+ * This is enabled by ordering the constraints such that the LHS matrix for the lambda system (delC * M^-1 * delC^T + alpha_tilde) is block banded.
+ * When this is the case, the system of equations can be solved in O(n) time (without any prefactorization!).
+ */
 class XPBDRod
 {
     public:
+    // a std::variant type used to store all constraints in order
     using ConstraintConstPtrVariantType = std::variant<const Constraint::RodElasticConstraint*, const Constraint::AttachmentConstraint*>;
 
     template <typename CrossSectionType_>
@@ -55,35 +71,62 @@ class XPBDRod
     const std::vector<XPBDRodNode>& nodes() const { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
+    /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
     void setup();
+
+    /** Steps the rod forward in time by dt. */
     void update(Real dt, Real g_accel);
 
+    /** Adds an attachment constraint to the specified node.
+     * A pointer to the attachment constraint is returned so that the reference position and orientation can be changed.
+     */
+    Constraint::AttachmentConstraint* addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation);
+
     private:
+    /** Updates rod positions based on current velocities. */
     void _inertialUpdate(Real dt, Real g_accel);
-    void _computeConstraintVec();
-    void _computeConstraintGradients();
-    void _computeConstraintGradientBlocks();
+
+    /** Applies whatever positional updates are in the _dx vector to the positions and orientations of each node. */
     void _positionUpdate();
+
+    /** Computes the new translational and angular velocities of each node. */
     void _velocityUpdate(Real dt);
 
+    /** Puts all constraints "in order" into the _ordered_constraints vector.
+     * This should be called every time a new constraint is added or removed.
+     * The order it puts constraints into is dependent on the nodes that are affected by each constraint,
+     *   with constraints affecting node 0 coming before constraints affecting node 1, etc.
+     * 
+     * This function returns the number of nonzero block diagonals present in the lambda system matrix.
+     */
     int _orderConstraints();
 
-    struct ConstraintGradientProduct
+    /** Functor that is used in calculating the product delC * M^-1 * delC^T, which arises when calculating the LHS of the lambda system. 
+     * Because multiple different types of constraints are present in the _ordered_constraints vector (expressed as a std::variant type),
+     *   we must use std::visit and a functor object to compute their inertia-weighted gradient products.
+    */
+    struct _ConstraintGradientProduct
     {
-        ConstraintGradientProduct(const Vec6r& node_inv_inertia_mat) : _node_inv_inertia_mat(node_inv_inertia_mat) { }
+        _ConstraintGradientProduct(const Vec6r& node_inv_inertia_mat) : _node_inv_inertia_mat(node_inv_inertia_mat) { }
 
+        /** Computes the 6x6 matrix delC1 * M^-1 * delC2^T for two constraints C1 and C2. This forms a block in the block banded lambda system matrix.
+         * The constraints C1 and C2 will likely affect different sets of nodes. Thus, we must first find which nodes they both affect,
+         * since this is where delC1 * M^-1 * delC2^T will be nonzero.
+         * Then, we can compute the resulting matrix product.
+         */
         template<typename ConstraintType1, typename ConstraintType2>
         Mat6r operator()(const ConstraintType1* constraint1, const ConstraintType2* constraint2)
         {
             typename ConstraintType1::NodeIndexArray node_indices1 = constraint1->nodeIndices();
             typename ConstraintType2::NodeIndexArray node_indices2 = constraint2->nodeIndices();
 
-            // find if nodes overlap (assuming that node indices are sorted)
+            // find if nodes overlap (assuming that node indices are sorted and there are no duplicates)
             unsigned ind1 = 0;
             unsigned ind2 = 0;
             std::vector<int> overlapping_indices;
             while (ind1 < node_indices1.size() && ind2 < node_indices2.size())
             {
+                // increment whichever node index is smaller
                 if (node_indices1[ind1] > node_indices2[ind2])
                 {
                     ind2++;
@@ -92,7 +135,8 @@ class XPBDRod
                 {
                     ind1++;
                 }
-                else    // equal!
+                // node indices are equal ==> we have overlap!
+                else
                 {
                     overlapping_indices.push_back(node_indices1[ind1]);
                     ind1++;
@@ -102,10 +146,11 @@ class XPBDRod
             }
 
             Mat6r grad_prod = Mat6r::Zero();
+            // if we have no overlap, the product is simply 0
             if (overlapping_indices.empty())
                 return grad_prod;
             
-            
+            // add up the matrix product for each of the overlapping indices
             for (const auto& node_index : overlapping_indices)
             {
                 grad_prod += constraint1->singleNodeGradient(node_index, true) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleNodeGradient(node_index, true).transpose();
@@ -117,43 +162,60 @@ class XPBDRod
         const Vec6r& _node_inv_inertia_mat;
     };
 
-    struct ComputePositionUpdateForConstraint
+    /** Functor that is used in calculating the position updates M^-1 * delC^T * dlam, which is done after we've solved the lamda system. 
+     * Because multiple different types of constraints are present in the _ordered_constraints vector (expressed as a std::variant type),
+     *   we must use std::visit and a functor object to compute the position updates.
+    */
+    struct _ComputePositionUpdateForConstraint
     {
-        ComputePositionUpdateForConstraint(const Vec6r& dlam_ptr, VecXr* dx_ptr, const Vec6r& node_inv_inertia_mat)
-            : _dlam_ptr(dlam_ptr), _dx_ptr(dx_ptr), _node_inv_inertia_mat(node_inv_inertia_mat) { }
+        /** Takes in information that we need:
+         * dlam: the 6x1 vector corresponding to changes in lambda for this 6x1 constraint
+         * dx_ptr: pointer to the position updates vector (i.e. pointer to the _dx class variable)
+         * node_inv_inertia_mat: the inverse inertia mat M^-1, represented as a 6x1 vector
+         */
+        _ComputePositionUpdateForConstraint(const Vec6r& dlam, VecXr* dx_ptr, const Vec6r& node_inv_inertia_mat)
+            : _dlam(dlam), _dx_ptr(dx_ptr), _node_inv_inertia_mat(node_inv_inertia_mat) { }
 
+        /** Computes and adds the constraint's contribution to the overall position updates vector (given dlam and M^-1). */
         template <typename ConstraintType>
         void operator()(const ConstraintType* constraint)
         {
+            // go through all the nodes affected by this constraint and add this constraint's contribution to the position update
             typename ConstraintType::NodeIndexArray node_indices = constraint->nodeIndices();
             for (const auto& node_index : node_indices)
             {
-                (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index, true).transpose() * _dlam_ptr;
+                (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += 
+                    _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index, true).transpose() * _dlam;
             }
         }
 
-        const Vec6r& _dlam_ptr;
+        const Vec6r& _dlam;
         VecXr* _dx_ptr;
         const Vec6r& _node_inv_inertia_mat;
     };
     
 
     private:
+    /** Number of nodes the rod is discretized into. */
     int _num_nodes;
+    /** Length of the rod. */
     Real _length;
-    Real _dl;
+    /** Rod cross section. */
+    std::unique_ptr<CrossSection> _cross_section;
+    /** Total number of constraints currently on the rod. */
+    int _num_constraints;
 
-    // material properties
+    /** Material properties */
     Real _density;  // density
     Real _E;    // elastic modulus
     Real _nu;   // Poisson ratio
     Real _G;    // shear modulus
 
-    // mass/inertia properties
+    /** Mass/inertia properties */
     Real _m_total;  // total mass
     Real _m_node;    // mass associated with a single node
-    Vec3r _I_rot;
-    Vec3r _I_rot_inv;
+    Vec3r _I_rot;   // rotational inertia
+    Vec3r _I_rot_inv;   // inverse rotational inertia
 
     // pre-allocated vectors to store constraints and constraint gradients
     VecXr _C_vec;
@@ -164,12 +226,12 @@ class XPBDRod
     VecXr _dlam;
     VecXr _dx;
 
-    // diagonals of the lambda system matrix (fed into the solver)
+    /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;
 
-    std::unique_ptr<CrossSection> _cross_section;
-
+    /** Nodes of the rod (most current state) */
     std::vector<XPBDRodNode> _nodes;
+    /** Nodes of the rod at the end of the last time step (previous state) */
     std::vector<XPBDRodNode> _prev_nodes;
 
     /** Solves the linear lambda system.
@@ -185,9 +247,10 @@ class XPBDRod
 
     /** Stores attachment constraints.
      * Attachment constraints are external constraints that fix a node (potentially with some compliance) to some reference position and orientation.
-     * We store them in a multiset that sorts the attachment constraints by node index. Having a sorted container makes it much easier to order all the constraints properly.
+     * We store them in a map indexed by node index, thus the attachment constraints are sorted by node index. 
+     * Having a sorted container makes it much easier to order all the constraints properly.
      */
-    std::multiset<Constraint::AttachmentConstraint> _attachment_constraints;
+    std::multimap<int, Constraint::AttachmentConstraint> _attachment_constraints;
 
     /** All constraints will be "ordered" based on which nodes they affect.
      *   i.e. constraints that affect node 0 will come before constraints that affect node 1, etc.

@@ -6,6 +6,7 @@
 namespace Rod
 {
 
+/** Represents a single node of the XPBDRod */
 struct XPBDRodNode
 {
     constexpr static int NODE_DOF = 6;
