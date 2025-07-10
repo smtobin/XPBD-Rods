@@ -29,6 +29,11 @@ class Simulation
 
     void update();
 
+    // event handling
+    void notifyKeyPressed(const std::string& key);
+    void notifyKeyReleased(const std::string& key);
+    void notifyMouseMoved(double mx, double my);
+
     private:
 
     void _timeStep();

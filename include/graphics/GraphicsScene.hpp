@@ -16,6 +16,11 @@
 #include <vector>
 #include <atomic>
 
+namespace Sim
+{
+    class Simulation;
+}
+
 namespace Graphics
 {
 
@@ -29,7 +34,7 @@ class GraphicsScene
     explicit GraphicsScene();
     explicit GraphicsScene(const Config::SimulationRenderConfig& sim_render_config);
 
-    void setup();
+    void setup(Sim::Simulation* sim=nullptr);
 
     void update();
 
@@ -45,6 +50,7 @@ class GraphicsScene
     std::atomic<bool> _should_render;
 
     Config::SimulationRenderConfig _render_config;
+
 };
 
 } // namespace Graphics

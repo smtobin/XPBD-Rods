@@ -32,7 +32,7 @@ void Simulation::setup()
     _setup = true;
 
     // setup the graphics scene
-    _graphics_scene.setup();
+    _graphics_scene.setup(this);
 
     // create rod(s)
     _rods.reserve(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
@@ -99,6 +99,21 @@ int Simulation::run()
     std::thread update_thread(&Simulation::update, this);
     
     _graphics_scene.interactorStart();
+}
+
+void Simulation::notifyKeyPressed(const std::string& key)
+{
+    std::cout << "Simulation key pressed: " << key << std::endl;
+}
+
+void Simulation::notifyKeyReleased(const std::string& key)
+{
+    std::cout << "Simulation key released: " << key << std::endl;
+}
+
+void Simulation::notifyMouseMoved(double mx, double my)
+{
+    std::cout << "Simulation mouse position: (" << mx << ", " << my << ")" << std::endl;
 }
 
 void Simulation::_timeStep()

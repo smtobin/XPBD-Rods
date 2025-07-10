@@ -1,4 +1,7 @@
 #include "graphics/GraphicsScene.hpp"
+#include "graphics/CustomVTKInteractorStyle.hpp"
+
+#include "simulation/Simulation.hpp"
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -61,7 +64,7 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
 }
 
 
-void GraphicsScene::setup()
+void GraphicsScene::setup(Sim::Simulation* sim)
 {
     // create renderer for actors in the scene
     _renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
@@ -163,7 +166,9 @@ void GraphicsScene::setup()
     _render_window->SetWindowName("Rod Test");
 
     _interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    vtkNew<vtkInteractorStyleTrackballCamera> style;
+    // vtkNew<vtkInteractorStyleTrackballCamera> style;
+    vtkNew<CustomVTKInteractorStyle> style;
+    style->registerSimulation(sim);
     _interactor->SetInteractorStyle(style);
     _interactor->SetRenderWindow(_render_window);
 
