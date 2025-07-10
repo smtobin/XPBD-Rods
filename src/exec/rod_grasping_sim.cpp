@@ -1,6 +1,4 @@
-#include "simulation/Simulation.hpp"
 #include "simulation/RodGraspingSimulation.hpp"
-
 
 int main(int argc, char **argv) 
 {
@@ -8,7 +6,7 @@ int main(int argc, char **argv)
     {
         std::string config_filename(argv[1]);
         Config::SimulationConfig config(YAML::LoadFile(config_filename));
-        Sim::Simulation sim(config);
+        Sim::RodGraspingSimulation sim(config);
         return sim.run();
     }
     else

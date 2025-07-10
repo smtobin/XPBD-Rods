@@ -51,6 +51,25 @@ void CustomVTKInteractorStyle::OnMouseMove()
         _sim->notifyMouseMoved(mx, my);
     
     vtkInteractorStyleTrackballCamera::OnMouseMove();
+
+    this->Interactor->SetEventPosition(mx, my, 0);  // this stops the trackball camera interactor from continuing to spin even though the mouse isn't moving
 }
+
+void CustomVTKInteractorStyle::OnLeftButtonDown()
+{
+    if (_sim)
+        _sim->notifyLeftMouseButtonPressed();
+
+    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+}
+
+void CustomVTKInteractorStyle::OnLeftButtonUp()
+{
+    if (_sim)
+        _sim->notifyLeftMouseButtonReleased();
+
+    vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
+}
+
 
 } // namespace Graphics

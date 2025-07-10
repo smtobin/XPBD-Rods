@@ -23,6 +23,8 @@ class CustomVTKInteractorStyle : public vtkInteractorStyleTrackballCamera
     virtual void OnKeyPress() override;
     virtual void OnKeyRelease() override;
     virtual void OnMouseMove() override;
+    virtual void OnLeftButtonDown() override;
+    virtual void OnLeftButtonUp() override;
 
     private:
     Sim::Simulation* _sim;

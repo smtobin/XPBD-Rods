@@ -82,6 +82,9 @@ class XPBDRod
      */
     Constraint::AttachmentConstraint* addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation);
 
+    /** Removes an attachment constraint for the specified node. */
+    bool removeAttachmentConstraint(int node_index, const Constraint::AttachmentConstraint* ptr=nullptr);
+
     private:
     /** Updates rod positions based on current velocities. */
     void _inertialUpdate(Real dt, Real g_accel);

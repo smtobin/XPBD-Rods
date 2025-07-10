@@ -23,15 +23,15 @@ void XPBDRod::setup()
     }
 
     // add a rigid attachment constraint at the base
-    _attachment_constraints.emplace(
-        std::make_pair(0, Constraint::AttachmentConstraint(&_nodes[0], Vec6r::Zero(), _nodes[0].position, _nodes[0].orientation))
-    );
+    // _attachment_constraints.emplace(
+    //     std::make_pair(0, Constraint::AttachmentConstraint(&_nodes[0], Vec6r::Zero(), _nodes[0].position, _nodes[0].orientation))
+    // );
     // _attachment_constraints.emplace(
     //     std::make_pair(_num_nodes-1, Constraint::AttachmentConstraint(&_nodes.back(), Vec6r::Zero(), _nodes.back().position, _nodes.back().orientation))
     // );
-    _attachment_constraints.emplace(
-        std::make_pair(_num_nodes/2, Constraint::AttachmentConstraint(&_nodes[_num_nodes/2], Vec6r::Zero(), _nodes[_num_nodes/2].position, _nodes[_num_nodes/2].orientation))
-    );
+    // _attachment_constraints.emplace(
+    //     std::make_pair(_num_nodes/2, Constraint::AttachmentConstraint(&_nodes[_num_nodes/2], Vec6r::Zero(), _nodes[_num_nodes/2].position, _nodes[_num_nodes/2].orientation))
+    // );
 
     _num_constraints = _elastic_constraints.size() + _attachment_constraints.size();
 
@@ -45,6 +45,8 @@ void XPBDRod::setup()
     _solver.setNumDiagBlocks(_num_constraints);
     _solver.setBandwidth(num_diagonals-1);
 
+
+    addAttachmentConstraint(0, _nodes[0].position, _nodes[0].orientation);
     
 
     // compute mass/inertia properties
@@ -54,9 +56,9 @@ void XPBDRod::setup()
     _I_rot_inv = 1.0/_I_rot.array();
 
     // reserve space for constraints and constraint gradients
-    _RHS_vec.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
-    _lambda.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
-    _dlam.conservativeResize(6* (_elastic_constraints.size() + _attachment_constraints.size()));
+    _RHS_vec.conservativeResize(6*_num_constraints);
+    _lambda.conservativeResize(6*_num_constraints);
+    _dlam.conservativeResize(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
     
 }
@@ -135,6 +137,10 @@ Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_inde
         _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(&_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
     _num_constraints++;
 
+    _RHS_vec.conservativeResize(6*_num_constraints);
+    _lambda.conservativeResize(6*_num_constraints);
+    _dlam.conservativeResize(6*_num_constraints);
+
     // order constraints appropriately
     int num_diagonals = _orderConstraints();
     // resize diagonals
@@ -147,6 +153,58 @@ Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_inde
     _solver.setBandwidth(num_diagonals-1);
 
     return &it->second;
+}
+
+bool XPBDRod::removeAttachmentConstraint(int node_index, const Constraint::AttachmentConstraint* ptr)
+{
+    using iterator = std::multimap<int, Constraint::AttachmentConstraint>::iterator;
+    bool constraint_removed = false;
+    // if ptr is not nullptr, only erase the specific attachment constraint given
+    if (ptr)
+    {
+        std::pair<iterator, iterator> iterpair = _attachment_constraints.equal_range(node_index);
+    
+        iterator it = iterpair.first;
+        for (; it != iterpair.second; it++)
+        {
+            if (&it->second == ptr)
+            {
+                _attachment_constraints.erase(it);
+                constraint_removed = true;
+                _num_constraints--;
+                break;
+            }
+        }
+    }
+    // otherwise, erase all attachment constraints for the given node index
+    else
+    {
+        int num_removed = _attachment_constraints.erase(node_index);
+        _num_constraints -= num_removed;
+        constraint_removed = num_removed > 0;
+    }
+
+    // if we did in fact remove constraint(s), we need to reorder constraints
+    if (constraint_removed)
+    {
+        // order constraints appropriately
+        int num_diagonals = _orderConstraints();
+        // resize diagonals
+        _diagonals.resize(num_diagonals);
+        for (int i = 0; i < num_diagonals; i++)
+            _diagonals[i].resize(_num_constraints);
+
+        // update the solver to reflect changes in the number of constraints and number of nonzero diagonals
+        _solver.setNumDiagBlocks(_num_constraints);
+        _solver.setBandwidth(num_diagonals-1);
+
+        _RHS_vec.conservativeResize(6*_num_constraints);
+        _lambda.conservativeResize(6*_num_constraints);
+        _dlam.conservativeResize(6*_num_constraints);
+    }
+
+    return constraint_removed;
+    
 }
 
 int XPBDRod::_orderConstraints()

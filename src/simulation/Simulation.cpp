@@ -60,6 +60,12 @@ void Simulation::update()
 
     while (_time < _end_time)
     {
+        // run any callbacks that have been queued
+        for (; !_callback_queue.empty(); _callback_queue.pop_front())
+        {
+            _callback_queue.front()();
+        }
+        
         // the elapsed seconds in wall time since the simulation has started
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
         
@@ -103,17 +109,27 @@ int Simulation::run()
 
 void Simulation::notifyKeyPressed(const std::string& key)
 {
-    std::cout << "Simulation key pressed: " << key << std::endl;
+    
 }
 
 void Simulation::notifyKeyReleased(const std::string& key)
 {
-    std::cout << "Simulation key released: " << key << std::endl;
+    
 }
 
 void Simulation::notifyMouseMoved(double mx, double my)
 {
-    std::cout << "Simulation mouse position: (" << mx << ", " << my << ")" << std::endl;
+    
+}
+
+void Simulation::notifyLeftMouseButtonPressed()
+{
+
+}
+
+void Simulation::notifyLeftMouseButtonReleased()
+{
+
 }
 
 void Simulation::_timeStep()

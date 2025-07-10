@@ -40,6 +40,11 @@ class GraphicsScene
 
     void addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
+    Vec3r cameraPosition() const;
+    Vec3r cameraViewDirection() const;
+    Vec3r cameraUpDirection() const;
+    Vec2r worldCoordinatesToPixelCoordinates(const Vec3r& world) const;
+
     private:
     vtkSmartPointer<vtkOpenGLRenderer> _renderer;
     vtkSmartPointer<vtkRenderWindow> _render_window;

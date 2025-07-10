@@ -38,6 +38,8 @@
 #include <vtkLightsPass.h>
 #include <vtkOpaquePass.h>
 
+#include <vtkCoordinate.h>
+
 namespace Graphics
 {
 
@@ -228,6 +230,40 @@ void GraphicsScene::addObject(const Rod::XPBDRod* rod, const Config::ObjectRende
     _rod_graphics_objects.back().setup();
 
     _renderer->AddActor(_rod_graphics_objects.back().getVtkActor());
+}
+
+Vec3r GraphicsScene::cameraPosition() const
+{
+    double px, py, pz;
+    _renderer->GetActiveCamera()->GetPosition(px, py, pz);
+    return Vec3r(px, py, pz);
+}
+
+Vec3r GraphicsScene::cameraViewDirection() const
+{
+    double px, py, pz;
+    _renderer->GetActiveCamera()->GetDirectionOfProjection(px, py, pz);
+    return Vec3r(px, py, pz);
+
+}
+
+Vec3r GraphicsScene::cameraUpDirection() const
+{
+    double px, py, pz;
+    _renderer->GetActiveCamera()->GetViewUp(px, py, pz);
+    return Vec3r(px, py, pz);
+}
+
+Vec2r GraphicsScene::worldCoordinatesToPixelCoordinates(const Vec3r& world) const
+{
+    
+    vtkNew<vtkCoordinate> coordinate;
+    coordinate->SetCoordinateSystemToWorld();
+    coordinate->SetValue(world[0], world[1], world[2]);
+
+    int* display_coords = coordinate->GetComputedDisplayValue(_renderer);
+
+    return Vec2r(display_coords[0], display_coords[1]);
 }
 
 } // namespace Graphics

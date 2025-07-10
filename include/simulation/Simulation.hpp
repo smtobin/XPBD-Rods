@@ -11,6 +11,8 @@
 #include "config/SimulationRenderConfig.hpp"
 
 #include <vector>
+#include <deque>
+#include <functional>
 #include <atomic>
 
 namespace Sim
@@ -23,24 +25,37 @@ class Simulation
 
     explicit Simulation(const Config::SimulationConfig& sim_config);
 
-    void setup();
+    virtual void setup();
 
     int run();
 
     void update();
 
-    // event handling
-    void notifyKeyPressed(const std::string& key);
-    void notifyKeyReleased(const std::string& key);
-    void notifyMouseMoved(double mx, double my);
 
-    private:
+    // event handling
+    virtual void notifyKeyPressed(const std::string& key);
+    virtual void notifyKeyReleased(const std::string& key);
+    virtual void notifyMouseMoved(double mx, double my);
+    virtual void notifyLeftMouseButtonPressed();
+    virtual void notifyLeftMouseButtonReleased();
+
+    protected:
 
     void _timeStep();
 
     void _updateGraphics();
 
-    private:
+    template<typename CallbackT>
+    void _addCallback(CallbackT&& lambda)
+    {
+        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
+            lambda();
+        };
+
+        _callback_queue.push_back(std::move(wrapper));
+    }
+
+    protected:
     bool _setup;
 
     Real _time;
@@ -50,6 +65,8 @@ class Simulation
     int _viewer_refresh_time_ms;
 
     std::vector<Rod::XPBDRod> _rods;
+
+    std::deque<std::function<void()>> _callback_queue;
 
     // graphics
     Graphics::GraphicsScene _graphics_scene;

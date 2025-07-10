@@ -45,6 +45,20 @@ add_library(Simulation)
 add_subdirectory("src/simulation")
 target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} Rod Solver Graphics yaml-cpp)
 
+
+#####################################################
+# SIMULATION EXECUTABLES
+#####################################################
+add_executable(Sim src/exec/main.cpp)
+target_link_libraries(Sim Simulation ${VTK_LIBRARIES})
+
+add_executable(RodGraspingSim src/exec/rod_grasping_sim.cpp)
+target_link_libraries(RodGraspingSim Simulation ${VTK_LIBRARIES})
+
+
+###################################################
+# TESTS
+###################################################
 add_executable(TestThomas test/test_thomas.cpp)
 target_link_libraries(TestThomas Solver Eigen3::Eigen)
 
@@ -60,8 +74,7 @@ target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} Rod)
 add_executable(TestPBR test/test_pbr.cpp)
 target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
 
-add_executable(RunSim src/exec/main.cpp)
-target_link_libraries(RunSim Simulation ${VTK_LIBRARIES})
+
 
 # vtk_module_autoinit is needed
 vtk_module_autoinit(
@@ -75,7 +88,12 @@ vtk_module_autoinit(
 )
 
 vtk_module_autoinit(
-  TARGETS RunSim
+  TARGETS Sim
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS RodGraspingSim
   MODULES ${VTK_LIBRARIES}
 )
 
