@@ -2,7 +2,9 @@
 #define __XPBD_ROD_HPP
 
 #include "common/common.hpp"
+#include "common/math.hpp"
 
+#include "config/RodConfig.hpp"
 #include "rod/CrossSection.hpp"
 #include "rod/XPBDRodNode.hpp"
 #include "solver/BlockThomasSolver.hpp"
@@ -39,23 +41,24 @@ class XPBDRod
     using ConstraintConstPtrVariantType = std::variant<const Constraint::RodElasticConstraint*, const Constraint::AttachmentConstraint*>;
 
     template <typename CrossSectionType_>
-    XPBDRod(int num_nodes, Real length, Real density, Real E, Real nu, const Vec3r& p0, const Mat3r& R0, 
-        const CrossSectionType_& cross_section)
-        : _num_nodes(num_nodes), _length(length), _density(density), _E(E), _nu(nu), _solver(1, num_nodes)
+    XPBDRod(const Config::RodConfig& config, const CrossSectionType_& cross_section)
+        : _num_nodes(config.nodes()), _length(config.length()), _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
+         _density(config.density()), _E(config.E()), _nu(config.nu()),
+         _solver(1, config.nodes())
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);
 
         // compute shear modulus
-        _G = E / (2 * (1+_nu));
+        _G = _E / (2 * (1+_nu));
 
         // initialize rod state
-        _nodes.resize(num_nodes);
+        _nodes.resize(_num_nodes);
         _nodes[0].index = 0;
-        _nodes[0].position = p0;
-        _nodes[0].velocity = Vec3r(0,0,0);
-        _nodes[0].orientation = R0;
-        _nodes[0].ang_velocity = Vec3r(0,0,0);
+        _nodes[0].position = config.initialBasePosition();
+        _nodes[0].velocity = config.initialVelocity();
+        _nodes[0].orientation = Math::RotMatFromXYZEulerAngles(config.initialBaseRotation());
+        _nodes[0].ang_velocity = config.initialAngularVelocity();
         for (int i = 1; i < _num_nodes; i++)
         {
             _nodes[i].index = i;
@@ -207,6 +210,10 @@ class XPBDRod
     std::unique_ptr<CrossSection> _cross_section;
     /** Total number of constraints currently on the rod. */
     int _num_constraints;
+
+    /** If base and/or tip are fixed */
+    bool _base_fixed;
+    bool _tip_fixed;
 
     /** Material properties */
     Real _density;  // density

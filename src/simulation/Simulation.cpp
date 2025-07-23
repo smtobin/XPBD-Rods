@@ -40,7 +40,7 @@ void Simulation::setup()
     {
         Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
         Mat3r base_rot_mat = Math::RotMatFromXYZEulerAngles(rod_config.initialBaseRotation());
-        Rod::XPBDRod rod(rod_config.nodes(), rod_config.length(), rod_config.density(), rod_config.E(), rod_config.nu(), rod_config.initialBasePosition(), base_rot_mat, cross_section);
+        Rod::XPBDRod rod(rod_config, cross_section);
 
         _rods.push_back(std::move(rod));
         _rods.back().setup();

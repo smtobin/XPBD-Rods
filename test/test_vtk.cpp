@@ -115,8 +115,7 @@ int main(int, char*[])
 
     Config::RodConfig rod_config = Config::RodConfig();
     Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-    Mat3r base_rot_mat = Math::RotMatFromXYZEulerAngles(rod_config.initialBaseRotation());
-    Rod::XPBDRod rod(rod_config.nodes(), rod_config.length(), rod_config.density(), rod_config.E(), rod_config.nu(), rod_config.initialBasePosition(), base_rot_mat, cross_section);
+    Rod::XPBDRod rod(rod_config, cross_section);
 
 
     // get poly data for rod

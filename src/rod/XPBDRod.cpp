@@ -22,17 +22,6 @@ void XPBDRod::setup()
         _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], alpha_elastic);
     }
 
-    // add a rigid attachment constraint at the base
-    // _attachment_constraints.emplace(
-    //     std::make_pair(0, Constraint::AttachmentConstraint(&_nodes[0], Vec6r::Zero(), _nodes[0].position, _nodes[0].orientation))
-    // );
-    // _attachment_constraints.emplace(
-    //     std::make_pair(_num_nodes-1, Constraint::AttachmentConstraint(&_nodes.back(), Vec6r::Zero(), _nodes.back().position, _nodes.back().orientation))
-    // );
-    // _attachment_constraints.emplace(
-    //     std::make_pair(_num_nodes/2, Constraint::AttachmentConstraint(&_nodes[_num_nodes/2], Vec6r::Zero(), _nodes[_num_nodes/2].position, _nodes[_num_nodes/2].orientation))
-    // );
-
     _num_constraints = _elastic_constraints.size() + _attachment_constraints.size();
 
     // order constraints appropriately
@@ -46,7 +35,10 @@ void XPBDRod::setup()
     _solver.setBandwidth(num_diagonals-1);
 
 
-    addAttachmentConstraint(0, _nodes[0].position, _nodes[0].orientation);
+    if (_base_fixed)
+        addAttachmentConstraint(0, _nodes[0].position, _nodes[0].orientation);
+    if (_tip_fixed)
+        addAttachmentConstraint(_num_nodes-1, _nodes.back().position, _nodes.back().orientation);
     
 
     // compute mass/inertia properties

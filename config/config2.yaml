@@ -1,0 +1,25 @@
+name: "RodSim"
+g-accel: 9.81
+time-step: 1e-3
+end-time: 2000
+
+hdr-image-filename: "../resource/surgery_1k.hdr"
+create-skybox: True
+
+rods:
+  - 
+    name: "rod1"
+    initial-base-position: [0, 0, 0]
+    initial-base-rotation: [0, 0, 0]
+    diameter: 0.5
+    length: 10
+    E: 1e9
+    nu: 0.3
+    density: 100
+    nodes: 1000
+
+    render-type: "PBR"
+    orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 1.0
+    roughness: 1.0
