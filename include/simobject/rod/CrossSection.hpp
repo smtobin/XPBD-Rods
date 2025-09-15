@@ -3,7 +3,7 @@
 
 #include "common/common.hpp"
 
-namespace Rod
+namespace SimObject
 {
 
 /** Represents a generic cross section of the rod.
@@ -52,6 +52,6 @@ class CircleCrossSection : public CrossSection
     const int _tubular_resolution;
 };
 
-} // namespace Rod
+} // namespace SimObject
 
 #endif // __CROSS_SECTION_HPP

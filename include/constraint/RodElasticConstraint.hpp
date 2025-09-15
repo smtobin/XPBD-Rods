@@ -2,26 +2,25 @@
 #define __ROD_ELASTIC_CONSTRAINT_HPP
 
 #include "constraint/Constraint.hpp"
-#include "rod/XPBDRodNode.hpp"
 
 namespace Constraint
 {
 
-class RodElasticConstraint : public XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2>
+class RodElasticConstraint : public XPBDConstraint<SimObject::OrientedParticle::DOF, 2>
 {
     public:
 
-    RodElasticConstraint(const Rod::XPBDRodNode* node1, const Rod::XPBDRodNode* node2, const AlphaVecType& alpha);
+    RodElasticConstraint(int node_index1, const SimObject::OrientedParticle* node1, int node_index2, const SimObject::OrientedParticle* node2, const AlphaVecType& alpha);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
-    virtual SingleNodeGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const override;
+    virtual SingleParticleGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const override;
 
 
     private:
-    const Rod::XPBDRodNode* _node1;
-    const Rod::XPBDRodNode* _node2;
+    const SimObject::OrientedParticle* _node1;
+    const SimObject::OrientedParticle* _node2;
     const Real _dl;
 
 };

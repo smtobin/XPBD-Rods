@@ -1,7 +1,7 @@
 #ifndef __GRAPHICS_SCENE_HPP
 #define __GRAPHICS_SCENE_HPP
 
-#include "rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 
 #include "config/SimulationRenderConfig.hpp"
@@ -38,7 +38,7 @@ class GraphicsScene
 
     void update();
 
-    void addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
     Vec3r cameraPosition() const;
     Vec3r cameraViewDirection() const;

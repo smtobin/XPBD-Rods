@@ -3,7 +3,7 @@
 
 #include "common/common.hpp"
 
-#include "rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 #include "graphics/GraphicsScene.hpp"
 
@@ -64,7 +64,7 @@ class Simulation
     Real _g_accel;
     int _viewer_refresh_time_ms;
 
-    std::vector<Rod::XPBDRod> _rods;
+    std::vector<SimObject::XPBDRod> _rods;
 
     std::deque<std::function<void()>> _callback_queue;
 

@@ -10,7 +10,7 @@
 
 =========================================================================*/
 
-#include "rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 #include "config/RodConfig.hpp"
 #include "common/math.hpp"
 
@@ -41,9 +41,9 @@
 #include <vtkTexture.h>
 #include <vtkPointData.h>
 
-void createRodPolyData(const Rod::XPBDRod* rod, vtkPolyData* rod_poly_data)
+void createRodPolyData(const SimObject::XPBDRod* rod, vtkPolyData* rod_poly_data)
 {
-    const std::vector<Rod::XPBDRodNode>& nodes = rod->nodes();
+    const std::vector<SimObject::OrientedParticle>& nodes = rod->nodes();
     const std::vector<Vec3r>& cross_section_points = rod->crossSection()->crossSectionPoints();
     int num_vertices = nodes.size() * cross_section_points.size() + 2;
 
@@ -114,8 +114,8 @@ int main(int, char*[])
     vtkNew<vtkNamedColors> colors;
 
     Config::RodConfig rod_config = Config::RodConfig();
-    Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-    Rod::XPBDRod rod(rod_config, cross_section);
+    SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+    SimObject::XPBDRod rod(rod_config, cross_section);
 
 
     // get poly data for rod

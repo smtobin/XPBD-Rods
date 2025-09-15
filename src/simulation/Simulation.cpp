@@ -38,9 +38,9 @@ void Simulation::setup()
     _rods.reserve(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
     for (const auto& rod_config : _config.rodConfigs())
     {
-        Rod::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+        SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
         Mat3r base_rot_mat = Math::RotMatFromXYZEulerAngles(rod_config.initialBaseRotation());
-        Rod::XPBDRod rod(rod_config, cross_section);
+        SimObject::XPBDRod rod(rod_config, cross_section);
 
         _rods.push_back(std::move(rod));
         _rods.back().setup();

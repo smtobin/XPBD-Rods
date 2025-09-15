@@ -34,8 +34,11 @@ add_subdirectory("src/constraint")
 target_link_libraries(Constraint Eigen3::Eigen)
 
 add_library(Rod)
-add_subdirectory("src/rod")
+add_subdirectory("src/simobject/rod")
 target_link_libraries(Rod Eigen3::Eigen Constraint)
+
+# add_library(RigidBody)
+# add_subdirectory("src/simobject/rigidbody")
 
 add_library(Graphics)
 add_subdirectory("src/graphics")

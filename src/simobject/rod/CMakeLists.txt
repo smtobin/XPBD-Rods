@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(XPBDRods)
 
-set(ROD_INCLUDE_DIR "../../include/rod")
+set(ROD_INCLUDE_DIR "../../../include/simobject/rod")
 set(ROD_SRC_DIR "./")
 
 set(ROD_HEADERS

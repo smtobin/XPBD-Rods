@@ -224,7 +224,7 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
 {
     _rod_graphics_objects.emplace_back(rod, render_config);
     _rod_graphics_objects.back().setup();

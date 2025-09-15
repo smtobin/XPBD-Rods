@@ -44,10 +44,11 @@ void RodGraspingSimulation::notifyLeftMouseButtonPressed()
         // remove attachment constraint
         auto remove_attachment_constraint_callback = 
             [this]() -> void {
-                this->_grasped_rod->removeAttachmentConstraint(this->_grasped_rod_node->index, this->_grasping_constraint);
+                this->_grasped_rod->removeAttachmentConstraint(this->_grasped_rod_node_index, this->_grasping_constraint);
 
                 this->_grasped_rod = nullptr;
                 this->_grasped_rod_node = nullptr;
+                this->_grasped_rod_node_index = -1;
                 this->_grasping_constraint = nullptr;
             };
         _addCallback(remove_attachment_constraint_callback);
@@ -63,19 +64,23 @@ void RodGraspingSimulation::notifyLeftMouseButtonPressed()
 void RodGraspingSimulation::_graspClosestNode()
 {
     // convert all rod points to 2D camera coordinates
-    Rod::XPBDRod* closest_rod = nullptr;
-    const Rod::XPBDRodNode* closest_node = nullptr;
+    SimObject::XPBDRod* closest_rod = nullptr;
+    const SimObject::OrientedParticle* closest_node = nullptr;
+    int closest_node_index = -1;
     Real min_dist = std::numeric_limits<Real>::max();
     for (auto& rod : _rods)
     {
-        for (const auto& node : rod.nodes())
+        const std::vector<SimObject::OrientedParticle>& rod_nodes = rod.nodes();
+        for (unsigned i = 0; i < rod_nodes.size(); i++)
         {
+            const SimObject::OrientedParticle& node = rod_nodes[i];
             Vec2r pix_coords = _graphics_scene.worldCoordinatesToPixelCoordinates(node.position);
             Real dist = (Vec2r(_last_mx, _last_my) - pix_coords).norm();
             if (dist < min_dist)
             {
                 closest_rod = &rod;
                 closest_node = &node;
+                closest_node_index = i;
                 min_dist = dist;
             }
         }
@@ -85,13 +90,14 @@ void RodGraspingSimulation::_graspClosestNode()
     {
         _grasped_rod = closest_rod;
         _grasped_rod_node = closest_node;
+        _grasped_rod_node_index = closest_node_index;
     }
 
     // add attachment constraint
     auto add_attachment_constraint_callback = 
         [this]() -> void {
             this->_grasping_constraint = this->_grasped_rod->addAttachmentConstraint(
-                this->_grasped_rod_node->index, this->_grasped_rod_node->position, this->_grasped_rod_node->orientation
+                this->_grasped_rod_node_index, this->_grasped_rod_node->position, this->_grasped_rod_node->orientation
             );
         };
     _addCallback(add_attachment_constraint_callback);

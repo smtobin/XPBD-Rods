@@ -5,8 +5,8 @@
 #include "common/math.hpp"
 
 #include "config/RodConfig.hpp"
-#include "rod/CrossSection.hpp"
-#include "rod/XPBDRodNode.hpp"
+#include "simobject/rod/CrossSection.hpp"
+#include "simobject/OrientedParticle.hpp"
 #include "solver/BlockThomasSolver.hpp"
 #include "solver/BlockBandedSolver.hpp"
 #include "constraint/RodElasticConstraint.hpp"
@@ -17,7 +17,7 @@
 #include <map>
 #include <variant>
 
-namespace Rod
+namespace SimObject
 {
 
 /** A class that computes the dynamics of a discretized Cosserat rod using XPBD.
@@ -54,16 +54,14 @@ class XPBDRod
 
         // initialize rod state
         _nodes.resize(_num_nodes);
-        _nodes[0].index = 0;
         _nodes[0].position = config.initialBasePosition();
-        _nodes[0].velocity = config.initialVelocity();
+        _nodes[0].lin_velocity = config.initialVelocity();
         _nodes[0].orientation = Math::RotMatFromXYZEulerAngles(config.initialBaseRotation());
         _nodes[0].ang_velocity = config.initialAngularVelocity();
         for (int i = 1; i < _num_nodes; i++)
         {
-            _nodes[i].index = i;
             _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));
-            _nodes[i].velocity = _nodes[i-1].velocity;
+            _nodes[i].lin_velocity = _nodes[i-1].lin_velocity;
             _nodes[i].orientation = _nodes[i-1].orientation;
             _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
         }
@@ -71,7 +69,7 @@ class XPBDRod
         _cross_section = std::make_unique<CrossSectionType_>(cross_section);
     }
 
-    const std::vector<XPBDRodNode>& nodes() const { return _nodes; }
+    const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
@@ -240,14 +238,14 @@ class XPBDRod
     std::vector<std::vector<Mat6r>> _diagonals;
 
     /** Nodes of the rod (most current state) */
-    std::vector<XPBDRodNode> _nodes;
+    std::vector<OrientedParticle> _nodes;
     /** Nodes of the rod at the end of the last time step (previous state) */
-    std::vector<XPBDRodNode> _prev_nodes;
+    std::vector<OrientedParticle> _prev_nodes;
 
     /** Solves the linear lambda system.
      * The lambda system matrix has a block-banded structure, so we can solve the linear system in O(n) time.
      */
-    Solver::SymmetricBlockBandedSolver<6> _solver;
+    Solver::SymmetricBlockBandedSolver<OrientedParticle::DOF> _solver;
     
     /** Stores the elastic rod constraints.
      * One elastic rod constraint is defined per each rod segment between two nodes (so there is N-1 elastic constraints).
@@ -272,6 +270,6 @@ class XPBDRod
 
 };
 
-} // namespace Rod
+} // namespace SimObject
 
 #endif // __XPBD_ROD_HPP

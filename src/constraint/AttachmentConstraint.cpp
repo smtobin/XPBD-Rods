@@ -4,11 +4,11 @@
 namespace Constraint
 {
 
-AttachmentConstraint::AttachmentConstraint(const Rod::XPBDRodNode* node, const AlphaVecType& alpha, const Vec3r& position, const Mat3r& orientation)
-    : XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 1>(alpha),
+AttachmentConstraint::AttachmentConstraint(int node_index, const SimObject::OrientedParticle* node, const AlphaVecType& alpha, const Vec3r& position, const Mat3r& orientation)
+    : XPBDConstraint<SimObject::OrientedParticle::DOF, 1>(alpha),
     _node(node), _ref_position(position), _ref_orientation(orientation)
 {
-    _node_indices[0] = _node->index;
+    _node_indices[0] = node_index;
 }
 
 AttachmentConstraint::ConstraintVecType AttachmentConstraint::evaluate() const 
@@ -37,14 +37,14 @@ AttachmentConstraint::GradientMatType AttachmentConstraint::gradient(bool update
     return grad;
 }
 
-AttachmentConstraint::SingleNodeGradientMatType AttachmentConstraint::singleNodeGradient(int node_index, bool use_cache) const
+AttachmentConstraint::SingleParticleGradientMatType AttachmentConstraint::singleNodeGradient(int node_index, bool use_cache) const
 {
-    if (node_index == _node->index)
+    if (node_index == _node_indices[0])
     {
         if (use_cache)
             return _cached_gradients[0];
         
-        SingleNodeGradientMatType grad = SingleNodeGradientMatType::Zero();
+        SingleParticleGradientMatType grad = SingleParticleGradientMatType::Zero();
         // fixed base constraint gradient
         const Vec3r dtheta0 = Math::Minus_SO3(_node->orientation, _ref_orientation);
         const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
@@ -55,7 +55,7 @@ AttachmentConstraint::SingleNodeGradientMatType AttachmentConstraint::singleNode
     }
     else
     {
-        return SingleNodeGradientMatType::Zero();
+        return SingleParticleGradientMatType::Zero();
     }
 }
 

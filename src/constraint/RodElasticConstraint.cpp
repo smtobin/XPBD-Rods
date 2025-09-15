@@ -4,12 +4,12 @@
 namespace Constraint
 {
 
-RodElasticConstraint::RodElasticConstraint(const Rod::XPBDRodNode* node1, const Rod::XPBDRodNode* node2, const AlphaVecType& alpha)
-    : XPBDConstraint<Rod::XPBDRodNode::NODE_DOF, 2>(alpha),
+RodElasticConstraint::RodElasticConstraint(int node_index1, const SimObject::OrientedParticle* node1, int node_index2, const SimObject::OrientedParticle* node2, const AlphaVecType& alpha)
+    : XPBDConstraint<SimObject::OrientedParticle::DOF, 2>(alpha),
      _node1(node1), _node2(node2), _dl( (node2->position - node1->position).norm() )
 {
-    _node_indices[0] = _node1->index;
-    _node_indices[1] = _node2->index;
+    _node_indices[0] = node_index1;
+    _node_indices[1] = node_index2;
 }
 
 RodElasticConstraint::ConstraintVecType RodElasticConstraint::evaluate() const
@@ -61,21 +61,21 @@ RodElasticConstraint::GradientMatType RodElasticConstraint::gradient(bool update
     return grad;
 }
 
-RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNodeGradient(int node_index, bool use_cache) const
+RodElasticConstraint::SingleParticleGradientMatType RodElasticConstraint::singleNodeGradient(int node_index, bool use_cache) const
 {
     if (use_cache)
     {
-        if (node_index == _node1->index)
+        if (node_index == _node_indices[0])
         {
             return _cached_gradients[0];
         }
-        else if (node_index == _node2->index)
+        else if (node_index == _node_indices[1])
         {
             return _cached_gradients[1];
         }
     }
 
-    if (node_index == _node1->index)
+    if (node_index == _node_indices[0])
     {
         const Mat3r dCv_dp1 = -0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
         const Vec3r dp = _node2->position - _node1->position;
@@ -85,14 +85,14 @@ RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNode
         const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
         const Mat3r dCu_dor1 = -jac_inv / _dl;
 
-        SingleNodeGradientMatType grad;
+        SingleParticleGradientMatType grad;
         grad.block<3,3>(0,0) = dCv_dp1;
         grad.block<3,3>(0,3) = dCv_dor1;
         grad.block<3,3>(3,0) = Mat3r::Zero();
         grad.block<3,3>(3,3) = dCu_dor1;
         return grad;
     }
-    else if (node_index == _node2->index)
+    else if (node_index == _node_indices[1])
     {
         const Mat3r dCv_dp2 = 0.5*(_node1->orientation.transpose() + _node2->orientation.transpose()) / _dl;
         const Vec3r dp = _node2->position - _node1->position;
@@ -101,7 +101,7 @@ RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNode
         const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
         const Mat3r dCu_dor2 = jac_inv / _dl;
 
-        SingleNodeGradientMatType grad;
+        SingleParticleGradientMatType grad;
         grad.block<3,3>(0,0) = dCv_dp2;
         grad.block<3,3>(0,3) = dCv_dor2;
         grad.block<3,3>(3,0) = Mat3r::Zero();
@@ -110,7 +110,7 @@ RodElasticConstraint::SingleNodeGradientMatType RodElasticConstraint::singleNode
     }
     else
     {
-        return SingleNodeGradientMatType::Zero();
+        return SingleParticleGradientMatType::Zero();
     }
 }
 

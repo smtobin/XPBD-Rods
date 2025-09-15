@@ -1,4 +1,4 @@
-#include "rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 #include "common/math.hpp"
 
 #include "constraint/RodElasticConstraint.hpp"
@@ -6,7 +6,7 @@
 #include <iostream>
 #include <variant>
 
-namespace Rod
+namespace SimObject
 {
 
 void XPBDRod::setup()
@@ -19,7 +19,7 @@ void XPBDRod::setup()
     _elastic_constraints.reserve(_num_nodes-1);
     for (int i = 0; i < _num_nodes-1; i++)
     {
-        _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], alpha_elastic);
+        _elastic_constraints.emplace_back(i, &_nodes[i], i+1, &_nodes[i+1], alpha_elastic);
     }
 
     _num_constraints = _elastic_constraints.size() + _attachment_constraints.size();
@@ -126,7 +126,7 @@ void XPBDRod::update(Real dt, Real g_accel)
 Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
 {
     std::multimap<int, Constraint::AttachmentConstraint>::iterator it = 
-        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(&_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
+        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(node_index, &_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
     _num_constraints++;
 
     _RHS_vec.conservativeResize(6*_num_constraints);
@@ -263,7 +263,7 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
         Vec3r F_ext = _m_node * Vec3r(0,-g_accel,0);
         // if (i==_num_nodes-1)
         //     F_ext = Vec3r(0,-10,0);
-        node.position += dt*node.velocity + dt*dt/_m_node*F_ext;
+        node.position += dt*node.lin_velocity + dt*dt/_m_node*F_ext;
 
         Vec3r T_ext = Vec3r(0,0,0);
         // if (i==_num_nodes - 1)
@@ -288,9 +288,9 @@ void XPBDRod::_velocityUpdate(Real dt)
 {
     for (unsigned i = 0; i < _nodes.size(); i++)
     {
-        _nodes[i].velocity = (_nodes[i].position - _prev_nodes[i].position)/dt;
+        _nodes[i].lin_velocity = (_nodes[i].position - _prev_nodes[i].position)/dt;
         _nodes[i].ang_velocity = Math::Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation)/dt;
     }
 }
 
-} // namespace Rod
+} // namespace SimObject

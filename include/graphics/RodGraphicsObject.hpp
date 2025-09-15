@@ -1,7 +1,7 @@
 #ifndef __ROD_GRAPHICS_OBJECT_HPP
 #define __ROD_GRAPHICS_OBJECT_HPP
 
-#include "rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 #include "config/ObjectRenderConfig.hpp"
 
 #include <vtkPolyData.h>
@@ -20,7 +20,7 @@ class RodGraphicsObject
 {
 
     public:
-    explicit RodGraphicsObject(const Rod::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
+    explicit RodGraphicsObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
     void setup();
     void update();
@@ -32,7 +32,7 @@ class RodGraphicsObject
     void _updatePolyData();
 
     private:
-    const Rod::XPBDRod* _rod;
+    const SimObject::XPBDRod* _rod;
 
     vtkSmartPointer<vtkPolyData> _vtk_poly_data;
     vtkSmartPointer<vtkPolyDataNormals> _vtk_poly_data_normals;
