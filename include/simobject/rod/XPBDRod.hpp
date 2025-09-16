@@ -52,21 +52,31 @@ class XPBDRod
         // compute shear modulus
         _G = _E / (2 * (1+_nu));
 
+        _cross_section = std::make_unique<CrossSectionType_>(cross_section);
+
+        // compute mass/inertia properties
+        _m_total = _length * _cross_section->area() * _density;
+        _m_node = _m_total / _num_nodes;
+        _I_rot = _m_node / _cross_section->area() * Vec3r(_cross_section->Ix(), _cross_section->Iy(), _cross_section->Iz());
+        _I_rot_inv = 1.0/_I_rot.array();
+
         // initialize rod state
         _nodes.resize(_num_nodes);
         _nodes[0].position = config.initialBasePosition();
         _nodes[0].lin_velocity = config.initialVelocity();
         _nodes[0].orientation = Math::RotMatFromXYZEulerAngles(config.initialBaseRotation());
         _nodes[0].ang_velocity = config.initialAngularVelocity();
+        _nodes[0].mass = _m_node;
+        _nodes[0].Ib = _I_rot;
         for (int i = 1; i < _num_nodes; i++)
         {
             _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));
             _nodes[i].lin_velocity = _nodes[i-1].lin_velocity;
             _nodes[i].orientation = _nodes[i-1].orientation;
             _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
+            _nodes[i].mass = _m_node;
+            _nodes[i].Ib = _I_rot;
         }
-
-        _cross_section = std::make_unique<CrossSectionType_>(cross_section);
     }
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }

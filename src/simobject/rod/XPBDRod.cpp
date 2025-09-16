@@ -39,13 +39,6 @@ void XPBDRod::setup()
         addAttachmentConstraint(0, _nodes[0].position, _nodes[0].orientation);
     if (_tip_fixed)
         addAttachmentConstraint(_num_nodes-1, _nodes.back().position, _nodes.back().orientation);
-    
-
-    // compute mass/inertia properties
-    _m_total = _length * _cross_section->area() * _density;
-    _m_node = _m_total / _num_nodes;
-    _I_rot = _m_node / _cross_section->area() * Vec3r(_cross_section->Ix(), _cross_section->Iy(), _cross_section->Iz());
-    _I_rot_inv = 1.0/_I_rot.array();
 
     // reserve space for constraints and constraint gradients
     _RHS_vec.conservativeResize(6*_num_constraints);
@@ -261,15 +254,8 @@ void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
 
         // position inertial update
         Vec3r F_ext = _m_node * Vec3r(0,-g_accel,0);
-        // if (i==_num_nodes-1)
-        //     F_ext = Vec3r(0,-10,0);
-        node.position += dt*node.lin_velocity + dt*dt/_m_node*F_ext;
-
         Vec3r T_ext = Vec3r(0,0,0);
-        // if (i==_num_nodes - 1)
-        //     T_ext = Vec3r(0,0,10000);
-        Vec3r so3_update = dt*node.ang_velocity + dt*dt*_I_rot_inv.asDiagonal()*(T_ext - node.ang_velocity.cross(_I_rot.asDiagonal()*node.ang_velocity));
-        node.orientation = Math::Plus_SO3(node.orientation, so3_update);
+        node.inertialUpdate(dt, F_ext, T_ext);
     }
 }
 
@@ -279,8 +265,7 @@ void XPBDRod::_positionUpdate()
     {
         const Vec3r dp = _dx( Eigen::seqN(6*i,3) );
         const Vec3r dor = _dx( Eigen::seqN(6*i+3,3) );
-        _nodes[i].position += dp;
-        _nodes[i].orientation = Math::Plus_SO3(_nodes[i].orientation, dor);
+        _nodes[i].positionUpdate(dp, dor);
     }
 }
 
@@ -288,8 +273,7 @@ void XPBDRod::_velocityUpdate(Real dt)
 {
     for (unsigned i = 0; i < _nodes.size(); i++)
     {
-        _nodes[i].lin_velocity = (_nodes[i].position - _prev_nodes[i].position)/dt;
-        _nodes[i].ang_velocity = Math::Minus_SO3(_nodes[i].orientation, _prev_nodes[i].orientation)/dt;
+        _nodes[i].velocityUpdate(dt, _prev_nodes[i].position, _prev_nodes[i].orientation);
     }
 }
 
