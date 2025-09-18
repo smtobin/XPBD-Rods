@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "config/XPBDObjectConfig.hpp"
 
 namespace SimObject
 {
@@ -9,8 +10,8 @@ class XPBDObject_Base
 {
 
 public:
-    XPBDObject_Base(const std::string& name)
-        : _name(name)
+    XPBDObject_Base(const XPBDObjectConfig& config)
+        : _name(config.name())
     {}
 
     /** Performs necessary setup to prepare the object for simulation. (sets up constraints, computes mass properties, etc.) */

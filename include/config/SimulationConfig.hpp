@@ -7,16 +7,16 @@
 namespace Config
 {
 
-class SimulationConfig : public Config
+class SimulationConfig : public Config_Base
 {
     public:
     explicit SimulationConfig()
-        : Config(), _render_config()
+        : Config_Base(), _render_config()
     {
     }
 
     explicit SimulationConfig(const YAML::Node& node)
-        : Config(node), _render_config(node)
+        : Config_Base(node), _render_config(node)
     {
         _extractParameter("time-step", node, _time_step);
         _extractParameter("end-time", node, _end_time);
@@ -29,7 +29,7 @@ class SimulationConfig : public Config
     }
 
     explicit SimulationConfig(const std::string& name, Real time_step, Real end_time, Real g_accel)
-        : Config(name), _render_config()
+        : Config_Base(name), _render_config()
     {
         _time_step.value = time_step;
         _end_time.value = end_time;

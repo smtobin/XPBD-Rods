@@ -62,9 +62,9 @@ class XPBDRod
 
         // initialize rod state
         _nodes.resize(_num_nodes);
-        _nodes[0].position = config.initialBasePosition();
+        _nodes[0].position = config.initialPosition();
         _nodes[0].lin_velocity = config.initialVelocity();
-        _nodes[0].orientation = Math::RotMatFromXYZEulerAngles(config.initialBaseRotation());
+        _nodes[0].orientation = Math::RotMatFromXYZEulerAngles(config.initialRotation());
         _nodes[0].ang_velocity = config.initialAngularVelocity();
         _nodes[0].mass = _m_node;
         _nodes[0].Ib = _I_rot;

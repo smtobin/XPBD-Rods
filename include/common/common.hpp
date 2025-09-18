@@ -28,3 +28,6 @@ using Mat3r = Eigen::Matrix<Real, 3, 3>;
 using Mat4r = Eigen::Matrix<Real, 4, 4>;
 using Mat6r = Eigen::Matrix<Real, 6, 6>;
 using MatXr = Eigen::Matrix<Real,-1,-1>;
+
+/** Universal constants used by the simulation */
+#define G_ACCEL 9.81    // acceleration due to gravity

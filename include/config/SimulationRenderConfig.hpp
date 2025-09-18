@@ -8,18 +8,18 @@
 namespace Config
 {
 
-class SimulationRenderConfig : public Config
+class SimulationRenderConfig : public Config_Base
 {
     public:
     explicit SimulationRenderConfig()
-        : Config()
+        : Config_Base()
     {
         std::cout << "Default constructor" << std::endl;
         assert(0);
     }
 
     explicit SimulationRenderConfig(const YAML::Node& node)
-        : Config(node)
+        : Config_Base(node)
     {
         _extractParameter("hdr-image-filename", node, _hdr_image_filename);
         _extractParameter("create-skybox", node, _create_skybox);

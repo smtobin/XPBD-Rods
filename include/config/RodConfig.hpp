@@ -1,29 +1,24 @@
 #ifndef __ROD_CONFIG_HPP
 #define __ROD_CONFIG_HPP
 
-#include "config/Config.hpp"
+#include "config/XPBDObjectConfig.hpp"
 #include "config/ObjectRenderConfig.hpp"
 
 namespace Config
 {
 
-class RodConfig : public Config
+class RodConfig : public XPBDObjectConfig
 {
     public:
     explicit RodConfig() 
-        : Config(), _render_config()
+        : XPBDObjectConfig(), _render_config()
     {
 
     }
 
     explicit RodConfig(const YAML::Node& node)
-        : Config(node), _render_config(node)
+        : XPBDObjectConfig(node), _render_config(node)
     {
-        _extractParameter("initial-base-position", node, _initial_base_position);
-        _extractParameter("initial-base-rotation", node, _initial_base_rotation);
-        _extractParameter("initial-velocity", node, _initial_velocity);
-        _extractParameter("initial-angular-velocity", node, _initial_angular_velocity);
-
         _extractParameter("base-fixed", node, _base_fixed);
         _extractParameter("tip-fixed", node, _tip_fixed);
 
@@ -42,13 +37,9 @@ class RodConfig : public Config
                         bool base_fixed, bool tip_fixed,
                         Real length, Real diameter, int nodes,
                         Real density, Real E, Real nu)
-        : Config(name), _render_config()
+        : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity),
+         _render_config()
     {
-        _initial_base_position.value = initial_base_position;
-        _initial_base_rotation.value = initial_base_rotation;
-        _initial_velocity.value = initial_velocity;
-        _initial_angular_velocity.value = initial_angular_velocity;
-
         _base_fixed.value = base_fixed;
         _tip_fixed.value = tip_fixed;
 
@@ -60,11 +51,6 @@ class RodConfig : public Config
         _E.value = E;
         _nu.value = nu;
     }
-
-    const Vec3r& initialBasePosition() const { return _initial_base_position.value; }
-    const Vec3r& initialBaseRotation() const { return _initial_base_rotation.value; }
-    const Vec3r& initialVelocity() const { return _initial_velocity.value; }
-    const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 
     bool baseFixed() const { return _base_fixed.value; }
     bool tipFixed() const { return _tip_fixed.value; }
@@ -80,11 +66,6 @@ class RodConfig : public Config
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
     protected:
-    ConfigParameter<Vec3r> _initial_base_position = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
-    ConfigParameter<Vec3r> _initial_base_rotation = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
-    ConfigParameter<Vec3r> _initial_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
-    ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
-
     ConfigParameter<bool> _base_fixed = ConfigParameter<bool>(true);
     ConfigParameter<bool> _tip_fixed = ConfigParameter<bool>(false);
 

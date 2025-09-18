@@ -10,7 +10,7 @@
 namespace Config
 {
 
-class ObjectRenderConfig : public Config
+class ObjectRenderConfig : public Config_Base
 {
     public:
     enum class RenderType
@@ -33,13 +33,13 @@ class ObjectRenderConfig : public Config
 
     public:
     explicit ObjectRenderConfig()
-        : Config()
+        : Config_Base()
     {
 
     }
 
     explicit ObjectRenderConfig(const YAML::Node& node)
-        : Config(node)
+        : Config_Base(node)
     {
         _extractParameterWithOptions("render-type", node, _render_type, RENDER_TYPE_MAP());
 

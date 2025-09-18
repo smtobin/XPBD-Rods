@@ -39,18 +39,16 @@ struct ConfigParameter
  * The Config object is increasingly specialized by Derived classes to incorporate more options/parameters.
  * Provides some helper functions to do proper error checking on a YAML config file which handles missing or null parameters gracefully.
  */
-class Config
+class Config_Base
 {
-    friend class MeshObjectConfig;
-
     public:
     /** Default constructor - sets everything to defaults */
-    explicit Config() {}
+    explicit Config_Base() {}
 
     /** Creates a Config from a YAML node, which only consists of a name.
      * @param node : the YAML node (i.e. dictionary of key-value pairs) that information is pulled from
      */
-    explicit Config(const YAML::Node& node)
+    explicit Config_Base(const YAML::Node& node)
     {
         // load the name parameter
         _extractParameter("name", node, _name);
@@ -59,13 +57,13 @@ class Config
     }
 
     /** "Explicit" constructor that does not use a YAML node to set up the Config */
-    explicit Config(const std::string& name)
+    explicit Config_Base(const std::string& name)
     {
         _name.value = name;
     }
 
     /** Declare virtual destructor for polymorphism */
-    virtual ~Config() = default;
+    virtual ~Config_Base() = default;
 
     // Getters
     std::string name() const { return _name.value; }
