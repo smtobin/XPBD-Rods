@@ -13,10 +13,7 @@ public:
         : _dt(dt)
     {}
 
-    void initialize()
-    {
-        _lambda = 0;
-    }
+    virtual void initialize() = 0;
 
     virtual void project() = 0;
 
@@ -32,6 +29,11 @@ public:
         : XPBDConstraintProjector_Base(dt)
     {
         _constraint(constraint);
+    }
+
+    virtual void initialize() override
+    {
+        _lambda = Constraint::ConstraintVecType::Zero();
     }
 
     virtual void project() override
@@ -65,6 +67,6 @@ public:
 private:
     typename Constraint::ConstraintVecType _lambda;
     Constraint* _constraint;
-}
+};
 
 } // namespace Constraint

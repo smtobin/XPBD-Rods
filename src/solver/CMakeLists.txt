@@ -5,11 +5,13 @@ set(SOLVER_INCLUDE_DIR "../../include/solver")
 set(SOLVER_SRC_DIR "./")
 
 set(SOLVER_HEADERS
+    ${SOLVER_INCLUDE_DIR}/BlockBandedSolver.hpp
     ${SOLVER_INCLUDE_DIR}/BlockThomasSolver.hpp
+    ${SOLVER_INCLUDE_DIR}/GaussSeidelSolver.hpp
 )
 
 set(SOLVER_SOURCES
-    ${SOLVER_SRC_DIR}/BlockThomasSolver.cpp
+    ${SOLVER_SRC_DIR}/GaussSeidelSolver.cpp
 )
 
 target_sources(Solver
