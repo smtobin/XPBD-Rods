@@ -10,17 +10,15 @@ class RodElasticConstraint : public XPBDConstraint<SimObject::OrientedParticle::
 {
     public:
 
-    RodElasticConstraint(int node_index1, const SimObject::OrientedParticle* node1, int node_index2, const SimObject::OrientedParticle* node2, const AlphaVecType& alpha);
+    RodElasticConstraint(SimObject::OrientedParticle* node1, SimObject::OrientedParticle* node2, const AlphaVecType& alpha);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
-    virtual SingleParticleGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const override;
+    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
 
     private:
-    const SimObject::OrientedParticle* _node1;
-    const SimObject::OrientedParticle* _node2;
     const Real _dl;
 
 };

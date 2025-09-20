@@ -19,7 +19,7 @@ void XPBDRod::setup()
     _elastic_constraints.reserve(_num_nodes-1);
     for (int i = 0; i < _num_nodes-1; i++)
     {
-        _elastic_constraints.emplace_back(i, &_nodes[i], i+1, &_nodes[i+1], alpha_elastic);
+        _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], alpha_elastic);
     }
 
     _num_constraints = _elastic_constraints.size() + _attachment_constraints.size();
@@ -103,7 +103,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
         for (unsigned ci = 0; ci < _ordered_constraints.size(); ci++)
         {
             const Vec6r& dlam_ci = _dlam( Eigen::seqN(6*ci, 6) );
-            std::visit(_ComputePositionUpdateForConstraint{dlam_ci, &_dx, inertia_mat_inv_node}, _ordered_constraints[ci]);
+            std::visit(_ComputePositionUpdateForConstraint{&_nodes[0], dlam_ci, &_dx, inertia_mat_inv_node}, _ordered_constraints[ci]);
         }
 
         // apply position updates
@@ -119,7 +119,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
 Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
 {
     std::multimap<int, Constraint::AttachmentConstraint>::iterator it = 
-        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(node_index, &_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
+        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(&_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
     _num_constraints++;
 
     _RHS_vec.conservativeResize(6*_num_constraints);
@@ -212,7 +212,7 @@ int XPBDRod::_orderConstraints()
         // check if there are any attachment constraints that affect node ei
         // if there are, we need to insert them before the elastic constraint to maintain the proper ordering for a block banded system matrix
         while (attachment_constraints_it != _attachment_constraints.end() && 
-            attachment_constraints_it->second.nodeIndices()[0] == _elastic_constraints[ei].nodeIndices()[0])
+            attachment_constraints_it->second.particles()[0] == _elastic_constraints[ei].particles()[0])
         {
             // add the attachment constraint to the _ordered_constraints vector
             _ordered_constraints[constraint_index++] = &attachment_constraints_it->second;

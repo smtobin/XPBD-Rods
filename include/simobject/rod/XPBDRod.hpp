@@ -134,28 +134,28 @@ class XPBDRod : public XPBDObject_Base
         template<typename ConstraintType1, typename ConstraintType2>
         Mat6r operator()(const ConstraintType1* constraint1, const ConstraintType2* constraint2)
         {
-            typename ConstraintType1::NodeIndexArray node_indices1 = constraint1->nodeIndices();
-            typename ConstraintType2::NodeIndexArray node_indices2 = constraint2->nodeIndices();
+            typename ConstraintType1::ParticlePtrArray node_ptrs1 = constraint1->particles();
+            typename ConstraintType2::ParticlePtrArray node_ptrs2 = constraint2->particles();
 
-            // find if nodes overlap (assuming that node indices are sorted and there are no duplicates)
+            // find if nodes overlap (assuming that node ptrs are sorted and there are no duplicates)
             unsigned ind1 = 0;
             unsigned ind2 = 0;
-            std::vector<int> overlapping_indices;
-            while (ind1 < node_indices1.size() && ind2 < node_indices2.size())
+            std::vector<OrientedParticle*> overlapping_nodes;
+            while (ind1 < node_ptrs1.size() && ind2 < node_ptrs2.size())
             {
                 // increment whichever node index is smaller
-                if (node_indices1[ind1] > node_indices2[ind2])
+                if (node_ptrs1[ind1] > node_ptrs2[ind2])
                 {
                     ind2++;
                 }
-                else if (node_indices1[ind1] < node_indices2[ind2])
+                else if (node_ptrs1[ind1] < node_ptrs2[ind2])
                 {
                     ind1++;
                 }
                 // node indices are equal ==> we have overlap!
                 else
                 {
-                    overlapping_indices.push_back(node_indices1[ind1]);
+                    overlapping_nodes.push_back(node_ptrs1[ind1]);
                     ind1++;
                     ind2++;
                 }
@@ -164,13 +164,13 @@ class XPBDRod : public XPBDObject_Base
 
             Mat6r grad_prod = Mat6r::Zero();
             // if we have no overlap, the product is simply 0
-            if (overlapping_indices.empty())
+            if (overlapping_nodes.empty())
                 return grad_prod;
             
             // add up the matrix product for each of the overlapping indices
-            for (const auto& node_index : overlapping_indices)
+            for (const auto& node_ptr : overlapping_nodes)
             {
-                grad_prod += constraint1->singleNodeGradient(node_index, true) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleNodeGradient(node_index, true).transpose();
+                grad_prod += constraint1->singleParticleGradient(node_ptr, true) * _node_inv_inertia_mat.asDiagonal() * constraint2->singleParticleGradient(node_ptr, true).transpose();
             }
 
             return grad_prod;
@@ -190,22 +190,24 @@ class XPBDRod : public XPBDObject_Base
          * dx_ptr: pointer to the position updates vector (i.e. pointer to the _dx class variable)
          * node_inv_inertia_mat: the inverse inertia mat M^-1, represented as a 6x1 vector
          */
-        _ComputePositionUpdateForConstraint(const Vec6r& dlam, VecXr* dx_ptr, const Vec6r& node_inv_inertia_mat)
-            : _dlam(dlam), _dx_ptr(dx_ptr), _node_inv_inertia_mat(node_inv_inertia_mat) { }
+        _ComputePositionUpdateForConstraint(const OrientedParticle* first_node_ptr, const Vec6r& dlam, VecXr* dx_ptr, const Vec6r& node_inv_inertia_mat)
+            : _first_node_ptr(first_node_ptr), _dlam(dlam), _dx_ptr(dx_ptr), _node_inv_inertia_mat(node_inv_inertia_mat) { }
 
         /** Computes and adds the constraint's contribution to the overall position updates vector (given dlam and M^-1). */
         template <typename ConstraintType>
         void operator()(const ConstraintType* constraint)
         {
             // go through all the nodes affected by this constraint and add this constraint's contribution to the position update
-            typename ConstraintType::NodeIndexArray node_indices = constraint->nodeIndices();
-            for (const auto& node_index : node_indices)
+            typename ConstraintType::ParticlePtrArray node_ptrs = constraint->particles();
+            for (const auto& node_ptr : node_ptrs)
             {
+                size_t node_index = node_ptr - _first_node_ptr;
                 (*_dx_ptr)( Eigen::seqN(6*node_index, 6)) += 
-                    _node_inv_inertia_mat.asDiagonal() * constraint->singleNodeGradient(node_index, true).transpose() * _dlam;
+                    _node_inv_inertia_mat.asDiagonal() * constraint->singleParticleGradient(node_ptr, true).transpose() * _dlam;
             }
         }
 
+        const OrientedParticle* _first_node_ptr;
         const Vec6r& _dlam;
         VecXr* _dx_ptr;
         const Vec6r& _node_inv_inertia_mat;

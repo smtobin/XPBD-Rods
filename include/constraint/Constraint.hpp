@@ -19,26 +19,32 @@ class XPBDConstraint
     using AlphaVecType = Eigen::Vector<Real, ConstraintDim_>;
     using GradientMatType = Eigen::Matrix<Real, ConstraintDim_, StateDim>;
     using SingleParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim_, SimObject::OrientedParticle::DOF>; 
-    using NodeIndexArray = std::array<int, NumParticles>;
+    using ParticlePtrArray = std::array<SimObject::OrientedParticle*, NumParticles>;
     using CachedSingleParticleGradientArray = std::array<SingleParticleGradientMatType, NumParticles>;
 
     public:
-    XPBDConstraint(const AlphaVecType& alpha)
-        : _alpha(alpha)
+    XPBDConstraint(const ParticlePtrArray& particles, const AlphaVecType& alpha)
+        : _particles(particles), _alpha(alpha)
     {
+    }
+
+    XPBDConstraint(std::initializer_list<SimObject::OrientedParticle*> particles_list, const AlphaVecType& alpha)
+        : _particles{}, _alpha(alpha)
+    {
+        std::copy(particles_list.begin(), particles_list.end(), _particles.begin());
     }
 
     virtual ConstraintVecType evaluate() const = 0;
     virtual GradientMatType gradient(bool update_cache=true) const = 0;
 
-    virtual SingleParticleGradientMatType singleNodeGradient(int node_index, bool use_cache=false) const = 0;
+    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const = 0;
 
     const AlphaVecType& alpha() const { return _alpha; }
-    const NodeIndexArray& nodeIndices() const { return _node_indices; }
+    const ParticlePtrArray& particles() const { return _particles; }
 
     protected:
     AlphaVecType _alpha;
-    NodeIndexArray _node_indices;
+    ParticlePtrArray _particles;
     mutable CachedSingleParticleGradientArray _cached_gradients;
 };
 
