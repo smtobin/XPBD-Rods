@@ -5,6 +5,7 @@
 #include "common/math.hpp"
 
 #include "config/RodConfig.hpp"
+#include "simobject/XPBDObject_Base.hpp"
 #include "simobject/rod/CrossSection.hpp"
 #include "simobject/OrientedParticle.hpp"
 #include "solver/BlockThomasSolver.hpp"
@@ -34,7 +35,7 @@ namespace SimObject
  * This is enabled by ordering the constraints such that the LHS matrix for the lambda system (delC * M^-1 * delC^T + alpha_tilde) is block banded.
  * When this is the case, the system of equations can be solved in O(n) time (without any prefactorization!).
  */
-class XPBDRod
+class XPBDRod : public XPBDObject_Base
 {
     public:
     // a std::variant type used to store all constraints in order
@@ -42,7 +43,8 @@ class XPBDRod
 
     template <typename CrossSectionType_>
     XPBDRod(const Config::RodConfig& config, const CrossSectionType_& cross_section)
-        : _num_nodes(config.nodes()), _length(config.length()), _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
+        : XPBDObject_Base(config),
+         _num_nodes(config.nodes()), _length(config.length()), _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
          _density(config.density()), _E(config.E()), _nu(config.nu()),
          _solver(1, config.nodes())
     {
@@ -83,10 +85,16 @@ class XPBDRod
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
-    void setup();
+    virtual void setup() override;
+
+    /** Updates rod positions based on current velocities. */
+    virtual void inertialUpdate(Real dt) override;
 
     /** Steps the rod forward in time by dt. */
-    void update(Real dt, Real g_accel);
+    virtual void internalConstraintSolve(Real dt) override;
+
+    /** Computes the new translational and angular velocities of each node. */
+    virtual void velocityUpdate(Real dt) override;
 
     /** Adds an attachment constraint to the specified node.
      * A pointer to the attachment constraint is returned so that the reference position and orientation can be changed.
@@ -97,14 +105,9 @@ class XPBDRod
     bool removeAttachmentConstraint(int node_index, const Constraint::AttachmentConstraint* ptr=nullptr);
 
     private:
-    /** Updates rod positions based on current velocities. */
-    void _inertialUpdate(Real dt, Real g_accel);
 
     /** Applies whatever positional updates are in the _dx vector to the positions and orientations of each node. */
     void _positionUpdate();
-
-    /** Computes the new translational and angular velocities of each node. */
-    void _velocityUpdate(Real dt);
 
     /** Puts all constraints "in order" into the _ordered_constraints vector.
      * This should be called every time a new constraint is added or removed.

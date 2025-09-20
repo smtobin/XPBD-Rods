@@ -48,11 +48,11 @@ void XPBDRod::setup()
     
 }
 
-void XPBDRod::update(Real dt, Real g_accel)
+void XPBDRod::internalConstraintSolve(Real dt)
 {
     _lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
     _prev_nodes = _nodes;
-    _inertialUpdate(dt, g_accel);
+    inertialUpdate(dt);
 
     for (int gi = 0; gi < 1; gi++)
     {
@@ -113,7 +113,7 @@ void XPBDRod::update(Real dt, Real g_accel)
     }
 
 
-    _velocityUpdate(dt);
+    velocityUpdate(dt);
 }
 
 Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
@@ -246,14 +246,13 @@ int XPBDRod::_orderConstraints()
     return num_diagonals;
 }
 
-void XPBDRod::_inertialUpdate(Real dt, Real g_accel)
+void XPBDRod::inertialUpdate(Real dt)
 {
     for (int i = 0; i < _num_nodes; i++)
     {
         auto& node = _nodes[i];
 
-        // position inertial update
-        Vec3r F_ext = _m_node * Vec3r(0,-g_accel,0);
+        Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
         Vec3r T_ext = Vec3r(0,0,0);
         node.inertialUpdate(dt, F_ext, T_ext);
     }
@@ -269,7 +268,7 @@ void XPBDRod::_positionUpdate()
     }
 }
 
-void XPBDRod::_velocityUpdate(Real dt)
+void XPBDRod::velocityUpdate(Real dt)
 {
     for (unsigned i = 0; i < _nodes.size(); i++)
     {

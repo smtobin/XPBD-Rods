@@ -10,7 +10,7 @@ class XPBDObject_Base
 {
 
 public:
-    XPBDObject_Base(const XPBDObjectConfig& config)
+    XPBDObject_Base(const Config::XPBDObjectConfig& config)
         : _name(config.name())
     {}
 

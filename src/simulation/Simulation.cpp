@@ -106,17 +106,17 @@ int Simulation::run()
     _graphics_scene.interactorStart();
 }
 
-void Simulation::notifyKeyPressed(const std::string& key)
+void Simulation::notifyKeyPressed(const std::string& /*key*/)
 {
     
 }
 
-void Simulation::notifyKeyReleased(const std::string& key)
+void Simulation::notifyKeyReleased(const std::string& /*key*/)
 {
     
 }
 
-void Simulation::notifyMouseMoved(double mx, double my)
+void Simulation::notifyMouseMoved(double /*mx*/, double /*my*/)
 {
     
 }
@@ -136,10 +136,10 @@ void Simulation::_timeStep()
     // std::cout << "t=" << _time << std::endl;
     for (auto& rod : _rods)
     {
-        rod.update(_time_step, _g_accel);
+        rod.internalConstraintSolve(_time_step);
         
-        const Vec3r& tip_pos = rod.nodes().back().position;
-        const Mat3r& tip_or = rod.nodes().back().orientation;
+        // const Vec3r& tip_pos = rod.nodes().back().position;
+        // const Mat3r& tip_or = rod.nodes().back().orientation;
         // std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
         // std::cout << "Tip orientation:\n" << tip_or << std::endl;
     }
