@@ -9,11 +9,11 @@ GaussSeidelSolver::GaussSeidelSolver(Real dt, int num_iter)
 
 }
 
-void GaussSiedelSolver::solve()
+void GaussSeidelSolver::solve()
 {
     for (auto& projector : _constraint_projectors)
     {
-        projector.project();
+        projector->project();
     }
 }
 

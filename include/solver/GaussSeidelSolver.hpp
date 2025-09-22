@@ -1,8 +1,10 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/VariadicVectorContainer.hpp"
 
-#include "constraint/Constraint.hpp"
+#include "constraint/AttachmentConstraint.hpp"
+#include "constraint/RodElasticConstraint.hpp"
 #include "constraint/XPBDConstraintProjector.hpp"
 
 #include <memory>
@@ -19,10 +21,14 @@ public:
     template <typename ConstraintType, typename... Args>
     void addConstraint(Args&&... args)
     {
-        std::unique_ptr<ConstraintType> new_constraint = std::make_unique<ConstraintType>(std::forward<Args>(args)...);
+        /** TODO: Probably need constraint reference or something here. When std::vector reallocates, the pointer to the constraint used by the
+         * constraint projector will become invalid, leading to segfault.
+         */
+        _constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
+
         std::unique_ptr<Constraint::XPBDConstraintProjector_Base> new_projector =
-             std::make_unique<Constraint::XPBDConstraintProjector<ConstraintType>>(_dt);
-        _constraints.push_back(std::move(new_constraint));
+             std::make_unique<Constraint::XPBDConstraintProjector<ConstraintType>>(_dt, &_constraints.template get<ConstraintType>().back());
+
         _constraint_projectors.push_back(std::move(new_projector));
     }
 
@@ -33,7 +39,7 @@ private:
     int _num_iter;
 
     std::vector<std::unique_ptr<Constraint::XPBDConstraintProjector_Base>> _constraint_projectors;
-    std::vector<std::unique_ptr<Constraint::XPBDConstraint>> _constraints;
+    VariadicVectorContainer<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint> _constraints;
 
 };
     

@@ -60,7 +60,7 @@ public:
         for (int i = 0; i < Constraint::NumParticles; i++)
         {
             SimObject::OrientedParticle* particle_i = _constraint->particles()[i];
-            const Vec6r position_update = inertia_inverse.block<6,1>(6*i, 0).asDiagonal() * constraint->singleParticleGradient(particle_i, true).transpose() * dlam;
+            const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * _constraint->singleParticleGradient(particle_i, true).transpose() * dlam;
             particle_i->positionUpdate(position_update);
         }
     }
