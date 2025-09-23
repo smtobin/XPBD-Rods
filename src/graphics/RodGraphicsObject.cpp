@@ -1,4 +1,5 @@
 #include "graphics/RodGraphicsObject.hpp"
+#include "graphics/VTKUtils.hpp"
 
 #include <vtkTriangle.h>
 #include <vtkPolygon.h>
@@ -21,99 +22,60 @@
 namespace Graphics
 {
 
-RodGraphicsObject::RodGraphicsObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& config)
-    : _rod(rod), _render_config(config)
-{
-
-}
-
-void RodGraphicsObject::setup()
+RodGraphicsObject::RodGraphicsObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
+    : GraphicsObject(render_config), _rod(rod), _render_config(render_config)
 {
     _vtk_poly_data = vtkSmartPointer<vtkPolyData>::New();
     _vtk_poly_data_normals = vtkSmartPointer<vtkPolyDataNormals>::New();
     _vtk_poly_data_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    _vtk_actor = vtkSmartPointer<vtkActor>::New();
 
     _generateInitialPolyData();
 
-    // select rendering type
-    Config::ObjectRenderConfig::RenderType render_type = _render_config.renderType();
-    if (render_type == Config::ObjectRenderConfig::RenderType::FLAT)
+    vtkNew<vtkPolyDataMapper> data_mapper;
+    if (render_config.smoothNormals())
     {
-        _vtk_actor->GetProperty()->SetInterpolationToFlat();
+        // smooth normals
+        vtkNew<vtkPolyDataNormals> normal_generator;
+        normal_generator->SetInputData(_vtk_poly_data);
+        normal_generator->SetFeatureAngle(30.0);
+        normal_generator->SplittingOff();
+        normal_generator->ConsistencyOn();
+        normal_generator->ComputePointNormalsOn();
+        normal_generator->ComputeCellNormalsOff();
+        normal_generator->Update();
+
+        data_mapper->SetInputConnection(normal_generator->GetOutputPort());
     }
-    else if (render_type == Config::ObjectRenderConfig::RenderType::PHONG)
+    else
     {
-        _vtk_actor->GetProperty()->SetInterpolationToPhong();
+        data_mapper->SetInputData(_vtk_poly_data);
     }
-    else if (render_type == Config::ObjectRenderConfig::RenderType::PBR)
-    {
-        _vtk_actor->GetProperty()->SetInterpolationToPBR();
-    }
+
+    _vtk_actor = vtkSmartPointer<vtkActor>::New();
+    _vtk_actor->SetMapper(data_mapper);
+
+    VTKUtils::setupActorFromRenderConfig(_vtk_actor.Get(), render_config);
 
     // Add this step for smooth normals
-    vtkNew<vtkPolyDataNormals> normalGenerator;
-    normalGenerator->SetInputData(_vtk_poly_data);
-    normalGenerator->SetFeatureAngle(30.0); // Force smooth normals
-    normalGenerator->SplittingOff();
-    normalGenerator->ConsistencyOn();
-    normalGenerator->AutoOrientNormalsOn();
-    normalGenerator->ComputePointNormalsOn();
-    normalGenerator->ComputeCellNormalsOff();
-    normalGenerator->FlipNormalsOff();
-    normalGenerator->Update();
+    // vtkNew<vtkPolyDataNormals> normalGenerator;
+    // normalGenerator->SetInputData(_vtk_poly_data);
+    // normalGenerator->SetFeatureAngle(30.0); // Force smooth normals
+    // normalGenerator->SplittingOff();
+    // normalGenerator->ConsistencyOn();
+    // normalGenerator->AutoOrientNormalsOn();
+    // normalGenerator->ComputePointNormalsOn();
+    // normalGenerator->ComputeCellNormalsOff();
+    // normalGenerator->FlipNormalsOff();
+    // normalGenerator->Update();
 
-    vtkNew<vtkPolyDataTangents> tangents;
-    tangents->SetInputConnection(normalGenerator->GetOutputPort());
-    tangents->Update();
+    // vtkNew<vtkPolyDataTangents> tangents;
+    // tangents->SetInputConnection(normalGenerator->GetOutputPort());
+    // tangents->Update();
 
-    vtkNew<vtkPolyDataMapper> mapper;
-    mapper->SetInputConnection(tangents->GetOutputPort());
-    _vtk_actor->SetMapper(mapper);
+    // vtkNew<vtkPolyDataMapper> mapper;
+    // mapper->SetInputConnection(tangents->GetOutputPort());
+    // _vtk_actor->SetMapper(mapper);
 
-    std::optional<std::string> orm_file = _render_config.ormTextureFilename();
-    if (orm_file.has_value())
-    {
-        vtkNew<vtkPNGReader> orm_reader;
-        orm_reader->SetFileName(orm_file.value().c_str());
-        vtkNew<vtkTexture> material;
-        material->InterpolateOn();
-        material->SetInputConnection(orm_reader->GetOutputPort());
-        _vtk_actor->GetProperty()->SetORMTexture(material);
-    }
-
-    std::optional<std::string> base_color_file = _render_config.baseColorTextureFilename();
-    if (base_color_file.has_value())
-    {
-        vtkNew<vtkPNGReader> color_reader;
-        color_reader->SetFileName(base_color_file.value().c_str());
-        vtkNew<vtkTexture> color;
-        color->UseSRGBColorSpaceOn();
-        color->InterpolateOn();
-        color->SetInputConnection(color_reader->GetOutputPort());
-        _vtk_actor->GetProperty()->SetBaseColorTexture(color);
-    }
-
-    std::optional<std::string> normals_file = _render_config.normalsTextureFilename();
-    if (normals_file.has_value())
-    {
-        vtkNew<vtkPNGReader> normals_reader;
-        normals_reader->SetFileName(normals_file.value().c_str());
-        vtkNew<vtkTexture> normals;
-        normals->SetMipmap(true);
-        normals->InterpolateOn();
-        normals->SetMaximumAnisotropicFiltering(8);
-        normals->SetInputConnection(normals_reader->GetOutputPort());
-        _vtk_actor->GetProperty()->SetNormalTexture(normals);
-    }
-
-    
-
-    const Vec3r& solid_color = _render_config.color();
-    _vtk_actor->GetProperty()->SetColor(solid_color[0], solid_color[1], solid_color[2]);
-
-    _vtk_actor->GetProperty()->SetMetallic(_render_config.metallic());
-    _vtk_actor->GetProperty()->SetRoughness(_render_config.roughness());
 }
 
 void RodGraphicsObject::update()

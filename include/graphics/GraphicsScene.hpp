@@ -2,6 +2,11 @@
 #define __GRAPHICS_SCENE_HPP
 
 #include "simobject/rod/XPBDRod.hpp"
+#include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/rigidbody/XPBDRigidBox.hpp"
+#include "graphics/GraphicsObject.hpp"
+#include "graphics/SphereGraphicsObject.hpp"
+#include "graphics/BoxGraphicsObject.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 
 #include "config/SimulationRenderConfig.hpp"
@@ -15,6 +20,7 @@
 
 #include <vector>
 #include <atomic>
+#include <memory>
 
 namespace Sim
 {
@@ -39,6 +45,8 @@ class GraphicsScene
     void update();
 
     void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
 
     Vec3r cameraPosition() const;
     Vec3r cameraViewDirection() const;
@@ -50,7 +58,7 @@ class GraphicsScene
     vtkSmartPointer<vtkRenderWindow> _render_window;
     vtkSmartPointer<vtkRenderWindowInteractor> _interactor;
 
-    std::vector<Graphics::RodGraphicsObject> _rod_graphics_objects;
+    std::vector<std::unique_ptr<GraphicsObject>> _graphics_objects;
 
     std::atomic<bool> _should_render;
 

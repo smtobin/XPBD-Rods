@@ -72,9 +72,9 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     _renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
     
     // add all the rods that may have been added before we set up
-    for (const auto& graphics_obj : _rod_graphics_objects)
+    for (const auto& graphics_obj : _graphics_objects)
     {
-        _renderer->AddActor(graphics_obj.getVtkActor());
+        _renderer->AddActor(graphics_obj->actor());
     }
     
 
@@ -216,9 +216,9 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
 void GraphicsScene::update()
 {
-    for (auto& obj : _rod_graphics_objects)
+    for (auto& obj : _graphics_objects)
     {
-        obj.update();
+        obj->update();
     }
 
     _should_render.store(true);
@@ -226,10 +226,26 @@ void GraphicsScene::update()
 
 void GraphicsScene::addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
 {
-    _rod_graphics_objects.emplace_back(rod, render_config);
-    _rod_graphics_objects.back().setup();
+    std::unique_ptr<RodGraphicsObject> rod_go = std::make_unique<RodGraphicsObject>(rod, render_config);
 
-    _renderer->AddActor(_rod_graphics_objects.back().getVtkActor());
+    _renderer->AddActor(rod_go->actor());
+    _graphics_objects.push_back(std::move(rod_go));
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)
+{
+    std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, render_config);
+
+    _renderer->AddActor(sphere_go->actor());
+    _graphics_objects.push_back(std::move(sphere_go));
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config)
+{
+    std::unique_ptr<BoxGraphicsObject> box_go = std::make_unique<BoxGraphicsObject>(box, render_config);
+
+    _renderer->AddActor(box_go->actor());
+    _graphics_objects.push_back(std::move(box_go));
 }
 
 Vec3r GraphicsScene::cameraPosition() const

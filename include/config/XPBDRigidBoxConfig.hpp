@@ -22,7 +22,7 @@ public:
         const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity,
         Real density,
         const Vec3r& size)
-        : XPBDRigidObjectConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density)
+        : XPBDRigidBodyConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density)
     {
         _size.value = size;
     }
@@ -30,7 +30,7 @@ public:
     Vec3r size() const { return _size.value; }
 
 private:
-    ConfigParameter<Vec3r> _size = ConfigParameter<Vec3r>(1.0, 1.0, 1.0);
+    ConfigParameter<Vec3r> _size = ConfigParameter<Vec3r>(Vec3r(1.0, 1.0, 1.0));
 
 };
 

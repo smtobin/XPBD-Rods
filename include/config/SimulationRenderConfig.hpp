@@ -31,7 +31,7 @@ class SimulationRenderConfig : public Config_Base
     Real exposure() const { return _exposure.value; }
 
     protected:
-    ConfigParameter<std::optional<std::string>> _hdr_image_filename = ConfigParameter<std::optional<std::string>>(std::nullopt);
+    ConfigParameter<std::optional<std::string>> _hdr_image_filename = ConfigParameter<std::optional<std::string>>();
     ConfigParameter<bool> _create_skybox = ConfigParameter<bool>(true);
     ConfigParameter<Real> _exposure = ConfigParameter<Real>(0.5);
 

@@ -12,7 +12,7 @@ class XPBDRigidBody_Base : public XPBDObject_Base
 {
 
 public:
-    XPBDRigidBody_Base(const XPBDRigidBodyConfig& config)
+    XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config)
         : XPBDObject_Base(config), _com()
     {
         _com.position = config.initialPosition();
@@ -25,14 +25,16 @@ public:
 
         // Derived classes are responsible for setting the mass and rotational inertia
         _com.mass = -1;
-        _com.Ib = -1;
+        _com.Ib = Vec3r::Zero();
     }
+
+    const OrientedParticle& com() const { return _com; }
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup()
     {
         // make sure that the mass and rotational inertia have been calculated
-        assert(_com.mass != -1 && _com.Ib != -1);
+        assert(_com.mass != -1 && _com.Ib != Vec3r::Zero());
     }
 
     /** Updates the object in the absence of constraints. */
@@ -49,7 +51,7 @@ public:
     /** Updates the rigid body's velocity. */
     virtual void velocityUpdate(Real dt) override
     {
-        _com.velocityUpdate(dt, _prev_com.position, _prev_com.orientation);
+        _com.velocityUpdate(dt, _prev_position, _prev_orientation);
 
         _prev_position = _com.position;
         _prev_orientation = _com.orientation;

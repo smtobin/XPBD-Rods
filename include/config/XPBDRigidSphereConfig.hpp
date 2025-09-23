@@ -22,7 +22,7 @@ public:
         const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity,
         Real density,
         Real radius)
-        : XPBDRigidObjectConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density)
+        : XPBDRigidBodyConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density)
     {
         _radius.value = radius;
     }

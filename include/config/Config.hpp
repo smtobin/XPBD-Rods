@@ -1,9 +1,9 @@
-#ifndef __CONFIG_HPP
-#define __CONFIG_HPP
+#pragma once
 
 #include "yaml-cpp/yaml.h"
 
 #include "common/common.hpp"
+#include "common/colors.hpp"
 
 #include <iostream>
 #include <type_traits>
@@ -35,12 +35,43 @@ struct ConfigParameter
     {}
 };
 
+// template <typename T>
+// struct ConfigParameter;
+
+template<typename T>
+struct ConfigParameter<std::optional<T>>
+{
+    std::string name;
+    std::optional<T> value;
+
+    ConfigParameter(const T& default_value)
+        : value(default_value)
+    {}
+
+    ConfigParameter()
+        : value(std::nullopt)
+    {}
+};
+
+// template<typename T>
+// struct ConfigParameter<T>
+// {
+//     std::string name;
+//     T value;
+
+//     ConfigParameter(const T& default_value)
+//         : value(default_value)
+//     {}
+// };
+
 /** A class that represents a YAML node, which at its simplest is just the name of the object.
  * The Config object is increasingly specialized by Derived classes to incorporate more options/parameters.
  * Provides some helper functions to do proper error checking on a YAML config file which handles missing or null parameters gracefully.
  */
 class Config_Base
 {
+    friend class MeshObjectConfig;
+
     public:
     /** Default constructor - sets everything to defaults */
     explicit Config_Base() {}
@@ -170,6 +201,46 @@ class Config_Base
         std::cout << "\tSetting parameter " << BOLD << param_name << RST << " to default value of " << BOLD << key << RST << std::endl;
     }
 
+    /** Extracts a vector of arbitrary length from YAML node.
+     * @param param_name : the name of the vector parameter
+     * @param yaml_node : the YAML node to extract information from
+     * @param param : (output) the ConfigParameter, which gets set by the function
+     */
+    template <typename T>
+    static void _extractParameter(const std::string& param_name, const YAML::Node& yaml_node, ConfigParameter<std::vector<T>>& param)
+    {
+        // set the name field of the ConfigParameter
+        param.name = param_name;
+
+        try 
+        {
+            if (yaml_node[param_name].Type() != YAML::NodeType::Null)
+            {
+                // if we get here, the parameter exists, and it is not null
+                // so, set the value of the ConfigParameter and we're done!
+                for (unsigned i = 0; i < yaml_node[param_name].size(); i++)
+                    param.value.push_back(yaml_node[param_name][i].as<T>());
+                
+                return;
+            }
+            else
+            {
+                // parameter in YAML node exists, but is null
+                std::cerr << KYEL << "\tParameter with name " << BOLD << param_name << RST << KYEL << " is null (did you forget to set it?)" << RST << std::endl;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            // parameter in YAML does not exist
+            std::cerr << KYEL << "\tParameter " << BOLD << param_name << RST << KYEL << " not found for this object, or is not of the expected type." << RST << std::endl;
+        }
+
+        // if we get to here, the parameter was not specified so just use the default value (which should already be set as the value of the ConfigParameter)
+        std::cout << "\tSetting parameter " << BOLD << param_name << RST << " to default value of " << BOLD << "{";
+        for (const auto& v : param.value)   std::cout << v << ",";
+        std::cout << "}" << RST << std::endl;
+    }
+
     /** Extracts a 3-vector from YAML node as an Vec3r
      * If the parameter doesn't exist, the ConfigParameter value is a null optional.
      * @param param_name : the name of the 3-Vector parameter to get from the YAML file
@@ -215,6 +286,105 @@ class Config_Base
         // if we get to here, there was an issue with the parameter, so just use the default value
         std::cout << "\tSetting parameter " << BOLD << param_name << RST << " to default value of " << BOLD << 
             "(" << param.value[0] << ", " << param.value[1] << ", " << param.value[2] << ")" << RST << std::endl;
+        
+    }
+
+    /** Extracts an optional 3-vector from YAML node as an Vec3r
+     * If the parameter doesn't exist, the ConfigParameter value is a null optional.
+     * @param param_name : the name of the 3-Vector parameter to get from the YAML file
+     * @param yaml_node : the YAML node to extract information from
+     * @param param : (output) the ConfigParameter, which gets set by the function
+     */
+    static void _extractParameter(const std::string& param_name, const YAML::Node& yaml_node, ConfigParameter<std::optional<Vec3r>>& param)
+    {
+        // set the name field of the ConfigParameter
+        param.name = param_name;
+        try
+        {
+            if (yaml_node[param_name].Type() != YAML::NodeType::Null)
+            {
+                // make sure the node is an array of exactly 3 values
+                if (yaml_node[param_name].size() == 3)
+                {
+                    // if we get here, the parameter exists and it is not null
+                    // so, set the value of the ConfigParameter
+                    param.value = Vec3r({ yaml_node[param_name][0].as<Real>(), 
+                                                    yaml_node[param_name][1].as<Real>(),
+                                                    yaml_node[param_name][2].as<Real>() });
+                    return;
+                }
+                else
+                {
+                    std::cerr << KRED << "\tExpected exactly 3 values for the parameter " << BOLD << param_name << RST << std::endl;
+                }
+                
+            }
+            else
+            {
+                // parameter in YAML node exists, but is null
+                std::cerr << "\tParameter with name " << param_name << " is null (did you forget to set it?)" << RST << std::endl;
+            }
+        }
+        catch(const std::exception& e)
+        {
+            // parameter in YAML does not exist
+            std::cerr << KYEL << "\tParameter " << BOLD << param_name << RST << KYEL << " not found for this object, or is not of the expected type." << RST << std::endl;
+        }
+
+        // if we get to here, the parameter was not specified so just use the default value (which should already be set as the value of the ConfigParameter)
+        std::cout << "\t Optional parameter " << BOLD << param_name << RST << " not specified. " << std::endl;
+        
+    }
+
+    /** Extracts an optional vector of 3-vectors from YAML node as a vector of Vec3r's
+     * If the parameter doesn't exist, the ConfigParameter value is a null optional.
+     * @param param_name : the name of the 3-Vector parameter to get from the YAML file
+     * @param yaml_node : the YAML node to extract information from
+     * @param param : (output) the ConfigParameter, which gets set by the function
+     */
+    static void _extractParameter(const std::string& param_name, const YAML::Node& yaml_node, ConfigParameter<std::optional<std::vector<Vec3r>>>& param)
+    {
+        // set the name field of the ConfigParameter
+        param.name = param_name;
+        param.value = std::vector<Vec3r>();
+        try
+        {
+            if (yaml_node[param_name].Type() != YAML::NodeType::Null)
+            {
+                // if we get here, the parameter exists, and it is not null
+                // so, set the value of the ConfigParameter and we're done!
+                for (unsigned i = 0; i < yaml_node[param_name].size(); i++)
+                {
+                    if (yaml_node[param_name][i].size() == 3)
+                    {
+                        Vec3r vec(  yaml_node[param_name][i][0].as<Real>(), 
+                                    yaml_node[param_name][i][1].as<Real>(),
+                                    yaml_node[param_name][i][2].as<Real>() );
+                        param.value.value().push_back(vec);
+                    }
+                    else
+                    {
+                        std::cerr << KRED << "\tEntry " << i << " in " << BOLD << param_name << " does not have exactly 3 values!" << RST << std::endl;
+                    }
+                }
+
+                return;
+                
+            }
+            else
+            {
+                // parameter in YAML node exists, but is null
+                std::cerr << "\tParameter with name " << param_name << " is null (did you forget to set it?)" << RST << std::endl;
+            }
+        }
+        catch(const std::exception& e)
+        {
+            // parameter in YAML does not exist
+            std::cerr << KYEL << "\tParameter " << BOLD << param_name << RST << KYEL << " not found for this object, or is not of the expected type." << RST << std::endl;
+        }
+
+        // if we get to here, the parameter was not specified so just use the default value (which should already be set as the value of the ConfigParameter)
+        std::cout << "\t Optional parameter " << BOLD << param_name << RST << " not specified. " << std::endl;
         
     }
 
@@ -273,5 +443,3 @@ class Config_Base
 };
 
 } // namespace Config
-
-#endif // __CONFIG_HPP

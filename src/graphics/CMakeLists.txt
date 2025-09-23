@@ -6,12 +6,16 @@ set(GRAPHICS_SRC_DIR "./")
 
 set(GRAPHICS_HEADERS
     ${GRAPHICS_INCLUDE_DIR}/RodGraphicsObject.hpp
+    ${GRAPHICS_INCLUDE_DIR}/BoxGraphicsObject.hpp
+    ${GRAPHICS_INCLUDE_DIR}/SphereGraphicsObject.hpp
     ${GRAPHICS_INCLUDE_DIR}/GraphicsScene.hpp
     ${GRAPHICS_INCLUDE_DIR}/CustomVTKInteractorStyle.hpp
 )
 
 set(GRAPHICS_SOURCES
     ${GRAPHICS_SRC_DIR}/RodGraphicsObject.cpp
+    ${GRAPHICS_SRC_DIR}/BoxGraphicsObject.cpp
+    ${GRAPHICS_SRC_DIR}/SphereGraphicsObject.cpp
     ${GRAPHICS_SRC_DIR}/GraphicsScene.cpp
     ${GRAPHICS_SRC_DIR}/CustomVTKInteractorStyle.cpp
 )
