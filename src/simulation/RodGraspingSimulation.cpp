@@ -68,7 +68,8 @@ void RodGraspingSimulation::_graspClosestNode()
     const SimObject::OrientedParticle* closest_node = nullptr;
     int closest_node_index = -1;
     Real min_dist = std::numeric_limits<Real>::max();
-    for (auto& rod : _rods)
+    std::vector<SimObject::XPBDRod>& rods = _objects.template get<SimObject::XPBDRod>();
+    for (auto& rod : rods)
     {
         const std::vector<SimObject::OrientedParticle>& rod_nodes = rod.nodes();
         for (unsigned i = 0; i < rod_nodes.size(); i++)

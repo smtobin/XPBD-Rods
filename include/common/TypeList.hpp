@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits>
 
 /** Empty struct that stores a parameter pack. Very useful for template metaprogramming. */

@@ -2,7 +2,11 @@
 #include <math.h>
 #include <iostream>
 
-/* Escape sequences to set print colors */
+#include "common/TypeList.hpp"
+#include "common/VariadicVectorContainer.hpp"
+
+
+/** Escape sequences to set print colors */
 #define RST  "\x1B[0m"
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -15,7 +19,7 @@
 #define UNDL  "\x1B[4m"
 
 
-/* Universal typedefs used by the simulation */
+/** Universal typedefs used by the simulation */
 using Real = double;
 
 using Vec2r = Eigen::Vector<Real, 2>;
@@ -28,6 +32,24 @@ using Mat3r = Eigen::Matrix<Real, 3, 3>;
 using Mat4r = Eigen::Matrix<Real, 4, 4>;
 using Mat6r = Eigen::Matrix<Real, 6, 6>;
 using MatXr = Eigen::Matrix<Real,-1,-1>;
+
+namespace SimObject
+{
+    class XPBDRod;
+    class XPBDRigidSphere;
+    class XPBDRigidBox;
+}
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
+using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
+
+namespace Constraint
+{
+    class AttachmentConstraint;
+    class RodElasticConstraint;
+}
+using XPBDConstraints_TypeList = TypeList<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint>;
+using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
+using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity

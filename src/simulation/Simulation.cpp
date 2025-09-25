@@ -35,17 +35,17 @@ void Simulation::setup()
     _graphics_scene.setup(this);
 
     // create rod(s)
-    _rods.reserve(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
+    _objects.template reserve<SimObject::XPBDRod>(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
     for (const auto& rod_config : _config.rodConfigs())
     {
         SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-        SimObject::XPBDRod rod(rod_config, cross_section);
+        // SimObject::XPBDRod rod(rod_config, cross_section);
 
-        _rods.push_back(std::move(rod));
-        _rods.back().setup();
+        SimObject::XPBDRod& new_rod = _objects.template emplace_back<SimObject::XPBDRod>(rod_config, cross_section);
+        new_rod.setup();
 
         // add new rod to graphics scene to be visualized
-        _graphics_scene.addObject(&_rods.back(), rod_config.renderConfig());
+        _graphics_scene.addObject(&new_rod, rod_config.renderConfig());
     }
 
 
@@ -134,15 +134,15 @@ void Simulation::notifyLeftMouseButtonReleased()
 void Simulation::_timeStep()
 {
     // std::cout << "t=" << _time << std::endl;
-    for (auto& rod : _rods)
+    _objects.for_each_element([&](auto& obj)
     {
-        rod.internalConstraintSolve(_time_step);
+        obj.internalConstraintSolve(_time_step);
         
         // const Vec3r& tip_pos = rod.nodes().back().position;
         // const Mat3r& tip_or = rod.nodes().back().orientation;
         // std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
         // std::cout << "Tip orientation:\n" << tip_or << std::endl;
-    }
+    });
 
     _time += _time_step;
 }

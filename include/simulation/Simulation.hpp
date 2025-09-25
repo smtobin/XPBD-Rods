@@ -64,7 +64,7 @@ class Simulation
     Real _g_accel;
     int _viewer_refresh_time_ms;
 
-    std::vector<SimObject::XPBDRod> _rods;
+    XPBDObjects_Container _objects;
 
     std::deque<std::function<void()>> _callback_queue;
 

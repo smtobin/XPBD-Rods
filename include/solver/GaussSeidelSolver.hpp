@@ -39,7 +39,7 @@ private:
     int _num_iter;
 
     std::vector<std::unique_ptr<Constraint::XPBDConstraintProjector_Base>> _constraint_projectors;
-    VariadicVectorContainer<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint> _constraints;
+    XPBDConstraints_ConstPtrContainer _constraints;
 
 };
     
