@@ -9,7 +9,7 @@ namespace Sim
 
 Simulation::Simulation()
     : _setup(false),
-      _time(0), _time_step(1e-3), _end_time(10),
+      _time(0), _dt(1e-3), _end_time(10),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
       _graphics_scene()
 {
@@ -18,7 +18,7 @@ Simulation::Simulation()
 
 Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
-    _time_step(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
+    _dt(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
     _viewer_refresh_time_ms(1000.0/30.0),
     _graphics_scene(sim_config.renderConfig()),
     _config(sim_config)
@@ -35,18 +35,10 @@ void Simulation::setup()
     _graphics_scene.setup(this);
 
     // create rod(s)
-    _objects.template reserve<SimObject::XPBDRod>(_config.rodConfigs().size()); // reserve space for the rods so that the vector does not need to re-allocate - all pointers to vector contents will remain valid
-    for (const auto& rod_config : _config.rodConfigs())
-    {
-        SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-        // SimObject::XPBDRod rod(rod_config, cross_section);
-
-        SimObject::XPBDRod& new_rod = _objects.template emplace_back<SimObject::XPBDRod>(rod_config, cross_section);
-        new_rod.setup();
-
-        // add new rod to graphics scene to be visualized
-        _graphics_scene.addObject(&new_rod, rod_config.renderConfig());
-    }
+    const XPBDObjectConfigs_Container& obj_configs = _config.objectConfigs();
+    obj_configs.for_each_element([&](const auto& obj_config){
+        _addObjectFromConfig(obj_config);
+    });
 
 
     
@@ -136,15 +128,20 @@ void Simulation::_timeStep()
     // std::cout << "t=" << _time << std::endl;
     _objects.for_each_element([&](auto& obj)
     {
-        obj.internalConstraintSolve(_time_step);
-        
-        // const Vec3r& tip_pos = rod.nodes().back().position;
-        // const Mat3r& tip_or = rod.nodes().back().orientation;
-        // std::cout << "Tip position: " << tip_pos[0] << ", " << tip_pos[1] << ", " << tip_pos[2] << std::endl;
-        // std::cout << "Tip orientation:\n" << tip_or << std::endl;
+        obj.inertialUpdate(_dt);
     });
 
-    _time += _time_step;
+    _objects.for_each_element([&](auto& obj)
+    {
+        obj.internalConstraintSolve(_dt);
+    });
+
+    _objects.for_each_element([&](auto& obj)
+    {
+        obj.velocityUpdate(_dt);
+    });
+
+    _time += _dt;
 }
 
 void Simulation::_updateGraphics()

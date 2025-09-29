@@ -8,7 +8,7 @@ namespace Graphics
 {
 
 SphereGraphicsObject::SphereGraphicsObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)
-    : GraphicsObject(render_config)
+    : GraphicsObject(render_config), _sphere(sphere)
 {
      // create the vtkActor from a sphere source
     _sphere_source = vtkSmartPointer<vtkSphereSource>::New();

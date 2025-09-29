@@ -10,6 +10,11 @@
 #include "config/SimulationConfig.hpp"
 #include "config/SimulationRenderConfig.hpp"
 
+#include "simobject/rod/XPBDRod.hpp"
+#include "simobject/rigidbody/XPBDRigidBox.hpp"
+#include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/group/XPBDPendulum.hpp"
+
 #include <vector>
 #include <deque>
 #include <functional>
@@ -41,6 +46,31 @@ class Simulation
 
     protected:
 
+    template<typename ConfigType>        
+    typename ConfigType::SimObjectType* _addObjectFromConfig(const ConfigType& obj_config)
+    {
+        // using ObjPtrType = std::unique_ptr<typename ConfigType::SimObjectType>;
+        using ObjType = typename ConfigType::SimObjectType;
+        ObjType& new_obj = _objects.template emplace_back<ObjType>(obj_config);
+        new_obj.setup();
+
+        _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
+
+        return &new_obj;
+    }
+
+    SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
+    {
+        SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+        SimObject::XPBDRod& new_rod = _objects.template emplace_back<SimObject::XPBDRod>(rod_config, cross_section);
+        new_rod.setup();
+
+        // add new rod to graphics scene to be visualized
+        _graphics_scene.addObject(&new_rod, rod_config.renderConfig());
+
+        return &new_rod;
+    }
+
     void _timeStep();
 
     void _updateGraphics();
@@ -59,7 +89,7 @@ class Simulation
     bool _setup;
 
     Real _time;
-    Real _time_step;
+    Real _dt;
     Real _end_time;
     Real _g_accel;
     int _viewer_refresh_time_ms;

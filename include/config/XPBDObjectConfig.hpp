@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config/Config.hpp"
+#include "config/ObjectRenderConfig.hpp"
 
 namespace Config
 {
@@ -9,11 +10,11 @@ class XPBDObjectConfig : public Config_Base
 {
 public:
     explicit XPBDObjectConfig()
-        : Config_Base()
+        : Config_Base(), _render_config()
     {}
 
     explicit XPBDObjectConfig(const YAML::Node& node)
-        : Config_Base(node)
+        : Config_Base(node), _render_config(node)
     {
         _extractParameter("initial-position", node, _initial_position);
         _extractParameter("initial-rotation", node, _initial_rotation);
@@ -23,7 +24,7 @@ public:
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
         const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity)
-        : Config_Base(name)
+        : Config_Base(name), _render_config()
     {
         _initial_position.value = initial_position;
         _initial_rotation.value = initial_rotation;
@@ -36,11 +37,15 @@ public:
     const Vec3r& initialVelocity() const { return _initial_velocity.value; }
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 
+    const ObjectRenderConfig& renderConfig() const { return _render_config; }
+
 protected:
     ConfigParameter<Vec3r> _initial_position = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_rotation = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
+
+    ObjectRenderConfig _render_config;
 };
 
 } // namespace Config

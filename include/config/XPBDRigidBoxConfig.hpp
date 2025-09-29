@@ -2,12 +2,19 @@
 
 #include "config/XPBDRigidBodyConfig.hpp"
 
+namespace SimObject
+{
+    class XPBDRigidBox;
+}
+
 namespace Config
 {
 
 class XPBDRigidBoxConfig : public XPBDRigidBodyConfig
 {
 public:
+    using SimObjectType = SimObject::XPBDRigidBox;
+
     explicit XPBDRigidBoxConfig()
         : XPBDRigidBodyConfig()
     {}

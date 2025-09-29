@@ -3,6 +3,9 @@
 
 #include "config/Config.hpp"
 #include "config/RodConfig.hpp"
+#include "config/XPBDRigidSphereConfig.hpp"
+#include "config/XPBDRigidBoxConfig.hpp"
+#include "config/XPBDPendulumConfig.hpp"
 
 namespace Config
 {
@@ -22,9 +25,42 @@ class SimulationConfig : public Config_Base
         _extractParameter("end-time", node, _end_time);
         _extractParameter("g-accel", node, _g_accel);
 
-        for (const auto& rod_yaml_node : node["rods"])
+        for (const auto& obj_node : node["objects"])
         {
-            _rod_configs.emplace_back(rod_yaml_node);
+            std::string type;
+            try 
+            {
+                // extract type information
+                type = obj_node["type"].as<std::string>();
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+                std::cerr << "Type of object is needed!" << std::endl;
+                continue;
+            }
+
+            if (type == "Rod")
+            {
+                _object_configs.template emplace_back<Config::RodConfig>(obj_node);
+            }
+            else if (type == "RigidBox")
+            {
+                _object_configs.template emplace_back<Config::XPBDRigidBoxConfig>(obj_node);
+            }
+            else if (type == "RigidSphere")
+            {
+                _object_configs.template emplace_back<Config::XPBDRigidSphereConfig>(obj_node);
+            }
+            else if (type == "Pendulum")
+            {
+                _object_configs.template emplace_back<Config::XPBDPendulumConfig>(obj_node);
+            }
+            else
+            {
+                std::cerr << "Unknown type of object! \"" << type << "\" is not a type of simulation object." << std::endl;
+                assert(0);
+            }
         }
     }
 
@@ -40,7 +76,7 @@ class SimulationConfig : public Config_Base
     Real endTime() const { return _end_time.value; }
     Real gAccel() const { return _g_accel.value; }
 
-    const std::vector<RodConfig>& rodConfigs() const { return _rod_configs; }
+    const XPBDObjectConfigs_Container& objectConfigs() const { return _object_configs; }
 
     const SimulationRenderConfig& renderConfig() const { return _render_config; }
 
@@ -49,7 +85,7 @@ class SimulationConfig : public Config_Base
     ConfigParameter<Real> _end_time = ConfigParameter<Real>(60);
     ConfigParameter<Real> _g_accel = ConfigParameter<Real>(9.81);
 
-    std::vector<RodConfig> _rod_configs;
+    XPBDObjectConfigs_Container _object_configs;
 
     SimulationRenderConfig _render_config;
 };

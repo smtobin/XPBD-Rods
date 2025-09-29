@@ -8,7 +8,7 @@ namespace Graphics
 {
 
 BoxGraphicsObject::BoxGraphicsObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config)
-    : GraphicsObject(render_config)
+    : GraphicsObject(render_config), _box(box)
 {
     // create the vtkActor from a box source
     Vec3r box_size = box->size();

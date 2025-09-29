@@ -41,8 +41,8 @@ public:
     virtual void inertialUpdate(Real dt) override
     {
         /** TODO: incorporate applied external forces/torques. For now, the only force or torque is gravity. */
-        const Vec3r F_grav(0, 0, -G_ACCEL * _com.mass);
-        _com.inertialUpdate(dt);
+        const Vec3r F_grav(0, -G_ACCEL * _com.mass, 0);
+        _com.inertialUpdate(dt, F_grav, Vec3r::Zero());
     }
 
     /** Solves internal constraints for this object. These don't exist for a rigid body. */

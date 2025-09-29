@@ -1,13 +1,13 @@
 name: "RodSim"
-g-accel: 9.81
 time-step: 1e-3
 end-time: 600
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
 
-rods:
+objects:
   - 
+    type: "Rod"
     name: "rod1"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
@@ -17,6 +17,16 @@ rods:
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]
+
+  -
+    type: "RigidSphere"
+    name: "sphere1"
+    initial-position: [0,0,0]
+    initial-velocity: [0,0,0]
+    render-type: "PBR"
     metallic: 0.2
     roughness: 0.5
     color: [1.0, 1.0, 1.0]

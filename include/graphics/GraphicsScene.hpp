@@ -47,6 +47,7 @@ class GraphicsScene
     void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDPendulum* pen, const Config::ObjectRenderConfig& render_config);
 
     Vec3r cameraPosition() const;
     Vec3r cameraViewDirection() const;

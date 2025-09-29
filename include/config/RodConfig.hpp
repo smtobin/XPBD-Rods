@@ -1,8 +1,6 @@
-#ifndef __ROD_CONFIG_HPP
-#define __ROD_CONFIG_HPP
+#pragma once
 
 #include "config/XPBDObjectConfig.hpp"
-#include "config/ObjectRenderConfig.hpp"
 
 namespace Config
 {
@@ -11,13 +9,13 @@ class RodConfig : public XPBDObjectConfig
 {
     public:
     explicit RodConfig() 
-        : XPBDObjectConfig(), _render_config()
+        : XPBDObjectConfig()
     {
 
     }
 
     explicit RodConfig(const YAML::Node& node)
-        : XPBDObjectConfig(node), _render_config(node)
+        : XPBDObjectConfig(node)
     {
         _extractParameter("base-fixed", node, _base_fixed);
         _extractParameter("tip-fixed", node, _tip_fixed);
@@ -37,8 +35,7 @@ class RodConfig : public XPBDObjectConfig
                         bool base_fixed, bool tip_fixed,
                         Real length, Real diameter, int nodes,
                         Real density, Real E, Real nu)
-        : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity),
-         _render_config()
+        : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity)
     {
         _base_fixed.value = base_fixed;
         _tip_fixed.value = tip_fixed;
@@ -63,8 +60,6 @@ class RodConfig : public XPBDObjectConfig
     Real E() const { return _E.value; }
     Real nu() const { return _nu.value; }
 
-    const ObjectRenderConfig& renderConfig() const { return _render_config; }
-
     protected:
     ConfigParameter<bool> _base_fixed = ConfigParameter<bool>(true);
     ConfigParameter<bool> _tip_fixed = ConfigParameter<bool>(false);
@@ -76,10 +71,6 @@ class RodConfig : public XPBDObjectConfig
     ConfigParameter<Real> _density = ConfigParameter<Real>(1000);
     ConfigParameter<Real> _E = ConfigParameter<Real>(3e6);
     ConfigParameter<Real> _nu = ConfigParameter<Real>(0.45);
-
-    ObjectRenderConfig _render_config;
 };
 
 } // namespace Config
-
-#endif // __ROD_CONFIG_HPP

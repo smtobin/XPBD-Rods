@@ -38,9 +38,11 @@ namespace SimObject
     class XPBDRod;
     class XPBDRigidSphere;
     class XPBDRigidBox;
+    class XPBDPendulum;
 }
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPendulum>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
+using XPBDObject_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 
 namespace Constraint
 {
@@ -50,6 +52,23 @@ namespace Constraint
 using XPBDConstraints_TypeList = TypeList<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint>;
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
+
+
+namespace Config
+{
+    class RodConfig;
+    class XPBDRigidBoxConfig;
+    class XPBDRigidSphereConfig;
+    class XPBDPendulumConfig;
+}
+
+using XPBDObjectConfigs_TypeList = TypeList<
+    Config::RodConfig,
+    Config::XPBDRigidBoxConfig,
+    Config::XPBDRigidSphereConfig,
+    Config::XPBDPendulumConfig
+>;
+using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObjectConfigs_TypeList>::type;
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity
