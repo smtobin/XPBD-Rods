@@ -1,5 +1,4 @@
-#ifndef __SIMULATION_HPP
-#define __SIMULATION_HPP
+#pragma once
 
 #include "common/common.hpp"
 
@@ -105,5 +104,3 @@ class Simulation
 };
 
 } // namespace Simulation
-
-#endif // __SIMULATION_HPP

@@ -8,6 +8,8 @@ namespace SimObject
 
 /** Represents a general "particle" that has both position and orientation with some mass and rotational inertia.
  * This particle can be both a node in a discretized Cosserat rod, or a rigid body.
+ * 
+ * TODO: add fixed flag
  */
 struct OrientedParticle
 {

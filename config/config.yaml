@@ -22,7 +22,7 @@ objects:
     color: [1.0, 1.0, 1.0]
 
   -
-    type: "RigidSphere"
+    type: "RigidBox"
     name: "sphere1"
     initial-position: [0,0,0]
     initial-velocity: [0,0,0]
