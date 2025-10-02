@@ -8,11 +8,13 @@ set(CONSTRAINT_HEADERS
     ${CONSTRAINT_INCLUDE_DIR}/Constraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RodElasticConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/AttachmentConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/PointLineConstraint.hpp
 )
 
 set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/RodElasticConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/AttachmentConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/PointLineConstraint.cpp
 )
 
 target_sources(Constraint
