@@ -39,17 +39,23 @@ namespace SimObject
     class XPBDRigidSphere;
     class XPBDRigidBox;
     class XPBDPendulum;
+    class XPBDFourBarLinkage;
 }
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPendulum>;
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObject_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
+
+using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDFourBarLinkage>;
+using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
+using XPBDObjectGroups_UniquePtrContrinaer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
 namespace Constraint
 {
     class AttachmentConstraint;
     class RodElasticConstraint;
+    class RevoluteJointConstraint;
 }
-using XPBDConstraints_TypeList = TypeList<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint>;
+using XPBDConstraints_TypeList = TypeList<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint, Constraint::RevoluteJointConstraint>;
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
 

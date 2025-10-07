@@ -13,6 +13,9 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/group/XPBDPendulum.hpp"
+#include "simobject/group/XPBDFourBarLinkage.hpp"
+
+#include "solver/GaussSeidelSolver.hpp"
 
 #include <vector>
 #include <deque>
@@ -50,12 +53,23 @@ class Simulation
     {
         // using ObjPtrType = std::unique_ptr<typename ConfigType::SimObjectType>;
         using ObjType = typename ConfigType::SimObjectType;
-        ObjType& new_obj = _objects.template emplace_back<ObjType>(obj_config);
-        new_obj.setup();
+        if constexpr (std::is_base_of_v<SimObject::XPBDObjectGroup_Base, ObjType>)
+        {
+            ObjType& new_obj = _object_groups.template emplace_back<ObjType>(obj_config);
+            new_obj.setup();
+            _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
 
-        _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
+            return &new_obj;
+        }
+        else
+        {
+            ObjType& new_obj = _objects.template emplace_back<ObjType>(obj_config);
+            new_obj.setup();
 
-        return &new_obj;
+            _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
+
+            return &new_obj;
+        }
     }
 
     SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
@@ -94,6 +108,9 @@ class Simulation
     int _viewer_refresh_time_ms;
 
     XPBDObjects_Container _objects;
+    XPBDObjectGroups_Container _object_groups;
+
+    Solver::GaussSeidelSolver _solver;
 
     std::deque<std::function<void()>> _callback_queue;
 

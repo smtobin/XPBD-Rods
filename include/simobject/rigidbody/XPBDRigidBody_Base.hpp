@@ -29,6 +29,11 @@ public:
     }
 
     const OrientedParticle& com() const { return _com; }
+    OrientedParticle& com() { return _com; }
+
+    /** Sets the rigid body to be fixed or not. */
+    virtual void setFixed(bool fixed) { _com.fixed = fixed; }
+
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup()

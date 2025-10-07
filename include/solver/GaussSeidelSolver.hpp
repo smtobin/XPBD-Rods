@@ -18,16 +18,16 @@ class GaussSeidelSolver
 public:
     GaussSeidelSolver(Real dt, int num_iter);
 
-    template <typename ConstraintType, typename... Args>
-    void addConstraint(Args&&... args)
+    template <typename ConstraintType>
+    void addConstraint(const ConstraintType* constraint)
     {
         /** TODO: Probably need constraint reference or something here. When std::vector reallocates, the pointer to the constraint used by the
          * constraint projector will become invalid, leading to segfault.
          */
-        _constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
+        _constraints.template push_back<const ConstraintType*>(constraint);
 
         std::unique_ptr<Constraint::XPBDConstraintProjector_Base> new_projector =
-             std::make_unique<Constraint::XPBDConstraintProjector<ConstraintType>>(_dt, &_constraints.template get<ConstraintType>().back());
+             std::move( std::make_unique<Constraint::XPBDConstraintProjector<ConstraintType>>(_dt, constraint) );
 
         _constraint_projectors.push_back(std::move(new_projector));
     }

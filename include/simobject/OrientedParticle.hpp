@@ -20,6 +20,7 @@ struct OrientedParticle
     Vec3r ang_velocity;     // body angular velocity of the particle
     Real mass;              // mass of the particle
     Vec3r Ib;               // body rotational inertia of the particle (diagonal, so represented by a 3-vector)
+    bool fixed;             // if true, the particle is "fixed" and should not move
 
     /** Updates the particle based on its current velocity (in the absence of constraints) and applied external wrench.
      * @param dt - the time step
@@ -28,6 +29,9 @@ struct OrientedParticle
      */
     void inertialUpdate(Real dt, const Vec3r& F_ext, const Vec3r& T_ext)
     {
+        if (fixed)
+            return;
+
         // positional update
         position += dt*lin_velocity + dt*dt/mass*F_ext;
 
@@ -51,6 +55,9 @@ struct OrientedParticle
      */
     void positionUpdate(const Vec3r& dpos, const Vec3r& dor)
     {
+        if (fixed)
+            return;
+            
         position += dpos;
         orientation = Math::Plus_SO3(orientation, dor);
     }

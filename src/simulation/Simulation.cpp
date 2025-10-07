@@ -11,6 +11,7 @@ Simulation::Simulation()
     : _setup(false),
       _time(0), _dt(1e-3), _end_time(10),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
+      _solver(_dt, 1),
       _graphics_scene()
 {
 
@@ -20,6 +21,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
     _dt(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
     _viewer_refresh_time_ms(1000.0/30.0),
+    _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
     _config(sim_config)
 {
@@ -40,6 +42,14 @@ void Simulation::setup()
         _addObjectFromConfig(obj_config);
     });
 
+    // add constraints from object groups to the solver
+    _object_groups.for_each_element([&](const auto& obj) {
+        const XPBDConstraints_Container& constraints = obj.constraints();
+        constraints.for_each_element([&](const auto& constraint) {
+            // using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
+            _solver.addConstraint(&constraint);
+        });
+    });
 
     
 }
@@ -126,20 +136,17 @@ void Simulation::notifyLeftMouseButtonReleased()
 void Simulation::_timeStep()
 {
     // std::cout << "t=" << _time << std::endl;
-    _objects.for_each_element([&](auto& obj)
-    {
-        obj.inertialUpdate(_dt);
-    });
+    _objects.for_each_element([&](auto& obj) { obj.inertialUpdate(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj.inertialUpdate(_dt); });
 
-    _objects.for_each_element([&](auto& obj)
-    {
-        obj.internalConstraintSolve(_dt);
-    });
+    _objects.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
 
-    _objects.for_each_element([&](auto& obj)
-    {
-        obj.velocityUpdate(_dt);
-    });
+    // TODO: solve constraints here
+    _solver.solve();
+
+    _objects.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
 
     _time += _dt;
 }

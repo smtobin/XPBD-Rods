@@ -42,15 +42,15 @@ public:
 
 protected:
     template <typename ObjectType, typename... Args>
-    void _addObject(Args&&... args)
+    ObjectType& _addObject(Args&&... args)
     {
-        _objects.template emplace_back<ObjectType>(std::forward<Args>(args)...);
+        return _objects.template emplace_back<ObjectType>(std::forward<Args>(args)...);
     }
 
     template <typename ConstraintType, typename... Args>
-    void _addConstraint(Args&&... args)
+    ConstraintType& _addConstraint(Args&&... args)
     {
-        _constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
+        return _constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
     }
 
 protected:
