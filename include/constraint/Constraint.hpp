@@ -43,8 +43,8 @@ class XPBDConstraint
     const ParticlePtrArray& particles() const { return _particles; }
 
     protected:
-    AlphaVecType _alpha;
     ParticlePtrArray _particles;
+    AlphaVecType _alpha;
     mutable CachedSingleParticleGradientArray _cached_gradients;
 };
 

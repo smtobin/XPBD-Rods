@@ -24,7 +24,7 @@ AttachmentConstraint::GradientMatType AttachmentConstraint::gradient(bool update
     GradientMatType grad = GradientMatType::Zero();
     // fixed base constraint gradient
     const Vec3r dtheta0 = Math::Minus_SO3(_particles[0]->orientation, _ref_orientation);
-    const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
+    const Mat3r jac_inv0 = Math::ExpMap_InvRightJacobian(dtheta0);
     grad.block<3,3>(0,0) = Mat3r::Identity();
     grad.block<3,3>(3,3) = jac_inv0;
 
@@ -46,7 +46,7 @@ AttachmentConstraint::SingleParticleGradientMatType AttachmentConstraint::single
         SingleParticleGradientMatType grad = SingleParticleGradientMatType::Zero();
         // fixed base constraint gradient
         const Vec3r dtheta0 = Math::Minus_SO3(_particles[0]->orientation, _ref_orientation);
-        const Mat3r jac_inv0 = Math::ExpMap_Jacobian(dtheta0).inverse();
+        const Mat3r jac_inv0 = Math::ExpMap_InvRightJacobian(dtheta0);
         grad.block<3,3>(0,0) = Mat3r::Identity();
         grad.block<3,3>(3,3) = jac_inv0;
 

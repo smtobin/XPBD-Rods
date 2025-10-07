@@ -17,7 +17,8 @@ RodElasticConstraint::ConstraintVecType RodElasticConstraint::evaluate() const
     // std::cout << "dp:\n" << dp << std::endl;
     ConstraintVecType C;
     C(Eigen::seqN(0,3)) = (_particles[0]->orientation.transpose() + _particles[1]->orientation.transpose()) * 0.5 * dp / _dl - Vec3r(0,0,1);
-    C(Eigen::seqN(3,3)) = Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation) / _dl;
+    C(Eigen::seqN(3,3)) = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation) / _dl;
+    // Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation) / _dl;
 
     return C;
 }
@@ -33,9 +34,9 @@ RodElasticConstraint::GradientMatType RodElasticConstraint::gradient(bool update
     const Mat3r dCv_dor1 = 0.5*Math::Skew3(_particles[0]->orientation.transpose() * dp / _dl);
     const Mat3r dCv_dor2 = 0.5*Math::Skew3(_particles[1]->orientation.transpose() * dp / _dl);
 
-    const Vec3r dtheta = Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation);
-    const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-    const Mat3r dCu_dor1 = -jac_inv / _dl;
+    const Vec3r dtheta = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
+    const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
+    const Mat3r dCu_dor1 = -jac_inv.transpose() / _dl;
     const Mat3r dCu_dor2 = jac_inv / _dl;
 
     // submatrices in correct spot in overall delC matrix
@@ -79,9 +80,9 @@ RodElasticConstraint::SingleParticleGradientMatType RodElasticConstraint::single
         const Vec3r dp = _particles[1]->position - _particles[0]->position;
         const Mat3r dCv_dor1 = 0.5*Math::Skew3(_particles[0]->orientation.transpose() * dp / _dl);
 
-        const Vec3r dtheta = Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-        const Mat3r dCu_dor1 = -jac_inv / _dl;
+        const Vec3r dtheta = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
+        const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
+        const Mat3r dCu_dor1 = -jac_inv.transpose() / _dl;
 
         SingleParticleGradientMatType grad;
         grad.block<3,3>(0,0) = dCv_dp1;
@@ -95,8 +96,8 @@ RodElasticConstraint::SingleParticleGradientMatType RodElasticConstraint::single
         const Mat3r dCv_dp2 = 0.5*(_particles[0]->orientation.transpose() + _particles[1]->orientation.transpose()) / _dl;
         const Vec3r dp = _particles[1]->position - _particles[0]->position;
         const Mat3r dCv_dor2 = 0.5*Math::Skew3(_particles[1]->orientation.transpose() * dp / _dl);
-        const Vec3r dtheta = Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
+        const Vec3r dtheta = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
+        const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
         const Mat3r dCu_dor2 = jac_inv / _dl;
 
         SingleParticleGradientMatType grad;

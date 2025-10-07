@@ -44,9 +44,9 @@ RevoluteJointConstraint::GradientMatType RevoluteJointConstraint::gradient(bool 
     const Mat3r joint_or1 = _particles[0]->orientation * _or1;
     const Mat3r joint_or2 = _particles[1]->orientation * _or2;
     const Vec3r dtheta = Math::Log_SO3(joint_or1.transpose() * joint_or2);
-    const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-    const Mat3r dCor_dor1 = -jac_inv * _particles[0]->orientation;   /** TODO: check this! */
-    const Mat3r dCor_dor2 = jac_inv * _particles[1]->orientation;
+    const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
+    const Mat3r dCor_dor1 = -jac_inv.transpose();   /** TODO: check this! */
+    const Mat3r dCor_dor2 = jac_inv;
 
     grad.block<3,3>(0,0) = dCp_dp1;
     grad.block<3,3>(0,3) = dCp_dor1;
@@ -92,8 +92,8 @@ RevoluteJointConstraint::SingleParticleGradientMatType RevoluteJointConstraint::
         const Mat3r joint_or1 = _particles[0]->orientation * _or1;
         const Mat3r joint_or2 = _particles[1]->orientation * _or2;
         const Vec3r dtheta = Math::Log_SO3(joint_or1.transpose() * joint_or2);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-        const Mat3r dCor_dor1 = -jac_inv * _particles[0]->orientation;   /** TODO: check this! */
+        const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta).inverse();
+        const Mat3r dCor_dor1 = -jac_inv.transpose();   /** TODO: check this! */
 
         SingleParticleGradientMatType grad;
         grad.block<3,3>(0,0) = dCp_dp1;
@@ -112,8 +112,8 @@ RevoluteJointConstraint::SingleParticleGradientMatType RevoluteJointConstraint::
         const Mat3r joint_or1 = _particles[0]->orientation * _or1;
         const Mat3r joint_or2 = _particles[1]->orientation * _or2;
         const Vec3r dtheta = Math::Log_SO3(joint_or1.transpose() * joint_or2);
-        const Mat3r jac_inv = Math::ExpMap_Jacobian(dtheta).inverse();
-        const Mat3r dCor_dor2 = jac_inv * _particles[1]->orientation;
+        const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta).inverse();
+        const Mat3r dCor_dor2 = jac_inv;
 
         SingleParticleGradientMatType grad;
         grad.block<3,3>(0,0) = dCp_dp2;

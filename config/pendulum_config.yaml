@@ -9,7 +9,7 @@ objects:
   - 
     type: "Pendulum"
     name: "pendulum"
-    num-bodies: 2
+    num-bodies: 1
     initial-angle: 120
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"

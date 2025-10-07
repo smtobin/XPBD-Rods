@@ -24,17 +24,31 @@ static Vec3r Vee3(const Mat3r& mat)
     return Vec3r(mat(2,1), mat(0,2), mat(1,0));
 }
 
-// Computes Jacobian of SO(3) exponential map
-static Mat3r ExpMap_Jacobian(const Vec3r& theta)
+// Computes right Jacobian of SO(3) exponential map
+static Mat3r ExpMap_RightJacobian(const Vec3r& theta)
 {
     Real theta_norm = theta.norm();
     const Mat3r skew = Skew3(theta);
     if (theta_norm < Real(1e-8))
     {
-        return Mat3r::Identity() + 0.5 * skew;
+        return Mat3r::Identity() - 0.5 * skew;
     }
     
-    return Mat3r::Identity() + (1 - std::cos(theta_norm)) / (theta_norm * theta_norm) * skew + (theta_norm - std::sin(theta_norm)) / (theta_norm * theta_norm * theta_norm) * skew * skew;
+    return Mat3r::Identity() - (1 - std::cos(theta_norm)) / (theta_norm * theta_norm) * skew + (theta_norm - std::sin(theta_norm)) / (theta_norm * theta_norm * theta_norm) * skew * skew;
+}
+
+// Computes the inverse of the right Jacobian of SO(3) exponential map
+static Mat3r ExpMap_InvRightJacobian(const Vec3r& theta)
+{
+    Real theta_norm = theta.norm();
+    const Mat3r skew = Skew3(theta);
+
+    if (theta_norm < Real(1e-8))
+    {
+        return Mat3r::Identity() + 0.5 * skew;
+    }
+
+    return Mat3r::Identity() + 0.5*skew + (1/(theta_norm*theta_norm) - (1+std::cos(theta_norm)) / (2*theta_norm*std::sin(theta_norm)) ) * skew * skew;
 }
 
 static Mat3r Exp_so3(const Vec3r& vec)
