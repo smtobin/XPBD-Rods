@@ -20,7 +20,7 @@ struct OrientedParticle
     Vec3r ang_velocity;     // body angular velocity of the particle
     Real mass;              // mass of the particle
     Vec3r Ib;               // body rotational inertia of the particle (diagonal, so represented by a 3-vector)
-    bool fixed;             // if true, the particle is "fixed" and should not move
+    bool fixed=false;             // if true, the particle is "fixed" and should not move
 
     /** Updates the particle based on its current velocity (in the absence of constraints) and applied external wrench.
      * @param dt - the time step
