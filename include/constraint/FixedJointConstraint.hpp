@@ -1,15 +1,14 @@
-#ifndef __ATTACHMENT_CONSTRAINT_HPP
-#define __ATTACHMENT_CONSTRAINT_HPP
+#pragma once
 
 #include "constraint/Constraint.hpp"
 
 namespace Constraint
 {
 
-class AttachmentConstraint : public XPBDConstraint<SimObject::OrientedParticle::DOF, 1>
+class FixedJointConstraint : public XPBDConstraint<SimObject::OrientedParticle::DOF, 1>
 {
     public:
-    AttachmentConstraint(SimObject::OrientedParticle* node, const AlphaVecType& alpha, const Vec3r& ref_position, const Mat3r& ref_orientation);
+    FixedJointConstraint(SimObject::OrientedParticle* node, const AlphaVecType& alpha, const Vec3r& ref_position, const Mat3r& ref_orientation);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
@@ -21,7 +20,7 @@ class AttachmentConstraint : public XPBDConstraint<SimObject::OrientedParticle::
     const Mat3r& referenceOrientation() const { return _ref_orientation; }
     void setReferenceOrientation(const Mat3r& new_or) { _ref_orientation = new_or; }
 
-    // bool operator<(const AttachmentConstraint& other) const
+    // bool operator<(const FixedJointConstraint& other) const
     // {
     //     return _node->index < other._node->index;
     // }
@@ -32,5 +31,3 @@ class AttachmentConstraint : public XPBDConstraint<SimObject::OrientedParticle::
 };
 
 } // namespace Constraint
-
-#endif // __ATTACHMENT_CONSTRAINT_HPP

@@ -36,9 +36,9 @@ void XPBDRod::setup()
 
 
     if (_base_fixed)
-        addAttachmentConstraint(0, _nodes[0].position, _nodes[0].orientation);
+        addFixedJointConstraint(0, _nodes[0].position, _nodes[0].orientation);
     if (_tip_fixed)
-        addAttachmentConstraint(_num_nodes-1, _nodes.back().position, _nodes.back().orientation);
+        addFixedJointConstraint(_num_nodes-1, _nodes.back().position, _nodes.back().orientation);
 
     // reserve space for constraints and constraint gradients
     _RHS_vec.conservativeResize(6*_num_constraints);
@@ -116,10 +116,10 @@ void XPBDRod::internalConstraintSolve(Real dt)
     velocityUpdate(dt);
 }
 
-Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
+Constraint::FixedJointConstraint* XPBDRod::addFixedJointConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
 {
-    std::multimap<int, Constraint::AttachmentConstraint>::iterator it = 
-        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::AttachmentConstraint(&_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
+    std::multimap<int, Constraint::FixedJointConstraint>::iterator it = 
+        _attachment_constraints.emplace(std::make_pair(node_index, Constraint::FixedJointConstraint(&_nodes[node_index], Vec6r::Zero(), ref_position, ref_orientation)));
     _num_constraints++;
 
     _RHS_vec.conservativeResize(6*_num_constraints);
@@ -140,9 +140,9 @@ Constraint::AttachmentConstraint* XPBDRod::addAttachmentConstraint(int node_inde
     return &it->second;
 }
 
-bool XPBDRod::removeAttachmentConstraint(int node_index, const Constraint::AttachmentConstraint* ptr)
+bool XPBDRod::removeFixedJointConstraint(int node_index, const Constraint::FixedJointConstraint* ptr)
 {
-    using iterator = std::multimap<int, Constraint::AttachmentConstraint>::iterator;
+    using iterator = std::multimap<int, Constraint::FixedJointConstraint>::iterator;
     bool constraint_removed = false;
     // if ptr is not nullptr, only erase the specific attachment constraint given
     if (ptr)

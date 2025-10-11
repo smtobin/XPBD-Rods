@@ -26,7 +26,7 @@ class RodGraspingSimulation : public Simulation
     SimObject::XPBDRod* _grasped_rod = nullptr;
     const SimObject::OrientedParticle* _grasped_rod_node = nullptr;
     int _grasped_rod_node_index = -1;
-    Constraint::AttachmentConstraint* _grasping_constraint = nullptr;
+    Constraint::FixedJointConstraint* _grasping_constraint = nullptr;
     
     int _last_mx;
     int _last_my;

@@ -1,16 +1,16 @@
-#include "constraint/AttachmentConstraint.hpp"
+#include "constraint/FixedJointConstraint.hpp"
 #include "common/math.hpp"
 
 namespace Constraint
 {
 
-AttachmentConstraint::AttachmentConstraint(SimObject::OrientedParticle* node, const AlphaVecType& alpha, const Vec3r& position, const Mat3r& orientation)
+FixedJointConstraint::FixedJointConstraint(SimObject::OrientedParticle* node, const AlphaVecType& alpha, const Vec3r& position, const Mat3r& orientation)
     : XPBDConstraint<SimObject::OrientedParticle::DOF, 1>({node}, alpha),
     _ref_position(position), _ref_orientation(orientation)
 {
 }
 
-AttachmentConstraint::ConstraintVecType AttachmentConstraint::evaluate() const 
+FixedJointConstraint::ConstraintVecType FixedJointConstraint::evaluate() const 
 {
     // fixed base constraint
     ConstraintVecType C;
@@ -19,7 +19,7 @@ AttachmentConstraint::ConstraintVecType AttachmentConstraint::evaluate() const
     return C;
 }
 
-AttachmentConstraint::GradientMatType AttachmentConstraint::gradient(bool update_cache) const
+FixedJointConstraint::GradientMatType FixedJointConstraint::gradient(bool update_cache) const
 {
     GradientMatType grad = GradientMatType::Zero();
     // fixed base constraint gradient
@@ -36,7 +36,7 @@ AttachmentConstraint::GradientMatType AttachmentConstraint::gradient(bool update
     return grad;
 }
 
-AttachmentConstraint::SingleParticleGradientMatType AttachmentConstraint::singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache) const
+FixedJointConstraint::SingleParticleGradientMatType FixedJointConstraint::singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache) const
 {
     if (particle_ptr == _particles[0])
     {

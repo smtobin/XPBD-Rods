@@ -44,7 +44,7 @@ void RodGraspingSimulation::notifyLeftMouseButtonPressed()
         // remove attachment constraint
         auto remove_attachment_constraint_callback = 
             [this]() -> void {
-                this->_grasped_rod->removeAttachmentConstraint(this->_grasped_rod_node_index, this->_grasping_constraint);
+                this->_grasped_rod->removeFixedJointConstraint(this->_grasped_rod_node_index, this->_grasping_constraint);
 
                 this->_grasped_rod = nullptr;
                 this->_grasped_rod_node = nullptr;
@@ -97,7 +97,7 @@ void RodGraspingSimulation::_graspClosestNode()
     // add attachment constraint
     auto add_attachment_constraint_callback = 
         [this]() -> void {
-            this->_grasping_constraint = this->_grasped_rod->addAttachmentConstraint(
+            this->_grasping_constraint = this->_grasped_rod->addFixedJointConstraint(
                 this->_grasped_rod_node_index, this->_grasped_rod_node->position, this->_grasped_rod_node->orientation
             );
         };

@@ -51,11 +51,11 @@ using XPBDObjectGroups_UniquePtrContrinaer = VariadicVectorContainerFromTypeList
 
 namespace Constraint
 {
-    class AttachmentConstraint;
+    class FixedJointConstraint;
     class RodElasticConstraint;
     class RevoluteJointConstraint;
 }
-using XPBDConstraints_TypeList = TypeList<Constraint::AttachmentConstraint, Constraint::RodElasticConstraint, Constraint::RevoluteJointConstraint>;
+using XPBDConstraints_TypeList = TypeList<Constraint::FixedJointConstraint, Constraint::RodElasticConstraint, Constraint::RevoluteJointConstraint>;
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
 

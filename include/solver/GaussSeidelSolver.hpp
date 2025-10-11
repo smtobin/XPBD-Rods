@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "common/VariadicVectorContainer.hpp"
 
-#include "constraint/AttachmentConstraint.hpp"
+#include "constraint/FixedJointConstraint.hpp"
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/XPBDConstraintProjector.hpp"
 
