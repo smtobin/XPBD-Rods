@@ -19,7 +19,7 @@ RevoluteJointConstraint::ConstraintVecType RevoluteJointConstraint::evaluate() c
 
     const Mat3r joint_or1 = _particles[0]->orientation * _or1;
     const Mat3r joint_or2 = _particles[1]->orientation * _or2;
-    const Vec3r dtheta = Math::Log_SO3(joint_or1.transpose() * joint_or2);
+    const Vec3r dtheta = Math::Minus_SO3(joint_or2, joint_or1);
 
     ConstraintVecType C_vec;
     C_vec.head<3>() = dp;
@@ -131,5 +131,84 @@ RevoluteJointConstraint::SingleParticleGradientMatType RevoluteJointConstraint::
     
 
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+OneSidedRevoluteJointConstraint::OneSidedRevoluteJointConstraint(
+    const Vec3r& base_pos, const Mat3r& base_or,
+    SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
+)
+    : XPBDConstraint<5,1>({particle}, AlphaVecType::Zero()), _base_pos(base_pos), _base_or(base_or), _r1(joint_pos), _or1(joint_or)
+{
+
+}
+
+OneSidedRevoluteJointConstraint::ConstraintVecType OneSidedRevoluteJointConstraint::evaluate() const
+{
+    const Vec3r joint_pos = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r dp = joint_pos - _base_pos;
+
+    const Mat3r joint_or = _particles[0]->orientation * _or1;
+    const Vec3r dtheta = Math::Minus_SO3(joint_or, _base_or);
+
+    ConstraintVecType C_vec;
+    C_vec.head<3>() = dp;
+    C_vec.tail<2>() = dtheta.head<2>();
+
+    return C_vec;
+}
+
+OneSidedRevoluteJointConstraint::GradientMatType OneSidedRevoluteJointConstraint::gradient(bool update_cache) const
+{
+    GradientMatType grad;
+    // gradients of positional constraints
+    const Mat3r dCp_dp = Mat3r::Identity();
+    const Mat3r dCp_dor = -_particles[0]->orientation * Math::Skew3(_r1);
+
+    // gradients of rotational constraints
+    const Mat3r dCor_dp = Mat3r::Zero();
+
+    const Mat3r joint_or = _particles[0]->orientation * _or1;
+    const Vec3r dtheta = Math::Minus_SO3(joint_or, _base_or);
+    const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
+    const Mat3r dCor_dor = jac_inv;
+
+    grad.block<3,3>(0,0) = dCp_dp;
+    grad.block<3,3>(0,3) = dCp_dor;
+    grad.block<2,3>(3,0) = dCor_dp.block<2,3>(0,0);
+    grad.block<2,3>(3,3) = dCor_dor.block<2,3>(0,0);
+
+    // update cache if specified to
+    if (update_cache)
+    {
+        _cached_gradients[0] = grad.block<5,6>(0,0);
+    }
+    
+
+    return grad;
+
+}
+
+OneSidedRevoluteJointConstraint::SingleParticleGradientMatType OneSidedRevoluteJointConstraint::singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache) const
+{
+    if (use_cache)
+    {
+        if (particle_ptr == _particles[0])
+        {
+            return _cached_gradients[0];
+        }
+    }
+
+    if (particle_ptr == _particles[0])
+    {
+        return gradient(false);
+    }
+    else
+    {
+        return SingleParticleGradientMatType::Zero();
+    }
+}
+
 
 } // namespace Constraint

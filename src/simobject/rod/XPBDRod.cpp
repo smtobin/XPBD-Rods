@@ -54,7 +54,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
     _prev_nodes = _nodes;
     inertialUpdate(dt);
 
-    for (int gi = 0; gi < 1; gi++)
+    for (int gi = 0; gi < 3; gi++)
     {
         // compute gradients (this will update the caches in the constraints so we won't have to recompute them)
         for (auto& c : _elastic_constraints)

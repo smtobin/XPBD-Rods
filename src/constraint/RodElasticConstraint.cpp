@@ -18,7 +18,6 @@ RodElasticConstraint::ConstraintVecType RodElasticConstraint::evaluate() const
     ConstraintVecType C;
     C(Eigen::seqN(0,3)) = (_particles[0]->orientation.transpose() + _particles[1]->orientation.transpose()) * 0.5 * dp / _dl - Vec3r(0,0,1);
     C(Eigen::seqN(3,3)) = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation) / _dl;
-    // Math::Log_SO3(_particles[0]->orientation.transpose() * _particles[1]->orientation) / _dl;
 
     return C;
 }
