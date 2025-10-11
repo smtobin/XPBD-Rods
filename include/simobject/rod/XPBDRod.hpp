@@ -39,7 +39,7 @@ class XPBDRod : public XPBDObject_Base
 {
     public:
     // a std::variant type used to store all constraints in order
-    using ConstraintConstPtrVariantType = std::variant<const Constraint::RodElasticConstraint*, const Constraint::FixedJointConstraint*>;
+    using ConstraintConstPtrVariantType = std::variant<const Constraint::RodElasticConstraint*, const Constraint::OneSidedFixedJointConstraint*>;
 
     template <typename CrossSectionType_>
     XPBDRod(const Config::RodConfig& config, const CrossSectionType_& cross_section)
@@ -99,10 +99,10 @@ class XPBDRod : public XPBDObject_Base
     /** Adds an attachment constraint to the specified node.
      * A pointer to the attachment constraint is returned so that the reference position and orientation can be changed.
      */
-    Constraint::FixedJointConstraint* addFixedJointConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation);
+    Constraint::OneSidedFixedJointConstraint* addOneSidedFixedJointConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation);
 
     /** Removes an attachment constraint for the specified node. */
-    bool removeFixedJointConstraint(int node_index, const Constraint::FixedJointConstraint* ptr=nullptr);
+    bool removeOneSidedFixedJointConstraint(int node_index, const Constraint::OneSidedFixedJointConstraint* ptr=nullptr);
 
     private:
 
@@ -273,7 +273,7 @@ class XPBDRod : public XPBDObject_Base
      * We store them in a map indexed by node index, thus the attachment constraints are sorted by node index. 
      * Having a sorted container makes it much easier to order all the constraints properly.
      */
-    std::multimap<int, Constraint::FixedJointConstraint> _attachment_constraints;
+    std::multimap<int, Constraint::OneSidedFixedJointConstraint> _attachment_constraints;
 
     /** All constraints will be "ordered" based on which nodes they affect.
      *   i.e. constraints that affect node 0 will come before constraints that affect node 1, etc.

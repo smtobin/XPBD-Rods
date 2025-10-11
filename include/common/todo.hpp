@@ -4,7 +4,7 @@
  * === CONSTRAINTS ===
  * - General math helpers for constraint gradients involving boxplus and boxminus - and other ways of cleaning up and streamlining implementation
  * 
- * - FixedJointConstraint - a 6 DOF constraint that fixes two particles in both position and orientation (with some transform offset)
+ * - OneSidedFixedJointConstraint - a 6 DOF constraint that fixes two particles in both position and orientation (with some transform offset)
  * 
  * - SphericalJointConstraint - a 3 DOF spherical constraint
  * 
