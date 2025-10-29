@@ -13,6 +13,12 @@ public:
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2
     );
 
+    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1; }
+    Mat3r jointOrientation2() const { return _particles[1]->orientation * _or2; }
+
+    Vec3r bodyJointOffset1() const { return _r1; }
+    Vec3r bodyJointOffset2() const { return _r2; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -34,6 +40,12 @@ public:
         const Vec3r& base_pos, const Mat3r& base_or,
         SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
     );
+
+    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1;}
+    Mat3r jointOrientation2() const { return _base_or; }
+
+    Vec3r bodyJointOffset1() const { return _r1; }
+    Vec3r bodyJointOffset2() const { return Vec3r::Zero(); }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;

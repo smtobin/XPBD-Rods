@@ -1,17 +1,22 @@
 #pragma once
+/** DONE:
+ * - FixedJointConstraint - a 6 DOF constraint that fixes two particles in both position and orientation (with some transform offset)
+ * 
+ * - Figure out clean way of making some constraints "one-sided", i.e. only involve one particle
+ *      - e.g. A RevoluteJointConstraint where one of the joint axes is fixed, so the constraint updates only involve one particle
+ * 
+ */
+
 /** TODO:
+ * 
+ * Implement Macklin and Muller's rigid body XPBD to compare
  * 
  * === CONSTRAINTS ===
  * - General math helpers for constraint gradients involving boxplus and boxminus - and other ways of cleaning up and streamlining implementation
  * 
- * - OneSidedFixedJointConstraint - a 6 DOF constraint that fixes two particles in both position and orientation (with some transform offset)
- * 
  * - SphericalJointConstraint - a 3 DOF spherical constraint
  * 
  * - PrismaticJointConstraint - a 5 DOF prismatic constraint
- * 
- * - Figure out clean way of making some constraints "one-sided", i.e. only involve one particle
- *      - e.g. A RevoluteJointConstraint where one of the joint axes is fixed, so the constraint updates only involve one particle
  * 
  * - Figure out a clean way of adding joint limits to joint constraints
  * 

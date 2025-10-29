@@ -6,6 +6,7 @@
 #include "constraint/FixedJointConstraint.hpp"
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/XPBDConstraintProjector.hpp"
+#include "constraint/muller2020/MullerConstraintProjector.hpp"
 
 #include <memory>
 #include <vector>

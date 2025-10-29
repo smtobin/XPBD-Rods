@@ -144,10 +144,10 @@ OneSidedRevoluteJointConstraint::OneSidedRevoluteJointConstraint(
 OneSidedRevoluteJointConstraint::ConstraintVecType OneSidedRevoluteJointConstraint::evaluate() const
 {
     const Vec3r joint_pos = _particles[0]->position + _particles[0]->orientation * _r1;
-    const Vec3r dp = joint_pos - _base_pos;
+    const Vec3r dp = _base_pos - joint_pos;
 
     const Mat3r joint_or = _particles[0]->orientation * _or1;
-    const Vec3r dtheta = Math::Minus_SO3(joint_or, _base_or);
+    const Vec3r dtheta = Math::Minus_SO3(_base_or, joint_or);
 
     ConstraintVecType C_vec;
     C_vec.head<3>() = dp;
@@ -160,16 +160,16 @@ OneSidedRevoluteJointConstraint::GradientMatType OneSidedRevoluteJointConstraint
 {
     GradientMatType grad;
     // gradients of positional constraints
-    const Mat3r dCp_dp = Mat3r::Identity();
-    const Mat3r dCp_dor = -_particles[0]->orientation * Math::Skew3(_r1);
+    const Mat3r dCp_dp = -Mat3r::Identity();
+    const Mat3r dCp_dor = _particles[0]->orientation * Math::Skew3(_r1);
 
     // gradients of rotational constraints
     const Mat3r dCor_dp = Mat3r::Zero();
 
     const Mat3r joint_or = _particles[0]->orientation * _or1;
-    const Vec3r dtheta = Math::Minus_SO3(joint_or, _base_or);
+    const Vec3r dtheta = Math::Minus_SO3(_base_or, joint_or);
     const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
-    const Mat3r dCor_dor = jac_inv * _or1.transpose();
+    const Mat3r dCor_dor = -jac_inv * _or1.transpose();
 
     grad.block<3,3>(0,0) = dCp_dp;
     grad.block<3,3>(0,3) = dCp_dor;
