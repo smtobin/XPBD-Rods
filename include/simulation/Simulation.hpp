@@ -59,6 +59,12 @@ class Simulation
             new_obj.setup();
             _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
 
+            // add the ObjectGroup's constraints to the solver
+            const XPBDConstraints_Container& constraints = new_obj.constraints();
+            constraints.for_each_element([&](const auto& constraint) {
+                _solver.addConstraint(&constraint, obj_config.useMuller2020Algorithm());
+            });
+
             return &new_obj;
         }
         else

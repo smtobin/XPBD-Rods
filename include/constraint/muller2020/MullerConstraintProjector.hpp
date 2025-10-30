@@ -4,7 +4,8 @@
 #include "constraint/FixedJointConstraint.hpp"
 #include "constraint/RevoluteJointConstraint.hpp"
 
-
+namespace Constraint
+{
 struct Muller2020ConstraintHelper
 {
     template<typename Constraint>
@@ -109,20 +110,30 @@ class Muller2020ConstraintProjector
 {
 public:
     Muller2020ConstraintProjector(Real dt, const Constraint* constraint)
-        : _dt(dt), _lambda(0), _constraint(constraint)
+        : _dt(dt), _positional_lambda(0), _angular_lambda(0), _constraint(constraint)
     {
 
     }
 
     void initialize()
     {
-        _lambda = 0;
+        _positional_lambda = 0;
+        _angular_lambda = 0;
     }
 
     void project()
     {
-        _projectPosition();
-        _projectOrientation();
+        if constexpr (TypeListContains<Constraint, XPBDRigidBodyConstraints_TypeList>::value)
+        {
+            _projectPosition();
+            _projectOrientation();
+        }
+        else
+        {
+            // can't project non-rigid-body constraint types
+            assert(0);
+        }
+        
     }
 
     // projects the "positional" part of the constraint
@@ -143,13 +154,13 @@ public:
         Real dlam = -c / (w1 + w2); // <== assuming alpha = 0 for now
 
         // update lambda
-        _lambda += dlam;
+        _positional_lambda += dlam;
 
         // compute position and orientation update for each particle
 
         // particle 1 position
-        SimObject::OrientedParticle* particle1 = _constraint->positions()[0];
-        Vec3r p1_update = n * dlam / _constraint->positions()[0]->mass;
+        SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
+        Vec3r p1_update = n * dlam / _constraint->particles()[0]->mass;
         // particle 1 orientation
         Vec3r r1 = _constraint->bodyJointOffset1();
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
@@ -159,7 +170,7 @@ public:
         // particle 2 (if applicable)
         if (Constraint::NumParticles == 2)
         {
-            SimObject::OrientedParticle* particle2 = _constraint->positions()[1];
+            SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_update = dlam * n / particle2->mass;
 
             Vec3r r2 = _constraint->bodyJointOffset2();
@@ -188,17 +199,17 @@ public:
         Real dlam = -theta / (w1 + w2); // <== assuming alpha = 0 for now
 
         // update lambda
-        _lambda += dlam;
+        _angular_lambda += dlam;
 
         // compute orientation update for each particle
-        SimObject::OrientedParticle* particle1 = _constraint->positions()[0];
+        SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
         Vec3r or1_update = p1_Ib_inv.asDiagonal() * (dlam * n);
         particle1->positionUpdate(Vec3r::Zero(), or1_update);
 
         if (Constraint::NumParticles == 2)
         {
-            SimObject::OrientedParticle* particle2 = _constraint->positions()[1];
+            SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();
             Vec3r or2_update = p2_Ib_inv.asDiagonal() * (-dlam * n);
             particle2->positionUpdate(Vec3r::Zero(), or2_update);
@@ -210,7 +221,10 @@ public:
 
 private:
     Real _dt;
-    Real _lambda;
+    Real _positional_lambda;
+    Real _angular_lambda;
     const Constraint* _constraint;
 
 };
+
+} // namespace Constraint

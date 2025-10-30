@@ -11,9 +11,23 @@ GaussSeidelSolver::GaussSeidelSolver(Real dt, int num_iter)
 
 void GaussSeidelSolver::solve()
 {
-    for (auto& projector : _constraint_projectors)
+    _constraint_projectors.for_each_element([&](auto& projector) {
+        projector.initialize();
+    });
+
+    _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
+        projector.initialize();
+    });
+
+    for (int gi = 0; gi < _num_iter; gi++)
     {
-        projector->project();
+        _constraint_projectors.for_each_element([&](auto& projector) {
+            projector.project();
+        });
+
+        _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
+            projector.project();
+        });
     }
 }
 

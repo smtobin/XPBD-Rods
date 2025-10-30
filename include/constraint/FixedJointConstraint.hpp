@@ -14,6 +14,9 @@ class FixedJointConstraint : public XPBDConstraint<6, 2>
         const AlphaVecType& alpha = AlphaVecType::Zero()
     );
 
+    Vec3r bodyJointOffset1() const { return _r1; }
+    Vec3r bodyJointOffset2() const { return _r2; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -38,6 +41,9 @@ class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1>
         SimObject::OrientedParticle* particle, const Vec3r& r1, const Mat3r& or1,
         const AlphaVecType& alpha = AlphaVecType::Zero()
     );
+
+    Vec3r bodyJointOffset1() const { return _r1; }
+    Vec3r bodyJointOffset2() const { return Vec3r::Zero(); }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;

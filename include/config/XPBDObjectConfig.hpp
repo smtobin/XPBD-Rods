@@ -20,6 +20,8 @@ public:
         _extractParameter("initial-rotation", node, _initial_rotation);
         _extractParameter("initial-velocity", node, _initial_velocity);
         _extractParameter("initial-angular-velocity", node, _initial_angular_velocity);
+
+        _extractParameter("use-muller-2020", node, _use_muller2020_algorithm);
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
@@ -30,12 +32,16 @@ public:
         _initial_rotation.value = initial_rotation;
         _initial_velocity.value = initial_velocity;
         _initial_angular_velocity.value = initial_angular_velocity;
+
+        _use_muller2020_algorithm.value = false;
     }
 
     const Vec3r& initialPosition() const { return _initial_position.value; }
     const Vec3r& initialRotation() const { return _initial_rotation.value; }
     const Vec3r& initialVelocity() const { return _initial_velocity.value; }
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
+
+    bool useMuller2020Algorithm() const { return _use_muller2020_algorithm.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
@@ -44,6 +50,8 @@ protected:
     ConfigParameter<Vec3r> _initial_rotation = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
+
+    ConfigParameter<bool> _use_muller2020_algorithm = ConfigParameter<bool>(false);
 
     ObjectRenderConfig _render_config;
 };

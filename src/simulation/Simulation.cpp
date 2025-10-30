@@ -39,17 +39,17 @@ void Simulation::setup()
     // create rod(s)
     const XPBDObjectConfigs_Container& obj_configs = _config.objectConfigs();
     obj_configs.for_each_element([&](const auto& obj_config){
-        _addObjectFromConfig(obj_config);
+        _addObjectFromConfig(obj_config); 
     });
 
     // add constraints from object groups to the solver
-    _object_groups.for_each_element([&](const auto& obj) {
-        const XPBDConstraints_Container& constraints = obj.constraints();
-        constraints.for_each_element([&](const auto& constraint) {
-            // using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
-            _solver.addConstraint(&constraint);
-        });
-    });
+    // _object_groups.for_each_element([&](const auto& obj) {
+    //     const XPBDConstraints_Container& constraints = obj.constraints();
+    //     constraints.for_each_element([&](const auto& constraint) {
+    //         // using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
+    //         _solver.addConstraint(&constraint);
+    //     });
+    // });
 
     
 }

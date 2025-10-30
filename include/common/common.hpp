@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Eigen/Dense>
 #include <math.h>
 #include <iostream>
@@ -33,6 +35,7 @@ using Mat4r = Eigen::Matrix<Real, 4, 4>;
 using Mat6r = Eigen::Matrix<Real, 6, 6>;
 using MatXr = Eigen::Matrix<Real,-1,-1>;
 
+/** Simulation object types */
 namespace SimObject
 {
     class XPBDRod;
@@ -49,17 +52,69 @@ using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::X
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
 using XPBDObjectGroups_UniquePtrContrinaer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
+
+/** Constraint types */
 namespace Constraint
 {
     class OneSidedFixedJointConstraint;
-    class RodElasticConstraint;
+    class FixedJointConstraint;
+    class OneSidedRevoluteJointConstraint;
     class RevoluteJointConstraint;
+
+    class RodElasticConstraint;
 }
-using XPBDConstraints_TypeList = TypeList<Constraint::OneSidedFixedJointConstraint, Constraint::RodElasticConstraint, Constraint::RevoluteJointConstraint>;
+
+using XPBDRigidBodyConstraints_TypeList = TypeList<
+    Constraint::OneSidedFixedJointConstraint,
+    Constraint::FixedJointConstraint,
+    Constraint::OneSidedRevoluteJointConstraint,
+    Constraint::RevoluteJointConstraint
+>;
+using XPBDRodConstraints_TypeList = TypeList<
+    Constraint::RodElasticConstraint
+>;
+
+using XPBDConstraints_TypeList = ConcatenateTypeLists<XPBDRigidBodyConstraints_TypeList, XPBDRodConstraints_TypeList>::type;
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
 
 
+/** Constraint projector types */
+namespace Constraint
+{
+    template<typename ConstraintType>
+    class XPBDConstraintProjector;
+
+    template<typename ConstraintType>
+    class Muller2020ConstraintProjector;
+}
+
+// helper struct to create container for XPBD constraint projectors
+template<typename TypeList>
+struct XPBDConstraintProjectorContainerFromConstraintTypeList;
+
+template<typename ...Constraints>
+struct XPBDConstraintProjectorContainerFromConstraintTypeList<TypeList<Constraints...>>
+{
+    using type = VariadicVectorContainer<Constraint::XPBDConstraintProjector<Constraints>...>;
+};
+
+// helper struct to create container for Muller 2020 constraint projectors
+template<typename TypeList>
+struct Muller2020ConstraintProjectorContainerFromConstraintTypeList;
+
+template<typename ...Constraints>
+struct Muller2020ConstraintProjectorContainerFromConstraintTypeList<TypeList<Constraints...>>
+{
+    using type = VariadicVectorContainer<Constraint::Muller2020ConstraintProjector<Constraints>...>;
+};
+
+using XPBDConstraintProjectors_Container = XPBDConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
+using Muller2020ConstraintProjectors_Container = Muller2020ConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
+
+
+
+/** Config types */ 
 namespace Config
 {
     class RodConfig;
