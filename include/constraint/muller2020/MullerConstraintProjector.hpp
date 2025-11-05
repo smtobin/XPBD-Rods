@@ -126,7 +126,7 @@ public:
         if constexpr (TypeListContains<Constraint, XPBDRigidBodyConstraints_TypeList>::value)
         {
             _projectPosition();
-            _projectOrientation();
+            // _projectOrientation();
         }
         else
         {
@@ -144,6 +144,10 @@ public:
         Vec3r dp = Muller2020ConstraintHelper::positionalCorrection(_constraint);
         // constraint violation and direction
         Real c = dp.norm();
+
+        if (c < 1e-12)
+            return;
+
         Vec3r n = dp / c;
 
         // get denominator weights from helper
@@ -160,11 +164,12 @@ public:
 
         // particle 1 position
         SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
-        Vec3r p1_update = n * dlam / _constraint->particles()[0]->mass;
+        Vec3r p1_update = -n * dlam / particle1->mass;
         // particle 1 orientation
         Vec3r r1 = _constraint->bodyJointOffset1();
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
-        Vec3r or1_update = p1_Ib_inv.asDiagonal() * (r1.cross(dlam*n));
+        Vec3r or1_update = p1_Ib_inv.asDiagonal() * (r1.cross(-dlam*particle1->orientation.transpose()*n));
+        std::cout << "Position update: " << p1_update.transpose() << "\tOrientation update: " << or1_update.transpose() << std::endl;
         particle1->positionUpdate(p1_update, or1_update);
 
         // particle 2 (if applicable)
@@ -175,7 +180,7 @@ public:
 
             Vec3r r2 = _constraint->bodyJointOffset2();
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();
-            Vec3r or2_update = p2_Ib_inv.asDiagonal() * (-r2.cross(dlam*n));
+            Vec3r or2_update = p2_Ib_inv.asDiagonal() * (r2.cross(dlam*particle2->orientation.transpose()*n));
             particle2->positionUpdate(p2_update, or2_update);
         }
 
@@ -189,6 +194,10 @@ public:
         Vec3r dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
         // constraint violation and direction
         Real theta = dor.norm();
+
+        if (theta < 1e-12)
+            return;
+
         Vec3r n = dor / theta;
 
         // get denominator weights from helper
@@ -205,6 +214,7 @@ public:
         SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
         Vec3r or1_update = p1_Ib_inv.asDiagonal() * (dlam * n);
+        std::cout << "Orientation update: " << or1_update << std::endl;
         particle1->positionUpdate(Vec3r::Zero(), or1_update);
 
         if (Constraint::NumParticles == 2)

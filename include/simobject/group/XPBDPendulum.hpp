@@ -37,12 +37,12 @@ public:
         {
             Real pos_x = (0.5 + i*body_length) * std::sin(_initial_angle * M_PI/180.0);
             Real pos_y = (-0.5 - i*body_length) * std::cos(_initial_angle * M_PI/180.0);
-            Config::XPBDRigidBoxConfig box_config("box", Vec3r(pos_x,pos_y,0), Vec3r(0,0,_initial_angle), Vec3r(0,0,0), Vec3r(0,0,0),
+            Config::XPBDRigidBoxConfig box_config("box", Vec3r(pos_x,pos_y,0), Vec3r(0,10,_initial_angle), Vec3r(0,0,0), Vec3r(0,0,0),
                 1000, Vec3r(0.1, body_length, 0.1));
             _addObject<XPBDRigidBox>(box_config);
         }
-
-        _addConstraint<Constraint::RevoluteJointConstraint>(&(bodies[0].com()), Vec3r(0,0,0), Mat3r::Identity(), &(bodies[1].com()), Vec3r(0,0.5*body_length,0), Mat3r::Identity());
+        // _addConstraint<Constraint::OneSidedFixedJointConstraint>(bodies[0].com().position, bodies[0].com().orientation, &(bodies[1].com()), Vec3r(0,0.5*body_length,0), Mat3r::Identity());
+        _addConstraint<Constraint::OneSidedRevoluteJointConstraint>(bodies[0].com().position, bodies[0].com().orientation, &(bodies[1].com()), Vec3r(0,0.5*body_length,0), Mat3r::Identity());
         for (int i = 1; i < _num_bodies; i++)
         {
             _addConstraint<Constraint::RevoluteJointConstraint>(&(bodies[i].com()), Vec3r(0,-0.5*body_length,0), Mat3r::Identity(), &(bodies[i+1].com()), Vec3r(0,0.5*body_length,0), Mat3r::Identity());
