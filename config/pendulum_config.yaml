@@ -1,6 +1,6 @@
 name: "Pendulum Sim"
 time-step: 1e-3
-end-time: 10
+end-time: 5
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -10,7 +10,7 @@ objects:
     type: "Pendulum"
     name: "pendulum"
     num-bodies: 2
-    initial-angle: 90
+    initial-angle: 120
     use-muller-2020: false
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
