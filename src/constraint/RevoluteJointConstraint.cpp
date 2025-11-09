@@ -178,9 +178,6 @@ OneSidedRevoluteJointConstraint::ConstraintVecType OneSidedRevoluteJointConstrai
     C_vec.head<3>() = dp;
     C_vec.tail<2>() = dor.head<2>();
 
-    std::cout << "a1 x a2: " << a1_cross_a2.transpose() << std::endl;
-    std::cout << "dor: " << dor.transpose() << std::endl;
-
     return C_vec;
 }
 

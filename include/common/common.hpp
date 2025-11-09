@@ -86,6 +86,9 @@ namespace Constraint
     class XPBDConstraintProjector;
 
     template<typename ConstraintType>
+    class XPBDSeparateConstraintProjector;
+
+    template<typename ConstraintType>
     class Muller2020ConstraintProjector;
 }
 
@@ -99,6 +102,16 @@ struct XPBDConstraintProjectorContainerFromConstraintTypeList<TypeList<Constrain
     using type = VariadicVectorContainer<Constraint::XPBDConstraintProjector<Constraints>...>;
 };
 
+// helper struct to create container for XPBD separate constraint projectors
+template<typename TypeList>
+struct XPBDSeparateConstraintProjectorContainerFromConstraintTypeList;
+
+template<typename ...Constraints>
+struct XPBDSeparateConstraintProjectorContainerFromConstraintTypeList<TypeList<Constraints...>>
+{
+    using type = VariadicVectorContainer<Constraint::XPBDSeparateConstraintProjector<Constraints>...>;
+};
+
 // helper struct to create container for Muller 2020 constraint projectors
 template<typename TypeList>
 struct Muller2020ConstraintProjectorContainerFromConstraintTypeList;
@@ -110,6 +123,7 @@ struct Muller2020ConstraintProjectorContainerFromConstraintTypeList<TypeList<Con
 };
 
 using XPBDConstraintProjectors_Container = XPBDConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
+using XPBDSeparateConstraintProjectors_Container = XPBDSeparateConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
 using Muller2020ConstraintProjectors_Container = Muller2020ConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
 
 

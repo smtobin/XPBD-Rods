@@ -1,25 +1,11 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "constraint/XPBDConstraintProjector_Base.hpp"
 #include "simobject/OrientedParticle.hpp"
 
 namespace Constraint
 {
-
-class XPBDConstraintProjector_Base
-{
-public:
-    XPBDConstraintProjector_Base(Real dt)
-        : _dt(dt)
-    {}
-
-    virtual void initialize() = 0;
-
-    virtual void project() = 0;
-
-protected:
-    Real _dt;
-};
 
 template <typename Constraint>
 class XPBDConstraintProjector : public XPBDConstraintProjector_Base

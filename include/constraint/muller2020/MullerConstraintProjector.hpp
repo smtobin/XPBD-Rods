@@ -18,6 +18,7 @@ struct Muller2020ConstraintHelper
     template<typename Constraint>
     static Vec3r angularCorrection(const Constraint* constraint)
     {
+        std::cout << "\n\nWRONG ANGULAR CORRECTION!" << std::endl;
         Vec3r dq = constraint->evaluate().template tail<3>();
         return dq;
     }
@@ -65,7 +66,7 @@ struct Muller2020ConstraintHelper
         Vec3r n = dor / dor.norm();
 
         Vec3r I_inv = 1/particle1->Ib.array();
-        return n.transpose() * particle1->orientation.transpose() * I_inv.asDiagonal() * particle1->orientation * n;
+        return n.transpose() * particle1->orientation * I_inv.asDiagonal() * particle1->orientation.transpose() * n;
     }
 
     template<typename Constraint>
@@ -82,7 +83,7 @@ struct Muller2020ConstraintHelper
             Vec3r n = dor / dor.norm();
 
             Vec3r I_inv = 1/particle2->Ib.array();
-            return n.transpose() * particle2->orientation.transpose() * I_inv.asDiagonal() * particle2->orientation * n;
+            return n.transpose() * particle2->orientation * I_inv.asDiagonal() * particle2->orientation.transpose() * n;
         }
     }
 
@@ -126,7 +127,7 @@ public:
         if constexpr (TypeListContains<Constraint, XPBDRigidBodyConstraints_TypeList>::value)
         {
             _projectPosition();
-            // _projectOrientation();
+            _projectOrientation();
         }
         else
         {
@@ -169,7 +170,7 @@ public:
         Vec3r r1 = _constraint->bodyJointOffset1();
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
         Vec3r or1_update = p1_Ib_inv.asDiagonal() * (r1.cross(-dlam*particle1->orientation.transpose()*n));
-        std::cout << "Position update: " << p1_update.transpose() << "\tOrientation update: " << or1_update.transpose() << std::endl;
+        // std::cout << "Position update: " << p1_update.transpose() << "\tOrientation update: " << or1_update.transpose() << std::endl;
         particle1->positionUpdate(p1_update, or1_update);
 
         // particle 2 (if applicable)
@@ -192,6 +193,7 @@ public:
     {
         // difference in orientations of joint axes on each body
         Vec3r dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
+        std::cout << "\nAngular correction: "<< dor.transpose() << std::endl;
         // constraint violation and direction
         Real theta = dor.norm();
 
@@ -199,6 +201,8 @@ public:
             return;
 
         Vec3r n = dor / theta;
+
+        std::cout << "n local p1: " << (_constraint->particles()[0]->orientation.transpose() * n).transpose() << std::endl;
 
         // get denominator weights from helper
         Real w1 = Muller2020ConstraintHelper::angularW1(_constraint);
@@ -213,17 +217,20 @@ public:
         // compute orientation update for each particle
         SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
-        Vec3r or1_update = p1_Ib_inv.asDiagonal() * (dlam * n);
-        std::cout << "Orientation update: " << or1_update << std::endl;
+        Vec3r or1_update = p1_Ib_inv.asDiagonal() * (-dlam * particle1->orientation.transpose() * n);
+        std::cout << "p1 Orientation update: " << or1_update.transpose() << std::endl;
         particle1->positionUpdate(Vec3r::Zero(), or1_update);
 
         if (Constraint::NumParticles == 2)
         {
             SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();
-            Vec3r or2_update = p2_Ib_inv.asDiagonal() * (-dlam * n);
+            Vec3r or2_update = p2_Ib_inv.asDiagonal() * (dlam * particle2->orientation.transpose() * n);
+            std::cout << "p2 Orientation update: " << or2_update.transpose() << std::endl;
             particle2->positionUpdate(Vec3r::Zero(), or2_update);
         }
+
+        std::cout << "New angular correction: " << Muller2020ConstraintHelper::angularCorrection(_constraint).transpose() << std::endl;
 
     }
 

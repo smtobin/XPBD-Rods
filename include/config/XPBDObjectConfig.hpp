@@ -9,6 +9,24 @@ namespace Config
 class XPBDObjectConfig : public Config_Base
 {
 public:
+    enum class ProjectorType
+    {
+        BLOCK=0,
+        SEPARATE,
+        MULLER2020
+    };
+
+    static std::map<std::string, ProjectorType> PROJECTOR_TYPE_MAP()
+    {
+        static std::map<std::string, ProjectorType> projector_type_map{
+            {"block", ProjectorType::BLOCK},
+            {"separate", ProjectorType::SEPARATE},
+            {"muller2020", ProjectorType::MULLER2020}
+        };
+
+        return projector_type_map;
+    }
+
     explicit XPBDObjectConfig()
         : Config_Base(), _render_config()
     {}
@@ -21,7 +39,7 @@ public:
         _extractParameter("initial-velocity", node, _initial_velocity);
         _extractParameter("initial-angular-velocity", node, _initial_angular_velocity);
 
-        _extractParameter("use-muller-2020", node, _use_muller2020_algorithm);
+        _extractParameterWithOptions("projector-type", node, _projector_type, PROJECTOR_TYPE_MAP());
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
@@ -33,7 +51,7 @@ public:
         _initial_velocity.value = initial_velocity;
         _initial_angular_velocity.value = initial_angular_velocity;
 
-        _use_muller2020_algorithm.value = false;
+        _projector_type.value = ProjectorType::BLOCK;
     }
 
     const Vec3r& initialPosition() const { return _initial_position.value; }
@@ -41,7 +59,7 @@ public:
     const Vec3r& initialVelocity() const { return _initial_velocity.value; }
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 
-    bool useMuller2020Algorithm() const { return _use_muller2020_algorithm.value; }
+    ProjectorType projectorType() const { return _projector_type.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
@@ -51,7 +69,7 @@ protected:
     ConfigParameter<Vec3r> _initial_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
 
-    ConfigParameter<bool> _use_muller2020_algorithm = ConfigParameter<bool>(false);
+    ConfigParameter<ProjectorType> _projector_type = ConfigParameter<ProjectorType>(ProjectorType::BLOCK);
 
     ObjectRenderConfig _render_config;
 };

@@ -62,7 +62,7 @@ class Simulation
             // add the ObjectGroup's constraints to the solver
             const XPBDConstraints_Container& constraints = new_obj.constraints();
             constraints.for_each_element([&](const auto& constraint) {
-                _solver.addConstraint(&constraint, obj_config.useMuller2020Algorithm());
+                _solver.addConstraint(&constraint, obj_config.projectorType());
             });
 
             return &new_obj;
