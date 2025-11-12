@@ -64,6 +64,7 @@ namespace Constraint
     class NormedRevoluteJointConstraint;
 
     class RodElasticConstraint;
+    class PointLineConstraint;
 }
 
 using XPBDRigidBodyConstraints_TypeList = TypeList<
@@ -75,7 +76,8 @@ using XPBDRigidBodyConstraints_TypeList = TypeList<
     Constraint::NormedRevoluteJointConstraint
 >;
 using XPBDRodConstraints_TypeList = TypeList<
-    Constraint::RodElasticConstraint
+    Constraint::RodElasticConstraint,
+    Constraint::PointLineConstraint
 >;
 
 using XPBDConstraints_TypeList = ConcatenateTypeLists<XPBDRigidBodyConstraints_TypeList, XPBDRodConstraints_TypeList>::type;

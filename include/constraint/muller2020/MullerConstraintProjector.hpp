@@ -126,8 +126,17 @@ public:
     {
         if constexpr (TypeListContains<Constraint, XPBDRigidBodyConstraints_TypeList>::value)
         {
+            Vec3r dp = Muller2020ConstraintHelper::positionalCorrection(_constraint);
+            Vec3r dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
+            std::cout << "\n================\nC: " << dp.norm() << ", " << dor.norm() << std::endl; 
             _projectPosition();
+            dp = Muller2020ConstraintHelper::positionalCorrection(_constraint);
+            dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
+            std::cout << "C: " << dp.norm() << ", " << dor.norm() << std::endl; 
             _projectOrientation();
+            dp = Muller2020ConstraintHelper::positionalCorrection(_constraint);
+            dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
+            std::cout << "Final C: " << dp.norm() << ", " << dor.norm() << std::endl; 
         }
         else
         {
@@ -193,7 +202,7 @@ public:
     {
         // difference in orientations of joint axes on each body
         Vec3r dor = Muller2020ConstraintHelper::angularCorrection(_constraint);
-        std::cout << "\nAngular correction: "<< dor.transpose() << std::endl;
+        // std::cout << "\nAngular correction: "<< dor.transpose() << std::endl;
         // constraint violation and direction
         Real theta = dor.norm();
 
@@ -202,12 +211,13 @@ public:
 
         Vec3r n = dor / theta;
 
-        std::cout << "n local p1: " << (_constraint->particles()[0]->orientation.transpose() * n).transpose() << std::endl;
+        // std::cout << "n local p1: " << (_constraint->particles()[0]->orientation.transpose() * n).transpose() << std::endl;
 
         // get denominator weights from helper
         Real w1 = Muller2020ConstraintHelper::angularW1(_constraint);
         Real w2 = Muller2020ConstraintHelper::angularW2(_constraint);
 
+        std::cout << "RHS: " << -theta << "  LHS: " << w1+w2 << std::endl;
         // XPBD formula (assuming alpha = 0 for now)
         Real dlam = -theta / (w1 + w2); // <== assuming alpha = 0 for now
 
@@ -226,11 +236,11 @@ public:
             SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();
             Vec3r or2_update = p2_Ib_inv.asDiagonal() * (dlam * particle2->orientation.transpose() * n);
-            std::cout << "p2 Orientation update: " << or2_update.transpose() << std::endl;
+            // std::cout << "p2 Orientation update: " << or2_update.transpose() << std::endl;
             particle2->positionUpdate(Vec3r::Zero(), or2_update);
         }
 
-        std::cout << "New angular correction: " << Muller2020ConstraintHelper::angularCorrection(_constraint).transpose() << std::endl;
+        // std::cout << "New angular correction: " << Muller2020ConstraintHelper::angularCorrection(_constraint).transpose() << std::endl;
 
     }
 

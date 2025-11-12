@@ -120,6 +120,15 @@ static Mat3r RotMatFromXYZEulerAngles(const Vec3r& euler_xyz)
     return rot_mat;
 }
 
+/** Projects a point p onto the line segment defined by ab.
+ * Returns the interpolation factor - i.e. if in [0,1] the projected point is between a and b.
+ * To get the projected point: p_proj = a + projectPointOnLine(p, a, b) * (b-a);
+ */
+static Real projectPointOntoLine(const Vec3r& p, const Vec3r& a, const Vec3r& b)
+{
+    return (p-a).dot(b-a) / (b-a).squaredNorm();
+}
+
 };
 
 #endif // __MATH_HPP
