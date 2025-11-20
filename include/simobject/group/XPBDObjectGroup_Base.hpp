@@ -2,6 +2,12 @@
 
 #include "simobject/XPBDObject_Base.hpp"
 
+#include "simobject/rigidbody/XPBDRigidBox.hpp"
+#include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/rod/XPBDRod.hpp"
+
+#include "constraint/AllConstraints.hpp"
+
 #include <vector>
 #include <memory>
 
@@ -19,26 +25,11 @@ public:
     const XPBDObjects_Container& objects() const { return _objects; }
     const XPBDConstraints_Container& constraints() const { return _constraints; }
 
-    virtual void inertialUpdate(Real dt) override
-    {
-        _objects.for_each_element([&](auto& obj){
-            obj.inertialUpdate(dt);
-        });
-    }
+    virtual void inertialUpdate(Real dt) override;
 
-    virtual void internalConstraintSolve(Real dt) override
-    {
-        _objects.for_each_element([&](auto& obj){
-            obj.internalConstraintSolve(dt);
-        });
-    }
+    virtual void internalConstraintSolve(Real dt) override;
 
-    virtual void velocityUpdate(Real dt) override
-    {
-        _objects.for_each_element([&](auto& obj){
-            obj.velocityUpdate(dt);
-        });
-    }
+    virtual void velocityUpdate(Real dt) override;
 
 protected:
     template <typename ObjectType, typename... Args>
@@ -53,9 +44,16 @@ protected:
         return _constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
     }
 
+    template <typename ConstraintType, typename... Args>
+    ConstraintType& _addInternalConstraint(Args&&... args)
+    {
+        return _internal_constraints.template emplace_back<ConstraintType>(std::forward<Args>(args)...);
+    }
+
 protected:
     XPBDObjects_Container _objects;
     XPBDConstraints_Container _constraints;
+    XPBDConstraints_Container _internal_constraints;
 
 };
 

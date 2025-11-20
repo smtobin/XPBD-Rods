@@ -82,7 +82,10 @@ class XPBDRod : public XPBDObject_Base
     }
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
+    std::vector<OrientedParticle>& nodes() { return _nodes; }
     const CrossSection* crossSection() const { return _cross_section.get(); }
+
+    const std::vector<Constraint::RodElasticConstraint>& rodConstraints() const { return _elastic_constraints; }
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup() override;

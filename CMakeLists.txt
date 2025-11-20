@@ -33,20 +33,20 @@ add_library(Constraint)
 add_subdirectory("src/constraint")
 target_link_libraries(Constraint Eigen3::Eigen)
 
-add_library(Rod)
-add_subdirectory("src/simobject/rod")
-target_link_libraries(Rod Eigen3::Eigen Constraint)
+add_library(SimObject)
+add_subdirectory("src/simobject")
+target_link_libraries(SimObject Eigen3::Eigen Constraint)
 
 # add_library(RigidBody)
 # add_subdirectory("src/simobject/rigidbody")
 
 add_library(Graphics)
 add_subdirectory("src/graphics")
-target_link_libraries(Graphics Eigen3::Eigen ${VTK_LIBRARIES} Rod)
+target_link_libraries(Graphics Eigen3::Eigen ${VTK_LIBRARIES} SimObject)
 
 add_library(Simulation)
 add_subdirectory("src/simulation")
-target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} Rod Solver Graphics yaml-cpp)
+target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} SimObject Solver Graphics yaml-cpp)
 
 
 #####################################################
@@ -72,7 +72,7 @@ add_executable(TestThomasVsBanded test/test_thomas_vs_banded.cpp)
 target_link_libraries(TestThomasVsBanded Solver Eigen3::Eigen)
 
 add_executable(TestVTK test/test_vtk.cpp)
-target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} Rod)
+target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} SimObject)
 
 add_executable(TestPBR test/test_pbr.cpp)
 target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
