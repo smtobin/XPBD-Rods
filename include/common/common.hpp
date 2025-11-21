@@ -42,13 +42,14 @@ namespace SimObject
     class XPBDRigidSphere;
     class XPBDRigidBox;
     class XPBDPendulum;
+    class XPBDConcentricTubeRobot;
     class XPBDFourBarLinkage;
 }
 using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObject_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 
-using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDFourBarLinkage>;
+using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot>;
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
 using XPBDObjectGroups_UniquePtrContrinaer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
@@ -141,13 +142,15 @@ namespace Config
     class XPBDRigidBoxConfig;
     class XPBDRigidSphereConfig;
     class XPBDPendulumConfig;
+    class XPBDConcentricTubeRobotConfig;
 }
 
 using XPBDObjectConfigs_TypeList = TypeList<
     Config::RodConfig,
     Config::XPBDRigidBoxConfig,
     Config::XPBDRigidSphereConfig,
-    Config::XPBDPendulumConfig
+    Config::XPBDPendulumConfig,
+    Config::XPBDConcentricTubeRobotConfig
 >;
 using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObjectConfigs_TypeList>::type;
 

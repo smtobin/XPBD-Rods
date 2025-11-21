@@ -248,7 +248,7 @@ void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::
     _graphics_objects.push_back(std::move(box_go));
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDPendulum* pen, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::ObjectRenderConfig& render_config)
 {
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {

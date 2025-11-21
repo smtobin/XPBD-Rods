@@ -45,14 +45,16 @@ void XPBDRod::setup()
     _lambda.conservativeResize(6*_num_constraints);
     _dlam.conservativeResize(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
+
+    _prev_nodes = _nodes;
     
 }
 
 void XPBDRod::internalConstraintSolve(Real dt)
 {
     _lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
-    _prev_nodes = _nodes;
-    inertialUpdate(dt);
+    // _prev_nodes = _nodes;
+    // inertialUpdate(dt);
 
     for (int gi = 0; gi < 3; gi++)
     {
@@ -250,6 +252,8 @@ int XPBDRod::_orderConstraints()
 
 void XPBDRod::inertialUpdate(Real dt)
 {
+    _prev_nodes = _nodes;
+
     for (int i = 0; i < _num_nodes; i++)
     {
         auto& node = _nodes[i];

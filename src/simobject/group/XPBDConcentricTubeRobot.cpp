@@ -30,11 +30,15 @@ void XPBDConcentricTubeRobot::setup()
 
     SimObject::CircleCrossSection inner_cross_section(0.08/2.0, 10);
 
+    _objects.template reserve<XPBDRod>(2);
     _outer_rod = &_addObject<XPBDRod>(outer_rod_config, outer_cross_section);
     _inner_rod = &_addObject<XPBDRod>(inner_rod_config, inner_cross_section);
 
+    _outer_rod->setup();
+    _inner_rod->setup();
+
     // create mapping between rod nodes and global index and construct inverse inertia matrix
-    _M_inv = VecXr::Zero(_outer_rod->nodes().size() + _inner_rod->nodes().size());
+    _M_inv = VecXr::Zero(6*_outer_rod->nodes().size() + 6*_inner_rod->nodes().size());
     int global_index = 0;
     for (const auto& particle : _outer_rod->nodes())
     {
@@ -50,7 +54,7 @@ void XPBDConcentricTubeRobot::setup()
     }
 
     // create initial alpha vector
-    _alpha = VecXr::Zero(_outer_rod->rodConstraints().size() + _inner_rod->rodConstraints().size());
+    _alpha = VecXr::Zero(6*_outer_rod->rodConstraints().size() + 6*_inner_rod->rodConstraints().size());
     int constraint_index = 0;
     for (const auto& constraint : _outer_rod->rodConstraints())
     {
@@ -71,7 +75,7 @@ void XPBDConcentricTubeRobot::setup()
 void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 {
     // for now, clear the point-on-line constraints every time
-    _constraints.template clear<Constraint::PointLineConstraint>();
+    _internal_constraints.template clear<Constraint::PointLineConstraint>();
 
     std::vector<OrientedParticle>& outer_nodes = _outer_rod->nodes();
     std::vector<OrientedParticle>& inner_nodes = _inner_rod->nodes();
@@ -98,6 +102,8 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
             outer_node_index += static_cast<int>(std::floor(t));    // round towards negative infinity
             outer_node_index = std::clamp(outer_node_index, 0, static_cast<int>(outer_nodes.size())-2);   // and clamp
             
+            // std::cout << "Outer node index: " << outer_node_index << std::endl;
+
             t = Math::projectPointOntoLine(inner_node.position, outer_nodes[outer_node_index].position, outer_nodes[outer_node_index+1].position);
 
             if (t >= 0 && t <= 1)
@@ -112,10 +118,12 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
 {
 
-    _updateConcentricityConstraints();
+    // _updateConcentricityConstraints();
 
     const std::vector<Constraint::RodElasticConstraint>& outer_rod_constraints = _outer_rod->rodConstraints();
+    // std::cout << "Num outer rod constraints: " << outer_rod_constraints.size() << std::endl;
     const std::vector<Constraint::RodElasticConstraint>& inner_rod_constraints = _inner_rod->rodConstraints();
+    // std::cout << "Num inner rod constraints: " << inner_rod_constraints.size() << std::endl;
 
     // calculate number of constraints
     int num_constraints = outer_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim +
@@ -124,8 +132,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     
     _RHS_vec.conservativeResize(num_constraints, 1);
     _alpha.conservativeResize(num_constraints, 1);
-    _LHS_mat.conservativeResize(num_constraints, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6);
-
+    _delC_mat.conservativeResize(num_constraints, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6);
+    _LHS_mat.conservativeResize(_outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6 );
     // start assembling global system
     int row_offset = 0;
     for (const auto& constraint : outer_rod_constraints)
@@ -171,17 +179,24 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
 
         _alpha[row_offset] = constraint.alpha()[0];
 
-        row_offset += Constraint::RodElasticConstraint::ConstraintDim;
+        row_offset += Constraint::PointLineConstraint::ConstraintDim;
     }
 
 
     // compute LHS
+    // std::cout << "_delC_mat: \n" << _delC_mat << std::endl;
+    // std::cout << "_delC size: " << _delC_mat.rows() << " x " << _delC_mat.cols() << "  _M_inv size: " << _M_inv.size() << std::endl;
     _LHS_mat = _delC_mat * _M_inv.asDiagonal() * _delC_mat.transpose();
+    // std::cout << "_LHS_mat size: " << _LHS_mat.rows() << " x " << _LHS_mat.cols() << std::endl;
+    // std::cout << "_alpha size: " << _alpha.size() << std::endl;
     _LHS_mat.diagonal() += _alpha/(dt*dt);
 
     // solve and compute position update
     _dlam = _LHS_mat.llt().solve(_RHS_vec);
-    _dx = _M_inv * _delC_mat.transpose() * _dlam;
+    // std::cout << "_dlam size: " << _dlam.size() << std::endl;
+    _dx = _M_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
+    // std::cout << "Position update: " << _dx.transpose() << std::endl;
+    // std::cout << "_dx size: " << _dx.size() << std::endl;
 
     // update positions
     for (int i = 0; i < _outer_rod->nodes().size(); i++)

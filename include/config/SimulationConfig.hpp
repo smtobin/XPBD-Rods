@@ -6,6 +6,7 @@
 #include "config/XPBDRigidSphereConfig.hpp"
 #include "config/XPBDRigidBoxConfig.hpp"
 #include "config/XPBDPendulumConfig.hpp"
+#include "config/XPBDConcentricTubeRobotConfig.hpp"
 
 namespace Config
 {
@@ -55,6 +56,10 @@ class SimulationConfig : public Config_Base
             else if (type == "Pendulum")
             {
                 _object_configs.template emplace_back<Config::XPBDPendulumConfig>(obj_node);
+            }
+            else if (type == "CTR")
+            {
+                _object_configs.template emplace_back<Config::XPBDConcentricTubeRobotConfig>(obj_node);
             }
             else
             {
