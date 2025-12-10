@@ -18,14 +18,14 @@ void XPBDConcentricTubeRobot::setup()
 {
     Config::RodConfig outer_rod_config(
         "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), true, false,
-        1, 0.1, 10, 1000, 1e6, 0.3
+        1, 0.1, 20, 1000, 1e6, 0.3
     );
 
     SimObject::CircleCrossSection outer_cross_section(0.1/2.0, 10);
 
     Config::RodConfig inner_rod_config(
         "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), true, false,
-        1.5, 0.08, 10, 1000, 1e6, 0.3
+        1.5, 0.08, 20, 1000, 1e6, 0.3
     );
 
     SimObject::CircleCrossSection inner_cross_section(0.08/2.0, 10);
@@ -66,6 +66,8 @@ void XPBDConcentricTubeRobot::setup()
     }
 
 
+    // add fixed base constraint for outer rod
+    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(Vec3r::Zero(), Mat3r::Identity(), &_outer_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
 
     // create the initial point-on-line constraints
     _updateConcentricityConstraints();
@@ -81,8 +83,11 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
     std::vector<OrientedParticle>& inner_nodes = _inner_rod->nodes();
 
     // go through each inner node and project it onto a line segment in the outer tube
-    for (auto& inner_node : inner_nodes)
+    // std::cout <<"\nFinding concentricity correspondences..." << std::endl;
+    for (unsigned inner_node_index = 0; inner_node_index < inner_nodes.size(); inner_node_index++)
     {
+        OrientedParticle& inner_node = inner_nodes[inner_node_index];
+
         // project onto the first segment of the outer tube - if t is negative we are outside of the outer tube
         Real t1 = Math::projectPointOntoLine(inner_node.position, outer_nodes[0].position, outer_nodes[1].position);
         if (t1 < 0)
@@ -110,6 +115,7 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
                 break;
         }
 
+        // std::cout << "  Inner node index: " << inner_node_index << " Outer segment: " << outer_node_index << ", " << outer_node_index+1 << std::endl;
         // create a point-on-line constraint between the inner tube node and the outer tube segment
         _addInternalConstraint<Constraint::PointLineConstraint>(&inner_node, &outer_nodes[outer_node_index], &outer_nodes[outer_node_index+1]);
     }
@@ -118,15 +124,17 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
 {
 
-    // _updateConcentricityConstraints();
+    _updateConcentricityConstraints();
 
     const std::vector<Constraint::RodElasticConstraint>& outer_rod_constraints = _outer_rod->rodConstraints();
     // std::cout << "Num outer rod constraints: " << outer_rod_constraints.size() << std::endl;
     const std::vector<Constraint::RodElasticConstraint>& inner_rod_constraints = _inner_rod->rodConstraints();
     // std::cout << "Num inner rod constraints: " << inner_rod_constraints.size() << std::endl;
+    const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>();
 
     // calculate number of constraints
-    int num_constraints = outer_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim +
+    int num_constraints = fixed_base_constraints.size()*Constraint::OneSidedFixedJointConstraint::ConstraintDim + 
+                          outer_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim +
                           inner_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim + 
                           _internal_constraints.template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
     
@@ -136,16 +144,38 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     _LHS_mat.conservativeResize(_outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6 );
     // start assembling global system
     int row_offset = 0;
+    // fix the outer tube base
+    for (const auto& constraint : fixed_base_constraints)
+    {
+        Vec6r C = constraint.evaluate();
+        _RHS_vec.block<6,1>(row_offset,0) = -C;
+
+        // std::cout << "Fixed base constraint: " << C.transpose() << std::endl;
+
+        Constraint::OneSidedFixedJointConstraint::GradientMatType grad = constraint.gradient();
+        int pos_index = _particle_ptr_to_index.at(constraint.particles()[0]);
+        _delC_mat.block<6,6>(row_offset, pos_index*6) = grad;
+
+        _alpha.block<6,1>(row_offset,0) = constraint.alpha();
+
+        row_offset += Constraint::OneSidedFixedJointConstraint::ConstraintDim;
+
+    } 
+
     for (const auto& constraint : outer_rod_constraints)
     {
         Vec6r C = constraint.evaluate();
         _RHS_vec.block<6,1>(row_offset, 0) = -C;
+
+        // std::cout << "Outer rod constraint: " << C.transpose() << std::endl;
 
         Constraint::RodElasticConstraint::GradientMatType grad = constraint.gradient();
         int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
         int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
         _delC_mat.block<6,6>(row_offset, pos1_index*6) = grad.block<6,6>(0,0);
         _delC_mat.block<6,6>(row_offset, pos2_index*6) = grad.block<6,6>(0,6);
+
+        _alpha.block<6,1>(row_offset,0) = constraint.alpha();
 
         row_offset += Constraint::RodElasticConstraint::ConstraintDim;
     }
@@ -155,11 +185,15 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         Vec6r C = constraint.evaluate();
         _RHS_vec.block<6,1>(row_offset, 0) = -C;
 
+        // std::cout << "Inner rod constraint: " << C.transpose() << std::endl;
+
         Constraint::RodElasticConstraint::GradientMatType grad = constraint.gradient();
         int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
         int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
         _delC_mat.block<6,6>(row_offset, pos1_index*6) = grad.block<6,6>(0,0);
         _delC_mat.block<6,6>(row_offset, pos2_index*6) = grad.block<6,6>(0,6);
+
+        _alpha.block<6,1>(row_offset,0) = constraint.alpha();
 
         row_offset += Constraint::RodElasticConstraint::ConstraintDim;
     }
@@ -169,6 +203,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         Real C = constraint.evaluate()[0];
         _RHS_vec[row_offset] = -C;
 
+        // std::cout << "Point on line constraint: " << C << std::endl;
+
         Constraint::PointLineConstraint::GradientMatType grad = constraint.gradient();
         int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
         int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
@@ -177,22 +213,52 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         _delC_mat.block<1,6>(row_offset, pos2_index*6) = grad.block<1,6>(0,6);
         _delC_mat.block<1,6>(row_offset, pos3_index*6) = grad.block<1,6>(0,12);
 
-        _alpha[row_offset] = constraint.alpha()[0];
+        /** TODO: when the point lies on the line (i.e. C=0), then the constraint gradient is undefined.
+         * For now, we set the entire constraint gradient to all zeros. But, this creates a singular LHS matrix since
+         * alpha is also 0. 
+         * 
+         * Option 1: detect this and remove these constraints from the system
+         * Option 2 (used below): change alpha temporarily to be nonzero so that the matrix is not singular. Doesn't matter anyway since the RHS is 0.
+         */
+        if (abs(C) < 1e-10)
+            _alpha[row_offset] = 1e-3;
+        else
+            _alpha[row_offset] = constraint.alpha()[0];
 
         row_offset += Constraint::PointLineConstraint::ConstraintDim;
     }
 
-
     // compute LHS
+    // std::cout << "Minv: " << _M_inv.transpose() << std::endl;
     // std::cout << "_delC_mat: \n" << _delC_mat << std::endl;
     // std::cout << "_delC size: " << _delC_mat.rows() << " x " << _delC_mat.cols() << "  _M_inv size: " << _M_inv.size() << std::endl;
     _LHS_mat = _delC_mat * _M_inv.asDiagonal() * _delC_mat.transpose();
+    // std::cout << "LHS mat: " << _LHS_mat << std::endl;
     // std::cout << "_LHS_mat size: " << _LHS_mat.rows() << " x " << _LHS_mat.cols() << std::endl;
     // std::cout << "_alpha size: " << _alpha.size() << std::endl;
     _LHS_mat.diagonal() += _alpha/(dt*dt);
 
+    // std::cout << "LHS mat: " << _LHS_mat << std::endl;
+    // std::cout << "RHS vec: " << _RHS_vec.transpose() << std::endl;
+    // std::cout << "alpha vec: " << _alpha.transpose() << std::endl;
+    // std::cout << "dt : " << dt << std::endl;
+
+    // std::cout << "Number of NaNs in LHS mat: " << _LHS_mat.array().isNaN().sum() << std::endl;
+
+    Eigen::LLT<Eigen::MatrixXd> llt(_LHS_mat);
+    if (llt.info() != Eigen::Success)
+    {
+        std::cout << "LHS mat: " << _LHS_mat << std::endl;
+        std::cout << "Decomposition failed!" << std::endl;
+        // Check the matrix properties
+        std::cout << "Matrix determinant: " << _LHS_mat.determinant() << std::endl;
+        std::cout << "Min eigenvalue: " << _LHS_mat.eigenvalues().real().minCoeff() << std::endl;
+    }
     // solve and compute position update
-    _dlam = _LHS_mat.llt().solve(_RHS_vec);
+    // _dlam = _LHS_mat.llt().solve(_RHS_vec);
+    _dlam = llt.solve(_RHS_vec);
+    // std::cout << "dlam: " << _dlam.transpose() << std::endl;
+    // std::cout << "Number of NaNs in dlam: " << _dlam.array().isNaN().sum() << std::endl;
     // std::cout << "_dlam size: " << _dlam.size() << std::endl;
     _dx = _M_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
     // std::cout << "Position update: " << _dx.transpose() << std::endl;

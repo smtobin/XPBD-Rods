@@ -34,7 +34,9 @@ PointLineConstraint::GradientMatType PointLineConstraint::gradient(bool update_c
     const Real norm_cross_p = cross_p.norm();
     const Real norm_x1x2 = (x2 - x1).norm();
 
-    if (norm_x1x2 > 1e-10 & norm_cross_p > 1e-10)
+    const Real C = norm_cross_p / norm_x1x2;
+
+    if (C >= 1e-10)
     {
         const Vec3r dC_dp = cross_p.transpose() / norm_cross_p * Math::Skew3(x2 - x1) / norm_x1x2;
         const Vec3r dC_dx1 = norm_cross_p * (x2 - x1).transpose() / (norm_x1x2*norm_x1x2*norm_x1x2) + cross_p.transpose() / norm_cross_p / norm_x1x2 * Math::Skew3(p - x2);
