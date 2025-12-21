@@ -24,9 +24,9 @@ public:
     virtual void project() override
     {
         typename Constraint::ConstraintVecType C = _constraint->evaluate();
-        std::cout << "========\nC: " << C.transpose() << std::endl;
+        // std::cout << "========\nC: " << C.transpose() << std::endl;
         typename Constraint::GradientMatType delC = _constraint->gradient(true);
-        std::cout << "delC:\n" << delC.transpose() << std::endl;
+        // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
         const typename Constraint::ConstraintVecType RHS = -C - _constraint->alpha().asDiagonal() * _lambda / (_dt*_dt);
 
@@ -42,14 +42,14 @@ public:
         Eigen::Matrix<Real, Constraint::ConstraintDim, Constraint::ConstraintDim> LHS =
             delC * inertia_inverse.asDiagonal() * delC.transpose();
         LHS.diagonal() += _constraint->alpha() / (_dt*_dt);
-        std::cout << "LHS:\n" << LHS << std::endl;
-        std::cout << "RHS:\n" << RHS << std::endl;
-        std::cout << "inverse inertia:\n" << inertia_inverse << std::endl;
+        // std::cout << "LHS:\n" << LHS << std::endl;
+        // std::cout << "RHS:\n" << RHS << std::endl;
+        // std::cout << "inverse inertia:\n" << inertia_inverse << std::endl;
 
         const typename Constraint::ConstraintVecType dlam = LHS.llt().solve(RHS);
         _lambda += dlam;
 
-        std::cout << "dlam: " << dlam << std::endl;
+        // std::cout << "dlam: " << dlam << std::endl;
 
         // update nodes
         for (int i = 0; i < Constraint::NumParticles; i++)
@@ -57,12 +57,12 @@ public:
             SimObject::OrientedParticle* particle_i = _constraint->particles()[i];
             // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
             const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * _constraint->singleParticleGradient(particle_i, true).transpose() * dlam;
-            std::cout << "Position update: " << position_update.transpose() << std::endl;
+            // std::cout << "Position update: " << position_update.transpose() << std::endl;
             particle_i->positionUpdate(position_update);
         }
 
-        typename Constraint::ConstraintVecType newC = _constraint->evaluate();
-        std::cout << "New C: " << newC.transpose() << std::endl;
+        // typename Constraint::ConstraintVecType newC = _constraint->evaluate();
+        // std::cout << "New C: " << newC.transpose() << std::endl;
         // assert(0);
     }
 private:

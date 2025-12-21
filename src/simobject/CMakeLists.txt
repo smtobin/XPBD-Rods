@@ -15,6 +15,7 @@ set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/rod/XPBDRod.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDObjectGroup_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDConcentricTubeRobot.cpp
+    ${SIMOBJECT_SRC_DIR}/group/XPBDPendulum.cpp
 )
 
 target_sources(SimObject
