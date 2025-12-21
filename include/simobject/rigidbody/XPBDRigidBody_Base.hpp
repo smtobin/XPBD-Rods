@@ -31,6 +31,9 @@ public:
     const OrientedParticle& com() const { return _com; }
     OrientedParticle& com() { return _com; }
 
+    /** Required by XPBDObject_Base */
+    virtual std::vector<const OrientedParticle*> particles() const override { return {&_com}; }
+
     /** Sets the rigid body to be fixed or not. */
     virtual void setFixed(bool fixed) { _com.fixed = fixed; }
 

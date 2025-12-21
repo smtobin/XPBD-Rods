@@ -108,6 +108,11 @@ int Simulation::run()
     _graphics_scene.interactorStart();
 }
 
+VecXr Simulation::primaryResidual() const
+{
+    // primary residual = M (x - x_tilde) + delC^T * lambda
+}
+
 void Simulation::notifyKeyPressed(const std::string& /*key*/)
 {
     

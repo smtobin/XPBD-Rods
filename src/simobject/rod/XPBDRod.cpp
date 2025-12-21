@@ -9,6 +9,18 @@
 namespace SimObject
 {
 
+std::vector<const OrientedParticle*> XPBDRod::particles() const
+{
+    std::vector<const OrientedParticle*> particles_vec;
+    particles_vec.reserve(_nodes.size());
+    for (const auto& node : _nodes)
+    {
+        particles_vec.push_back(&node);
+    }
+
+    return particles_vec;
+}
+
 void XPBDRod::setup()
 {
     Real dl = _length / (_num_nodes - 1);

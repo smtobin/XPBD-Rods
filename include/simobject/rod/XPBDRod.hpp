@@ -83,6 +83,10 @@ class XPBDRod : public XPBDObject_Base
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
+
+    /** Required override of XPBDObject_Base */
+    virtual std::vector<const OrientedParticle*> particles() const override;
+
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
     const std::vector<Constraint::RodElasticConstraint>& rodConstraints() const { return _elastic_constraints; }

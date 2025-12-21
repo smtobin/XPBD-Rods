@@ -2,6 +2,7 @@
 
 #include "common/common.hpp"
 #include "config/XPBDObjectConfig.hpp"
+#include "simobject/OrientedParticle.hpp"
 
 namespace SimObject
 {
@@ -25,6 +26,8 @@ public:
 
     /** Updates the object's velocity. Should be called at the end of a time step. */
     virtual void velocityUpdate(Real dt) = 0;
+
+    virtual std::vector<const OrientedParticle*> particles() const = 0;
 
 protected:
     std::string _name;

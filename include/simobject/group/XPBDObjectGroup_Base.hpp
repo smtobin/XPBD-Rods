@@ -31,6 +31,8 @@ public:
 
     virtual void velocityUpdate(Real dt) override;
 
+    virtual std::vector<const OrientedParticle*> particles() const override;
+
 protected:
     template <typename ObjectType, typename... Args>
     ObjectType& _addObject(Args&&... args)

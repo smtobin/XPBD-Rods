@@ -22,6 +22,7 @@
 #include <deque>
 #include <functional>
 #include <atomic>
+#include <unordered_map>
 
 namespace Sim
 {
@@ -39,6 +40,9 @@ class Simulation
 
     void update();
 
+    VecXr primaryResidual() const;
+    VecXr constraintResidual() const;
+
 
     // event handling
     virtual void notifyKeyPressed(const std::string& key);
@@ -54,6 +58,7 @@ class Simulation
     {
         // using ObjPtrType = std::unique_ptr<typename ConfigType::SimObjectType>;
         using ObjType = typename ConfigType::SimObjectType;
+        ObjType* new_obj_ptr = nullptr;
         if constexpr (std::is_base_of_v<SimObject::XPBDObjectGroup_Base, ObjType>)
         {
             ObjType& new_obj = _object_groups.template emplace_back<ObjType>(obj_config);
@@ -66,7 +71,7 @@ class Simulation
                 _solver.addConstraint(&constraint, obj_config.projectorType());
             });
 
-            return &new_obj;
+            new_obj_ptr = &new_obj;
         }
         else
         {
@@ -75,8 +80,18 @@ class Simulation
 
             _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
 
-            return &new_obj;
+            new_obj_ptr = &new_obj;
         }
+
+        // assign global indices to the new object's nodes
+        // NOTE: this assumes thatobjects are not deleted during the course of the sim
+        std::vector<const SimObject::OrientedParticle*> obj_particles = new_obj_ptr->particles();
+        for (const auto& particle : obj_particles)
+        {
+            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()-1});
+        }
+
+        return new_obj_ptr;
     }
 
     SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
@@ -87,6 +102,13 @@ class Simulation
 
         // add new rod to graphics scene to be visualized
         _graphics_scene.addObject(&new_rod, rod_config.renderConfig());
+
+        // assign global indices to the rod's nodes
+        std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod.particles();
+        for (const auto& particle : obj_particles)
+        {
+            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()-1});
+        }
 
         return &new_rod;
     }
@@ -116,6 +138,9 @@ class Simulation
 
     XPBDObjects_Container _objects;
     XPBDObjectGroups_Container _object_groups;
+
+    /** Maps pointers to paritcles to global indices. Used primarily for computing the primary residual. */
+    std::unordered_map<const SimObject::OrientedParticle*, int> _particle_ptr_to_index;
 
     Solver::GaussSeidelSolver _solver;
 
