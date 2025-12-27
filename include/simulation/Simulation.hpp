@@ -88,8 +88,11 @@ class Simulation
         std::vector<const SimObject::OrientedParticle*> obj_particles = new_obj_ptr->particles();
         for (const auto& particle : obj_particles)
         {
-            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()-1});
+            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});
         }
+        // resize the vectors for storing the inertially predicted positions/orientations
+        _p_tilde.resize(_particle_ptr_to_index.size());
+        _R_tilde.resize(_particle_ptr_to_index.size());
 
         return new_obj_ptr;
     }
@@ -107,8 +110,11 @@ class Simulation
         std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod.particles();
         for (const auto& particle : obj_particles)
         {
-            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()-1});
+            _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});
         }
+        // resize the vectors for storing the inertially predicted positions/orientations
+        _p_tilde.resize(_particle_ptr_to_index.size());
+        _R_tilde.resize(_particle_ptr_to_index.size());
 
         return &new_rod;
     }
@@ -141,6 +147,10 @@ class Simulation
 
     /** Maps pointers to paritcles to global indices. Used primarily for computing the primary residual. */
     std::unordered_map<const SimObject::OrientedParticle*, int> _particle_ptr_to_index;
+
+    /** Store the intertially predicted positions + orientations. Useful for computing the primary residual. */
+    std::vector<Vec3r> _p_tilde;
+    std::vector<Mat3r> _R_tilde;
 
     Solver::GaussSeidelSolver _solver;
 

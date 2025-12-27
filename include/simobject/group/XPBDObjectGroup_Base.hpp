@@ -55,7 +55,6 @@ protected:
 protected:
     XPBDObjects_Container _objects;
     XPBDConstraints_Container _constraints;
-    XPBDConstraints_Container _internal_constraints;
 
 };
 

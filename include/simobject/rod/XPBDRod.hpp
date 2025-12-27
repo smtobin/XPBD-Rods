@@ -12,6 +12,7 @@
 #include "solver/BlockBandedSolver.hpp"
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/FixedJointConstraint.hpp"
+#include "constraint/AllConstraints.hpp"
 
 #include <memory>
 #include <set>
@@ -252,7 +253,6 @@ class XPBDRod : public XPBDObject_Base
     MatXr _delC_mat;
     VecXr _RHS_vec;
     VecXr _inertia_mat_inv;
-    VecXr _lambda;
     VecXr _dlam;
     VecXr _dx;
 

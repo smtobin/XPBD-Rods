@@ -7,10 +7,12 @@
 namespace Constraint
 {
 
-template <typename Constraint>
+template <typename Constraint_>
 class XPBDConstraintProjector : public XPBDConstraintProjector_Base
 {
 public:
+    using Constraint = Constraint_;
+
     XPBDConstraintProjector(Real dt, const Constraint* constraint)
         : XPBDConstraintProjector_Base(dt), _constraint(constraint)
     {
@@ -65,6 +67,10 @@ public:
         // std::cout << "New C: " << newC.transpose() << std::endl;
         // assert(0);
     }
+
+    const typename Constraint::ConstraintVecType& lambda() const { return _lambda; }
+    const Constraint* constraint() const { return _constraint; }
+
 private:
     typename Constraint::ConstraintVecType _lambda;
     const Constraint* _constraint;

@@ -257,6 +257,7 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     // solve and compute position update
     // _dlam = _LHS_mat.llt().solve(_RHS_vec);
     _dlam = llt.solve(_RHS_vec);
+    _internal_lambda = _dlam;
     // std::cout << "dlam: " << _dlam.transpose() << std::endl;
     // std::cout << "Number of NaNs in dlam: " << _dlam.array().isNaN().sum() << std::endl;
     // std::cout << "_dlam size: " << _dlam.size() << std::endl;

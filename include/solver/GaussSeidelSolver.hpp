@@ -45,6 +45,10 @@ public:
 
     void solve();
 
+    const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
+    const XPBDSeparateConstraintProjectors_Container& separateConstraintProjectors() const { return _separate_constraint_projectors; }
+    const Muller2020ConstraintProjectors_Container& muller2020ConstraintProjectors() const { return _muller2020_constraint_projectors; }
+
 private:
     Real _dt;
     int _num_iter;
