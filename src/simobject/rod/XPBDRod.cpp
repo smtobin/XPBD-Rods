@@ -130,6 +130,28 @@ void XPBDRod::internalConstraintSolve(Real dt)
     velocityUpdate(dt);
 }
 
+std::vector<ConstraintAndLambda> XPBDRod::internalConstraintsAndLambdas() const
+{
+    int lambda_index = 0;
+    std::vector<ConstraintAndLambda> constraint_and_lambdas;
+    constraint_and_lambdas.reserve(_num_constraints);
+    for (const auto& constraint_ptr : _ordered_constraints)
+    {
+        std::visit([&](const auto& constraint) {
+            XPBDConstraints_ConstPtrVariantType new_variant(constraint);
+            const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
+
+            constraint_and_lambdas.emplace_back(new_variant, lambda_ptr);
+        
+            using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
+            lambda_index += ConstraintType::ConstraintDim;
+        }, constraint_ptr);
+        
+    }
+
+    return constraint_and_lambdas;
+}
+
 Constraint::OneSidedFixedJointConstraint* XPBDRod::addOneSidedFixedJointConstraint(int node_index, const Vec3r& ref_position, const Mat3r& ref_orientation)
 {
     std::multimap<int, Constraint::OneSidedFixedJointConstraint>::iterator it = 

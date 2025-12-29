@@ -136,50 +136,55 @@ VecXr Simulation::primaryResidual() const
     //  - constraints in the solver (this includes non-internal constraints for object groups)
 
     // iterate through internal constraints in individual objects and object groups
-    /** TODO: Think about how to do this... constraints are never solved in the order that they are stored in. 
-     * 
-     * 
-     * 
-    */
+    auto process_internal_constraints = [&](const auto& obj) {
+        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj.internalConstraintsAndLambdas();
+        // iterate through the internal constraints
+        for (const auto& constraint_and_lambda : constraints_and_lambdas)
+        {
+            // the constraint is a std::variant type, so we must use std::visit
+            std::visit([&](const auto& constraint) {
+                using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
 
-    // _objects.for_each_element([&](const auto& obj) {
-    //     const XPBDConstraints_Container& internal_constraints = obj.internalConstraints();
-    //     const VecXr internal_lambda = obj.internalLambda();
-    // });
+                // iterate through the particles involved in the constraint
+                const typename ConstraintType::ParticlePtrArray& particles = constraint->particles();
+                for (const auto& particle : particles)
+                {
+                    // compute delC^T * lambda for the constraint gradient w.r.t. this particle
+                    typename ConstraintType::SingleParticleGradientMatType grad = constraint->singleParticleGradient(particle);
+                    Vec6r vec = grad.transpose() * Eigen::Map<const typename ConstraintType::ConstraintVecType>(constraint_and_lambda.lambda);
+
+                    // add its contribution to the global delC^T * lambda vector
+                    int index = _particle_ptr_to_index.at(particle);
+                    delCT_lambda( Eigen::seqN(6*index, 6) ) += vec;
+                }
+
+            }, constraint_and_lambda.constraint);
+        }
+    };
+    _objects.for_each_element(process_internal_constraints);
+    _object_groups.for_each_element(process_internal_constraints);
 
 
     // iterate through constraints in the solver
+    auto process_projector = [&](const auto& proj) {
+        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
+        using ConstraintType = typename ProjType::Constraint;
+        
+        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
+        for (const auto& particle : particles)
+        {
+            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
+            Vec6r vec = grad.transpose() * proj.lambda();
+            int index = _particle_ptr_to_index.at(particle);
+
+            delCT_lambda( Eigen::seqN(6*index, 6) ) += vec;
+        }
+    };
+
     const XPBDConstraintProjectors_Container& solver_projs = _solver.constraintProjectors();
     const XPBDSeparateConstraintProjectors_Container& solver_sep_projs = _solver.separateConstraintProjectors();
-    solver_projs.for_each_element([&](const auto& proj) {
-        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
-        using ConstraintType = typename ProjType::Constraint;
-        
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
-        {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
-            Vec6r vec = grad.transpose() * proj.lambda();
-            int index = _particle_ptr_to_index.at(particle);
-
-            delCT_lambda( Eigen::seqN(6*index, 6) ) += vec;
-        }
-    });
-
-    solver_sep_projs.for_each_element([&](const auto& proj) {
-        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
-        using ConstraintType = typename ProjType::Constraint;
-        
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
-        {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
-            Vec6r vec = grad.transpose() * proj.lambda();
-            int index = _particle_ptr_to_index.at(particle);
-
-            delCT_lambda( Eigen::seqN(6*index, 6) ) += vec;
-        }
-    });
+    solver_projs.for_each_element(process_projector);
+    solver_sep_projs.for_each_element(process_projector);
 
     // finally, compute the primary residual
     VecXr primary_residual = inertia_mat.asDiagonal() * x_min_x_tilde - delCT_lambda;
@@ -188,47 +193,59 @@ VecXr Simulation::primaryResidual() const
 
 VecXr Simulation::constraintResidual() const
 {
+    std::vector<Real> constraint_residual_vec;
+
     // right now, constraints are located in two places:
     //  - as internal constraints in individual objects and object groups (e.g. elastic constraints in rods)
     //  - constraints in the solver (this includes non-internal constraints for object groups)
 
     // iterate through internal constraints in individual objects and object groups
-    // _objects.for_each_element([&](const auto& obj) {
-    //     const XPBDConstraints_Container& internal_constraints = obj.internalConstraints();
-    //     internal_constraints.for_each_element([&](const auto& constraint) {
-            
-    //     });
-    // });
+    auto process_internal_constraints = [&](const auto& obj) {
+        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj.internalConstraintsAndLambdas();
+        // iterate through the internal constraints
+        for (const auto& constraint_and_lambda : constraints_and_lambdas)
+        {
+            // the constraint is a std::variant type, so we must use std::visit
+            std::visit([&](const auto& constraint) {
+                using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
+
+                typename ConstraintType::AlphaVecType alpha_tilde = constraint->alpha() / (_dt * _dt);
+                typename ConstraintType::ConstraintVecType residual = constraint->evaluate() + alpha_tilde.asDiagonal() * Eigen::Map<const typename ConstraintType::ConstraintVecType>(constraint_and_lambda.lambda);
+                
+                for (int i = 0; i < ConstraintType::ConstraintDim; i++)
+                {
+                    constraint_residual_vec.push_back(residual[i]);
+                }
+                
+
+            }, constraint_and_lambda.constraint);
+        }
+    };
+    _objects.for_each_element(process_internal_constraints);
+    _object_groups.for_each_element(process_internal_constraints);
 
 
     // iterate through constraints in the solver
+    auto process_projector = [&](const auto& proj) {
+        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
+        using ConstraintType = typename ProjType::Constraint;
+        
+        typename ConstraintType::AlphaVecType alpha_tilde = proj.constraint()->alpha() / (_dt * _dt);
+        typename ConstraintType::ConstraintVecType residual = proj.constraint()->evaluate() + alpha_tilde.asDiagonal() * proj.lambda();
+        
+        for (int i = 0; i < ConstraintType::ConstraintDim; i++)
+        {
+            constraint_residual_vec.push_back(residual[i]);
+        }
+    };
+
     const XPBDConstraintProjectors_Container& solver_projs = _solver.constraintProjectors();
     const XPBDSeparateConstraintProjectors_Container& solver_sep_projs = _solver.separateConstraintProjectors();
-    solver_projs.for_each_element([&](auto& proj) {
-        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
-        using ConstraintType = typename ProjType::Constraint;
-        
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
-        {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
-            Vec6r vec = grad.transpose() * proj.lambda();
-            int index = _particle_ptr_to_index.at(particle);
-        }
-    });
+    solver_projs.for_each_element(process_projector);
+    solver_sep_projs.for_each_element(process_projector);
 
-    solver_sep_projs.for_each_element([&](auto& proj) {
-        using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
-        using ConstraintType = typename ProjType::Constraint;
-        
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
-        {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
-            Vec6r vec = grad.transpose() * proj.lambda();
-            int index = _particle_ptr_to_index.at(particle);
-        }
-    });
+    VecXr constraint_residual = Eigen::Map<VecXr>(constraint_residual_vec.data(), constraint_residual_vec.size());
+    return constraint_residual;
 }
 
 void Simulation::notifyKeyPressed(const std::string& /*key*/)

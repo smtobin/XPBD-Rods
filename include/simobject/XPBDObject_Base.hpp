@@ -8,6 +8,15 @@
 namespace SimObject
 {
 
+struct ConstraintAndLambda
+{
+    XPBDConstraints_ConstPtrVariantType constraint;
+    const Real* lambda;
+    ConstraintAndLambda(const XPBDConstraints_ConstPtrVariantType& constraint_, const Real* lambda_)
+        : constraint(constraint_), lambda(lambda_)
+    {}
+};
+
 class XPBDObject_Base
 {
 
@@ -29,8 +38,9 @@ public:
     virtual void velocityUpdate(Real dt) = 0;
 
     /** Returns the "internal" constraints associated with this object. */
-    const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
-    const VecXr& internalLambda() const { return _internal_lambda; }
+    // const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
+    // const VecXr& internalLambda() const { return _internal_lambda; }
+    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const { return std::vector<ConstraintAndLambda>(); }
 
     virtual std::vector<const OrientedParticle*> particles() const = 0;
 

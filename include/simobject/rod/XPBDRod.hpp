@@ -104,6 +104,8 @@ class XPBDRod : public XPBDObject_Base
     /** Computes the new translational and angular velocities of each node. */
     virtual void velocityUpdate(Real dt) override;
 
+    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override;
+
     /** Adds an attachment constraint to the specified node.
      * A pointer to the attachment constraint is returned so that the reference position and orientation can be changed.
      */
