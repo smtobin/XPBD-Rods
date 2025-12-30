@@ -32,7 +32,7 @@ public:
 
 public:
     /** Constructor simply takes the output filename. */
-    explicit SimulationLogger(const std::string& output_filename);
+    explicit SimulationLogger(const std::string& output_filename, Real logging_interval);
 
     /** Adds a variable to be logged as output.
      * This will create a wrapper lambda around the pointer and call the other overload of addOutput.
@@ -54,7 +54,7 @@ public:
     void stopLogging();
 
     /** Writes the values of the output variables to file. */
-    void logToFile();
+    void logToFile(Real time);
     
 
 private:
@@ -63,6 +63,10 @@ private:
     std::vector<LoggedVariable> _logged_variables;  // stores all the variables to be logged
 
     bool _logging = false;  // whether or not we have started logging. Once we start logging, prevent any new outputs from being added
+
+    Real _logging_interval;
+    Real _last_logging_time;
+    
 
 };
 

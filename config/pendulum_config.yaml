@@ -3,8 +3,10 @@ time-step: 1e-3
 end-time: 100e-3
 
 logging: True
-log-residuals: True
 logging-output-folder: "../output/pendulum"
+logging-interval: 1e-2
+log-residuals: True
+
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -15,7 +17,7 @@ objects:
     name: "pendulum"
     num-bodies: 2
     initial-angle: 100
-    projector-type: "block"
+    projector-type: "separate"
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

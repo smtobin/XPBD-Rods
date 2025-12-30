@@ -58,7 +58,7 @@ void Simulation::setup()
         std::filesystem::path filepath = output_dir / filename;
 
         // create the logger
-        _logger = std::make_unique<SimulationLogger>(filepath.string());
+        _logger = std::make_unique<SimulationLogger>(filepath.string(), _config.loggingInterval());
 
         _logger->addOutput("time [s]", &_time);
 
@@ -335,7 +335,7 @@ void Simulation::_timeStep()
     // log quantities
     if (_logger)
     {
-        _logger->logToFile();
+        _logger->logToFile(_time);
     }
 
     _time += _dt;

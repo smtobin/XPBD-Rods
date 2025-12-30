@@ -7,7 +7,8 @@
 namespace Sim
 {
 
-SimulationLogger::SimulationLogger(const std::string& output_filename)
+SimulationLogger::SimulationLogger(const std::string& output_filename, Real logging_interval)
+    : _logging_interval(logging_interval), _last_logging_time(-1e10)
 {
     // create the output directory if it doesn't exist
     std::filesystem::create_directories(std::filesystem::path(output_filename).parent_path());
@@ -52,14 +53,19 @@ void SimulationLogger::stopLogging()
     _output.close();
 }
 
-void SimulationLogger::logToFile()
+void SimulationLogger::logToFile(Real time)
 {
-    // print the current values of the variables
-    for (const auto& logged_var : _logged_variables)
+    if (time - _last_logging_time >= _logging_interval)
     {
-        _output << logged_var.func() << " ";
+        // print the current values of the variables
+        for (const auto& logged_var : _logged_variables)
+        {
+            _output << logged_var.func() << " ";
+        }
+        _output << "\n";
+
+        _last_logging_time = time;
     }
-    _output << "\n";
 }
     
 } // namespace Sim
