@@ -190,10 +190,23 @@ NormedRevoluteJointConstraint::GradientMatType NormedRevoluteJointConstraint::gr
     const Vec3r joint_pos2 = _particles[1]->position + _particles[1]->orientation * _r2;
     const Vec3r dp = joint_pos2 - joint_pos1;
 
-    const Vec3r dCp_dp1 = -dp/dp.norm(); 
-    const Vec3r dCp_dp2 = dp/dp.norm();
-    const Vec3r dCp_dor1 = dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
-    const Vec3r dCp_dor2 = -dp.transpose()/dp.norm() * _particles[1]->orientation * Math::Skew3(_r2);
+    Vec3r dCp_dp1, dCp_dp2, dCp_dor1, dCp_dor2;
+    if (dp.norm() < CONSTRAINT_EPS)
+    {
+        dCp_dp1 = Vec3r(1,0,0);
+        dCp_dp2 = Vec3r(1,0,0);
+        dCp_dor1 = Vec3r(1,0,0);
+        dCp_dor2 = Vec3r(1,0,0);
+    }
+    else
+    {
+        dCp_dp1 = -dp/dp.norm(); 
+        dCp_dp2 = dp/dp.norm();
+        dCp_dor1 = dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
+        dCp_dor2 = -dp.transpose()/dp.norm() * _particles[1]->orientation * Math::Skew3(_r2);
+    }
+
+    
 
     // gradients of rotational constraints
     const Mat3r joint_or1 = _particles[0]->orientation * _or1;
@@ -203,10 +216,19 @@ NormedRevoluteJointConstraint::GradientMatType NormedRevoluteJointConstraint::gr
     const Vec3r dCor_dp1 = Vec3r::Zero();
     const Vec3r dCor_dp2 = Vec3r::Zero();
 
-    const Vec3r dCor_dor1 = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _particles[0]->orientation;
-    // const Mat3r dCor_dor2 = -Math::Skew3(joint_axis1) * _particles[1]->orientation * Math::Skew3(_or2.col(2));
-    const Vec3r dCor_dor2 = -dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_or2.col(2));
+    Vec3r dCor_dor1, dCor_dor2;
+    if (dor.norm() < CONSTRAINT_EPS)
+    {
+        dCor_dor1 = Vec3r(1,0,0);
+        dCor_dor2 = Vec3r(1,0,0);
+    }
+    else
+    {
+        dCor_dor1 = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _particles[0]->orientation;
+        dCor_dor2 = -dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_or2.col(2));
+    }
 
+    
     grad.block<1,3>(0,0) = dCp_dp1;
     grad.block<1,3>(0,3) = dCp_dor1;
     grad.block<1,3>(0,6) = dCp_dp2;
@@ -252,11 +274,29 @@ NormedRevoluteJointConstraint::SingleParticleGradientMatType NormedRevoluteJoint
 
     if (node_ptr == _particles[0])
     {
-        const Vec3r dCp_dp1 = -dp/dp.norm(); 
-        const Vec3r dCp_dor1 = dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
+        Vec3r dCp_dp1, dCp_dor1;
+        if (dp.norm() < CONSTRAINT_EPS)
+        {
+            dCp_dp1 = Vec3r(1,0,0);
+            dCp_dor1 = Vec3r(1,0,0);
+        }
+        else
+        {
+            dCp_dp1 = -dp/dp.norm(); 
+            dCp_dor1 = dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
+        }
+
         const Vec3r dCor_dp1 = Vec3r::Zero();
 
-        const Vec3r dCor_dor1 = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _particles[0]->orientation;
+        Vec3r dCor_dor1;
+        if (dor.norm() < CONSTRAINT_EPS)
+        {
+            dCor_dor1 = Vec3r(1,0,0);
+        }
+        else
+        {
+            dCor_dor1 = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _particles[0]->orientation;
+        }
 
 
         SingleParticleGradientMatType grad;
@@ -269,11 +309,30 @@ NormedRevoluteJointConstraint::SingleParticleGradientMatType NormedRevoluteJoint
     }
     else if (node_ptr == _particles[1])
     {
-        const Vec3r dCp_dp2 = dp/dp.norm();
-        const Vec3r dCp_dor2 = -dp.transpose()/dp.norm() * _particles[1]->orientation * Math::Skew3(_r2);
+        Vec3r dCp_dp2, dCp_dor2;
+        if (dp.norm() < CONSTRAINT_EPS)
+        {
+            dCp_dp2 = Vec3r(1,0,0);
+            dCp_dor2 = Vec3r(1,0,0);
+        }
+        else
+        {
+            dCp_dp2 = dp/dp.norm();
+            dCp_dor2 = -dp.transpose()/dp.norm() * _particles[1]->orientation * Math::Skew3(_r2);
+        }
+        
         const Vec3r dCor_dp2 = Vec3r::Zero();
 
-        const Vec3r dCor_dor2 = -dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_or2.col(2));
+        Vec3r dCor_dor2;
+        if (dor.norm() < CONSTRAINT_EPS)
+        {
+            dCor_dor2 = Vec3r(1,0,0);
+        }
+        else
+        {
+            dCor_dor2 = -dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_or2.col(2));
+        }
+        
 
 
         SingleParticleGradientMatType grad;
@@ -332,12 +391,6 @@ OneSidedRevoluteJointConstraint::GradientMatType OneSidedRevoluteJointConstraint
     const Mat3r dCor_dp = Mat3r::Zero();
 
     const Mat3r joint_or = _particles[0]->orientation * _or1;
-    // const Vec3r dtheta = Math::Minus_SO3(_base_or, joint_or);
-    // const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
-    // const Mat3r dCor_dor = -jac_inv * _or1.transpose();
-    // const Vec3r joint_axis1 = _particles[0]->orientation * _or1.col(2);
-    // const Vec3r joint_axis2 = _base_or.col(2);
-    // Mat3r dCor_dor = Math::Skew3(joint_axis2) * _particles[0]->orientation * Math::Skew3(_or1.col(2));
     const Mat3r dCor_dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * Math::Skew3(_base_or.col(2)) * _particles[0]->orientation;
 
 
@@ -396,10 +449,8 @@ NormedOneSidedRevoluteJointConstraint::ConstraintVecType NormedOneSidedRevoluteJ
     const Vec3r dp = _base_pos - joint_pos;
 
     const Mat3r joint_or = _particles[0]->orientation * _or1;
-    // const Vec3r dtheta = Math::Minus_SO3(_base_or, joint_or);
     const Vec3r joint_axis1 = _particles[0]->orientation * _or1.col(2);
     const Vec3r joint_axis2 = _base_or.col(2);
-    // const Vec3r a1_cross_a2 = joint_axis1.cross(joint_axis2);
     const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * _base_or.col(2);
 
     ConstraintVecType C_vec;
@@ -415,8 +466,18 @@ NormedOneSidedRevoluteJointConstraint::GradientMatType NormedOneSidedRevoluteJoi
     // gradients of positional constraints
     const Vec3r joint_pos = _particles[0]->position + _particles[0]->orientation * _r1;
     const Vec3r dp = _base_pos - joint_pos;
-    const Vec3r dCp_dp = -dp / dp.norm();
-    const Vec3r dCp_dor =  dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
+
+    Vec3r dCp_dp, dCp_dor;
+    if (dp.norm() < CONSTRAINT_EPS)
+    {
+        dCp_dp = Vec3r(1,0,0);
+        dCp_dor = Vec3r(1,0,0);
+    }
+    else
+    {
+        dCp_dp = -dp / dp.norm();
+        dCp_dor =  dp.transpose()/dp.norm() * _particles[0]->orientation * Math::Skew3(_r1);
+    }
 
     // gradients of rotational constraints
     const Mat3r joint_or = _particles[0]->orientation * _or1;
@@ -425,14 +486,17 @@ NormedOneSidedRevoluteJointConstraint::GradientMatType NormedOneSidedRevoluteJoi
     const Vec3r joint_axis2 = _base_or.col(2);
     const Vec3r a1_cross_a2 = joint_axis1.cross(joint_axis2);
     const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * _base_or.col(2);
-    // const Vec3r dCor_dor = a1_cross_a2.transpose()/a1_cross_a2.norm() * Math::Skew3(joint_axis2) * _particles[0]->orientation * Math::Skew3(_or1.col(2));
-    const Vec3r dCor_dor = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * Math::Skew3(_base_or.col(2)) * _particles[0]->orientation;
-    // const Vec3r dCor_dor = -a1_cross_a2.transpose() / a1_cross_a2.norm() * _particles[0]->orientation;
+    
+    Vec3r dCor_dor;
+    if (dor.norm() < CONSTRAINT_EPS)
+    {
+        dCor_dor = Vec3r(1,0,0);
+    }
+    else
+    {
+        dCor_dor = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * Math::Skew3(_base_or.col(2)) * _particles[0]->orientation;
+    }
 
-    std::cout << "a1 x a2: " << a1_cross_a2.transpose() << "\nn: " << a1_cross_a2.transpose() /a1_cross_a2.norm() <<
-     "\nR1^T * n: " << (_particles[0]->orientation.transpose() * a1_cross_a2 / a1_cross_a2.norm()).transpose() << " \ndCor_dor: " << dCor_dor.transpose() << std::endl;
-
-    std::cout << "norm((a1xa2)/||(a1xa2)|| * Skew(a2) * R1): " << (a1_cross_a2.transpose()/a1_cross_a2.norm() * Math::Skew3(joint_axis2) * _particles[0]->orientation).norm()  << std::endl;
     grad.block<1,3>(0,0) = dCp_dp;
     grad.block<1,3>(0,3) = dCp_dor;
     grad.block<1,3>(1,0) = Vec3r::Zero();

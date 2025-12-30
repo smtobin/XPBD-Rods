@@ -159,3 +159,4 @@ using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObje
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity
+#define CONSTRAINT_EPS 1e-13    // epsilon for constraints - i.e. any number less than this is treated as 0
