@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 namespace Sim
 {
@@ -42,20 +43,50 @@ void Simulation::setup()
         _addObjectFromConfig(obj_config); 
     });
 
-    // add constraints from object groups to the solver
-    // _object_groups.for_each_element([&](const auto& obj) {
-    //     const XPBDConstraints_Container& constraints = obj.constraints();
-    //     constraints.for_each_element([&](const auto& constraint) {
-    //         // using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
-    //         _solver.addConstraint(&constraint);
-    //     });
-    // });
+    // set up the logger (when applicable)
+    if (_config.logging())
+    {
+        // get datetime string
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d_%H:%M:%S") << ".txt";
+        std::string filename = ss.str();
+
+        std::filesystem::path output_dir(_config.loggingOutputDir());
+        std::filesystem::path filepath = output_dir / filename;
+
+        // create the logger
+        _logger = std::make_unique<SimulationLogger>(filepath.string());
+
+        _logger->addOutput("time [s]", &_time);
+
+        // add functions to compute the residual (when applicable)
+        if (_config.logResiduals())
+        {
+            // for the primary residual
+            _logger->addOutput("||primary_residual||", [&]() {
+                return this->primaryResidual().norm();
+            });
+
+            // for the constraint residual
+            _logger->addOutput("||constraint_residual||", [&]() {
+                return this->constraintResidual().norm();
+            });
+        }
+    }
 
     
 }
 
 void Simulation::update()
 {
+    // we assume that other derived Simulation classes have already added their logged quantities
+    // so we can start logging now (which will print the header and prevent us from adding new logged quantities)
+    if (_logger)
+        _logger->startLogging();
+
     auto wall_time_start = std::chrono::steady_clock::now();
     auto last_redraw = std::chrono::steady_clock::now();
 
@@ -88,6 +119,11 @@ void Simulation::update()
 
             last_redraw = std::chrono::steady_clock::now();
         }
+    }
+
+    if (_logger)
+    {
+        _logger->stopLogging();
     }
 
     auto wall_time_end = std::chrono::steady_clock::now();
@@ -291,11 +327,16 @@ void Simulation::_timeStep()
     _objects.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
 
-    // TODO: solve constraints here
     _solver.solve();
 
     _objects.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
+
+    // log quantities
+    if (_logger)
+    {
+        _logger->logToFile();
+    }
 
     _time += _dt;
 }

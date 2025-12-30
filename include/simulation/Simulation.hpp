@@ -2,6 +2,8 @@
 
 #include "common/common.hpp"
 
+#include "simulation/SimulationLogger.hpp"
+
 #include "simobject/rod/XPBDRod.hpp"
 #include "graphics/RodGraphicsObject.hpp"
 #include "graphics/GraphicsScene.hpp"
@@ -155,6 +157,9 @@ class Simulation
     Solver::GaussSeidelSolver _solver;
 
     std::deque<std::function<void()>> _callback_queue;
+
+    /** Responsible for logging various simulation quantities. */
+    std::unique_ptr<SimulationLogger> _logger;
 
     // graphics
     Graphics::GraphicsScene _graphics_scene;

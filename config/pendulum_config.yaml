@@ -1,6 +1,10 @@
 name: "Pendulum Sim"
 time-step: 1e-3
-end-time: 100000e-3
+end-time: 100e-3
+
+logging: True
+log-residuals: True
+logging-output-folder: "../output/pendulum"
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -9,7 +13,7 @@ objects:
   - 
     type: "Pendulum"
     name: "pendulum"
-    num-bodies: 10
+    num-bodies: 2
     initial-angle: 100
     projector-type: "block"
     render-type: "PBR"
