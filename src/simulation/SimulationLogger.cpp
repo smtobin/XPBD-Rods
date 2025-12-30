@@ -55,7 +55,7 @@ void SimulationLogger::stopLogging()
 
 void SimulationLogger::logToFile(Real time)
 {
-    if (time - _last_logging_time >= _logging_interval)
+    if (time - _last_logging_time + 1e-12 >= _logging_interval)
     {
         // print the current values of the variables
         for (const auto& logged_var : _logged_variables)
