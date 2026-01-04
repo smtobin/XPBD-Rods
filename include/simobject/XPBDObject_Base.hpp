@@ -24,6 +24,8 @@ public:
     XPBDObject_Base(const Config::XPBDObjectConfig& config)
         : _name(config.name())
     {}
+    
+    const std::string& name() const { return _name; }
 
     /** Performs necessary setup to prepare the object for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup() = 0;

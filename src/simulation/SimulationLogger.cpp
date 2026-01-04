@@ -34,6 +34,22 @@ void SimulationLogger::addOutput(const std::string& var_name, std::function<Real
     _logged_variables.emplace_back(var_name, func);
 }
 
+void SimulationLogger::addOutput(const std::string& var_name, const SimObject::OrientedParticle* particle_ptr)
+{
+    addOutput(var_name + "_x", [particle_ptr]() {
+        return particle_ptr->position[0];
+    });
+
+    addOutput(var_name + "_y", [particle_ptr]() {
+        return particle_ptr->position[1];
+    });
+
+    addOutput(var_name + "_z", [particle_ptr]() {
+        return particle_ptr->position[2];
+    });
+
+}
+
 void SimulationLogger::startLogging()
 {
     assert(!_logging);  // make sure we are not already logging

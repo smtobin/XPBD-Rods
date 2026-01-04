@@ -96,6 +96,16 @@ class Simulation
         _p_tilde.resize(_particle_ptr_to_index.size());
         _R_tilde.resize(_particle_ptr_to_index.size());
 
+        // if the particles of this object should be logged, create logging outputs for them
+        if (obj_config.logParticles() && _logger)
+        {
+            for (unsigned i = 0; i < obj_particles.size(); i++)
+            {
+                const std::string var_name = new_obj_ptr->name() + "_particle" + std::to_string(i);
+                _logger->addOutput(var_name, obj_particles[i]);
+            }
+        }
+
         return new_obj_ptr;
     }
 
@@ -117,6 +127,15 @@ class Simulation
         // resize the vectors for storing the inertially predicted positions/orientations
         _p_tilde.resize(_particle_ptr_to_index.size());
         _R_tilde.resize(_particle_ptr_to_index.size());
+
+        // if the particles of this object should be logged, only log the first and last particle (rods may have many particles)
+        if (rod_config.logParticles() && _logger)
+        {
+            const std::string var_name_0 = new_rod.name() + "_particle0";
+            const std::string var_name_end = new_rod.name() + "_particle" + std::to_string(obj_particles.size()-1);
+            _logger->addOutput(var_name_0, obj_particles[0]);
+            _logger->addOutput(var_name_end, obj_particles.back());   
+        }
 
         return &new_rod;
     }

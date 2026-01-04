@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "simobject/OrientedParticle.hpp"
 
 #include <string>
 #include <fstream>
@@ -46,6 +47,12 @@ public:
      * @param func - a lambda for evaluating the variable. This allows computed quantities (e.g. total strain energy) to be logged.
      */
     void addOutput(const std::string& var_name, std::function<Real()> func);
+
+    /** Adds an oriented particle to be logged as output.
+     * @param var_name - the name of the variable
+     * @param particle_ptr - a pointer to the oriented particle
+     */
+    void addOutput(const std::string& var_name, const SimObject::OrientedParticle* particle_ptr);
 
     /** Starts logging the output variables. Writes the header to file. */
     void startLogging();

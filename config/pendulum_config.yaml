@@ -24,3 +24,4 @@ objects:
     metallic: 0.2
     roughness: 0.5
     color: [1.0, 1.0, 1.0]
+    log-particles: True

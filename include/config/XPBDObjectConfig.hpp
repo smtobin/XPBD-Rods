@@ -40,6 +40,8 @@ public:
         _extractParameter("initial-angular-velocity", node, _initial_angular_velocity);
 
         _extractParameterWithOptions("projector-type", node, _projector_type, PROJECTOR_TYPE_MAP());
+
+        _extractParameter("log-particles", node, _log_particles);
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
@@ -52,6 +54,7 @@ public:
         _initial_angular_velocity.value = initial_angular_velocity;
 
         _projector_type.value = ProjectorType::BLOCK;
+        _log_particles.value = false;
     }
 
     const Vec3r& initialPosition() const { return _initial_position.value; }
@@ -60,6 +63,8 @@ public:
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 
     ProjectorType projectorType() const { return _projector_type.value; }
+
+    bool logParticles() const { return _log_particles.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
@@ -70,6 +75,8 @@ protected:
     ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
 
     ConfigParameter<ProjectorType> _projector_type = ConfigParameter<ProjectorType>(ProjectorType::BLOCK);
+
+    ConfigParameter<bool> _log_particles = ConfigParameter<bool>(false);
 
     ObjectRenderConfig _render_config;
 };

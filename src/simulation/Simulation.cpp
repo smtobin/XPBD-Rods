@@ -37,12 +37,6 @@ void Simulation::setup()
     // setup the graphics scene
     _graphics_scene.setup(this);
 
-    // create rod(s)
-    const XPBDObjectConfigs_Container& obj_configs = _config.objectConfigs();
-    obj_configs.for_each_element([&](const auto& obj_config){
-        _addObjectFromConfig(obj_config); 
-    });
-
     // set up the logger (when applicable)
     if (_config.logging())
     {
@@ -76,6 +70,12 @@ void Simulation::setup()
             });
         }
     }
+
+    // create rod(s)
+    const XPBDObjectConfigs_Container& obj_configs = _config.objectConfigs();
+    obj_configs.for_each_element([&](const auto& obj_config){
+        _addObjectFromConfig(obj_config); 
+    });
 
     
 }
