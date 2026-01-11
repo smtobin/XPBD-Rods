@@ -1,10 +1,10 @@
 name: "Pendulum Sim"
-time-step: 1e-3
-end-time: 100
+time-step: 1e-4
+end-time: 5
 
 logging: True
-logging-output-folder: "../output/pendulum"
-logging-interval: 1e-1
+logging-output-folder: "../output/cantilever_rod"
+logging-interval: 1e-3
 log-residuals: True
 
 
@@ -13,15 +13,23 @@ create-skybox: True
 
 objects:
   - 
-    type: "Pendulum"
-    name: "pendulum"
-    num-bodies: 3
-    initial-angle: 80
-    projector-type: "block"
+    type: "Rod"
+    name: "rod"
+    initial-base-position: [0, 0.0, 0.0]
+    initial-base-rotation: [0, 0, 0]
+    nodes: 100
+    diameter: 0.25
+    length: 10
+    E: 200e9
+    nu: 0.3
+    density: 7850
+    base-fixed: True
+    tip-fixed: False
+    log-particles: True
+
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
     metallic: 0.2
     roughness: 0.5
     color: [1.0, 1.0, 1.0]
-    log-particles: False

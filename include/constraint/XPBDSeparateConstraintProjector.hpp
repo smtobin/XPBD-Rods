@@ -34,18 +34,18 @@ public:
                 Vec6r(1/particle->mass, 1/particle->mass, 1/particle->mass, 1/particle->Ib[0], 1/particle->Ib[1], 1/particle->Ib[2]);
         }
 
-        std::cout << "\n" << std::endl;
+        // std::cout << "\n" << std::endl;
         for (int i = 0; i < Constraint::ConstraintDim; i++)
         {
             typename Constraint::ConstraintVecType C = _constraint->evaluate();
-            std::cout << "========\nC: " << C.transpose() << std::endl;
+            // std::cout << "========\nC: " << C.transpose() << std::endl;
             typename Constraint::GradientMatType delC = _constraint->gradient(true);
             // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
             Real RHS = -C[i] - _constraint->alpha()[i] * _lambda[i] / (_dt*_dt);
             Real LHS = delC.row(i) * inertia_inverse.asDiagonal() * delC.row(i).transpose() + _constraint->alpha()[i] / (_dt * _dt);
 
-            std::cout << "RHS: " << RHS << "  LHS: " << LHS << std::endl;
+            // std::cout << "RHS: " << RHS << "  LHS: " << LHS << std::endl;
 
             Real dlam = RHS/LHS;
             _lambda[i] += dlam;
@@ -56,13 +56,13 @@ public:
                 SimObject::OrientedParticle* particle_j = _constraint->particles()[j];
                 // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
                 typename Constraint::SingleParticleGradientMatType grad_j = _constraint->singleParticleGradient(particle_j, true);
-                std::cout << "grad_j.row(i).transpose(): " << grad_j.row(i).transpose() << std::endl;
+                // std::cout << "grad_j.row(i).transpose(): " << grad_j.row(i).transpose() << std::endl;
                 const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * grad_j.row(i).transpose() * dlam;
-                std::cout << "Position update: " << position_update.transpose() << std::endl;
+                // std::cout << "Position update: " << position_update.transpose() << std::endl;
                 particle_j->positionUpdate(position_update);
             }
-            typename Constraint::ConstraintVecType newC = _constraint->evaluate();
-            std::cout << "New C: " << newC.transpose() << std::endl;
+            // typename Constraint::ConstraintVecType newC = _constraint->evaluate();
+            // std::cout << "New C: " << newC.transpose() << std::endl;
         }
 
         

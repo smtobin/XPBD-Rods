@@ -54,7 +54,7 @@ void Simulation::setup()
         // create the logger
         _logger = std::make_unique<SimulationLogger>(filepath.string(), _config.loggingInterval());
 
-        _logger->addOutput("time [s]", &_time);
+        _logger->addOutput("time", &_time);
 
         // add functions to compute the residual (when applicable)
         if (_config.logResiduals())
@@ -102,10 +102,10 @@ void Simulation::update()
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
         
         // if the simulation is ahead of the current elapsed wall time, stall
-        if (_time > wall_time_elapsed_s)
-        {
-            continue;
-        }
+        // if (_time > wall_time_elapsed_s)
+        // {
+        //     continue;
+        // }
 
         _timeStep();
 
