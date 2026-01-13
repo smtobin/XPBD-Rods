@@ -10,6 +10,7 @@ set(CONSTRAINT_HEADERS
     ${CONSTRAINT_INCLUDE_DIR}/FixedJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RevoluteJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/SphericalJointConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/PrismaticJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/PointLineConstraint.hpp
 )
 
@@ -18,6 +19,7 @@ set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/FixedJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/RevoluteJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/SphericalJointConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/PrismaticJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/PointLineConstraint.cpp
 )
 
