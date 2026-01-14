@@ -59,10 +59,21 @@ namespace Constraint
 {
     class OneSidedFixedJointConstraint;
     class FixedJointConstraint;
+
     class OneSidedRevoluteJointConstraint;
     class NormedOneSidedRevoluteJointConstraint;
     class RevoluteJointConstraint;
     class NormedRevoluteJointConstraint;
+
+    class SphericalJointConstraint;
+    class OneSidedSphericalJointConstraint;
+    class NormedSphericalJointConstraint;
+    class NormedOneSidedSphericalJointConstraint;
+
+    class PrismaticJointConstraint;
+    class OneSidedPrismaticJointConstraint;
+    class NormedPrismaticJointConstraint;
+    class NormedOneSidedPrismaticJointConstraint;
 
     class RodElasticConstraint;
     class PointLineConstraint;
@@ -74,7 +85,15 @@ using XPBDRigidBodyConstraints_TypeList = TypeList<
     Constraint::OneSidedRevoluteJointConstraint,
     Constraint::NormedOneSidedRevoluteJointConstraint,
     Constraint::RevoluteJointConstraint,
-    Constraint::NormedRevoluteJointConstraint
+    Constraint::NormedRevoluteJointConstraint,
+    Constraint::SphericalJointConstraint,
+    Constraint::OneSidedSphericalJointConstraint,
+    Constraint::NormedSphericalJointConstraint,
+    Constraint::NormedOneSidedSphericalJointConstraint,
+    Constraint::PrismaticJointConstraint,
+    Constraint::OneSidedPrismaticJointConstraint,
+    Constraint::NormedPrismaticJointConstraint,
+    Constraint::NormedOneSidedPrismaticJointConstraint
 >;
 using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticConstraint,

@@ -192,7 +192,7 @@ NormedPrismaticJointConstraint::GradientMatType NormedPrismaticJointConstraint::
         dCp_dp2 = n3.transpose()*joint_or1.transpose();
 
         dCp_dor1 = n3.transpose() * (joint_or1.transpose() * Math::Skew3(dp_full) * _particles[0]->orientation + _or1.transpose() * Math::Skew3(_r1));
-        dCp_dor2 = -n3.transpose() * _or2.transpose() * Math::Skew3(_r2);
+        dCp_dor2 = -n3.transpose() * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_r2);
     }
 
     // gradients of rotational constraints
@@ -306,7 +306,7 @@ NormedPrismaticJointConstraint::SingleParticleGradientMatType NormedPrismaticJoi
             const Vec2r n = joint_dp/joint_dp.norm();
             const Vec3r n3(n[0], n[1], 0);
             dCp_dp2 = n3.transpose()*joint_or1.transpose();
-            dCp_dor2 = -n3.transpose() * _or2.transpose() * Math::Skew3(_r2);
+            dCp_dor2 = -n3.transpose() * joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_r2);
         }
 
         // gradient of rotational constraints w.r.t. body 2 DOF
@@ -466,7 +466,7 @@ NormedOneSidedPrismaticJointConstraint::GradientMatType NormedOneSidedPrismaticJ
         const Vec2r n = joint_dp/joint_dp.norm();
         const Vec3r n3(n[0], n[1], 0);
         dCp_dp1 = n3.transpose()*_base_or.transpose();
-        dCp_dor1 = -n3.transpose() * _or1.transpose() * Math::Skew3(_r1);
+        dCp_dor1 = -n3.transpose() * _base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
     }
 
     // gradients of rotational constraints

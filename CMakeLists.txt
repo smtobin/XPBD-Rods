@@ -80,6 +80,9 @@ target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
 add_executable(TestGradient test/test_gradient.cpp)
 target_link_libraries(TestGradient Eigen3::Eigen Constraint)
 
+add_executable(TestConstraintGradients test/test_constraint_gradients.cpp)
+target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint)
+
 
 
 # vtk_module_autoinit is needed
