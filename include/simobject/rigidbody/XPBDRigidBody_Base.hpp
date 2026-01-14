@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
 #include "config/XPBDRigidBodyConfig.hpp"
 #include "simobject/XPBDObject_Base.hpp"
 #include "simobject/OrientedParticle.hpp"

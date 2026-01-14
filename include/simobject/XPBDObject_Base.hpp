@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/constraint_containers.hpp"
 #include "config/XPBDObjectConfig.hpp"
 #include "simobject/OrientedParticle.hpp"
-#include "constraint/AllConstraints.hpp"
 
 namespace SimObject
 {

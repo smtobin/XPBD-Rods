@@ -240,20 +240,3 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         return sizeT + sizeTs;
     }
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-// Construct VariadicVectorContainer from TypeList
-//////////////////////////////////////////////////////////////////////////
-
-template<typename List>
-struct VariadicVectorContainerFromTypeList;
-
-template<typename... Types>
-struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
-{
-    using type = VariadicVectorContainer<Types...>;
-    using unique_ptr_type = VariadicVectorContainer<std::unique_ptr<Types>...>;
-    using ptr_type = VariadicVectorContainer<Types*...>;
-    using const_ptr_type = VariadicVectorContainer<const Types*...>;
-};
