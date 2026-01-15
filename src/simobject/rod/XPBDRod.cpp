@@ -9,6 +9,10 @@
 namespace SimObject
 {
 
+XPBDRod::~XPBDRod() = default;
+XPBDRod::XPBDRod(XPBDRod&&) noexcept = default;
+XPBDRod& XPBDRod::operator=(XPBDRod&&) noexcept = default;
+
 std::vector<const OrientedParticle*> XPBDRod::particles() const
 {
     std::vector<const OrientedParticle*> particles_vec;
@@ -54,7 +58,7 @@ void XPBDRod::setup()
 
     // reserve space for constraints and constraint gradients
     _RHS_vec.conservativeResize(6*_num_constraints);
-    _internal_lambda.conservativeResize(6*_num_constraints);
+    _internalLambda().conservativeResize(6*_num_constraints);
     _dlam.conservativeResize(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
 
@@ -64,7 +68,7 @@ void XPBDRod::setup()
 
 void XPBDRod::internalConstraintSolve(Real dt)
 {
-    _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
+    _internalLambda() = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
     // _prev_nodes = _nodes;
     // inertialUpdate(dt);
 
@@ -87,7 +91,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
             Vec6r C_i = std::visit([](const auto& constraint_ptr) -> Vec6r { return constraint_ptr->evaluate(); }, _ordered_constraints[i]);
             Vec6r alpha = std::visit([](const auto& constraint_ptr) -> Vec6r { return constraint_ptr->alpha(); }, _ordered_constraints[i]);
 
-            _RHS_vec( Eigen::seqN(6*i, 6) ) = -C_i.array() - alpha.array() * _internal_lambda( Eigen::seqN(6*i, 6) ).array() / (dt*dt);
+            _RHS_vec( Eigen::seqN(6*i, 6) ) = -C_i.array() - alpha.array() * _internalLambda()( Eigen::seqN(6*i, 6) ).array() / (dt*dt);
         }
 
         // compute system matrix diagonals
@@ -123,7 +127,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
         // apply position updates
         _positionUpdate(); 
 
-        _internal_lambda += _dlam;
+        _internalLambda() += _dlam;
     }
 
 
@@ -139,7 +143,7 @@ std::vector<ConstraintAndLambda> XPBDRod::internalConstraintsAndLambdas() const
     {
         std::visit([&](const auto& constraint) {
             XPBDConstraints_ConstPtrVariantType new_variant(constraint);
-            const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
+            const Real* lambda_ptr = _internalLambda().data() + lambda_index;
 
             constraint_and_lambdas.emplace_back(new_variant, lambda_ptr);
         
@@ -161,7 +165,7 @@ Constraint::OneSidedFixedJointConstraint* XPBDRod::addOneSidedFixedJointConstrai
     _num_constraints++;
 
     _RHS_vec.conservativeResize(6*_num_constraints);
-    _internal_lambda.conservativeResize(6*_num_constraints);
+    _internalLambda().conservativeResize(6*_num_constraints);
     _dlam.conservativeResize(6*_num_constraints);
 
     // order constraints appropriately
@@ -222,7 +226,7 @@ bool XPBDRod::removeOneSidedFixedJointConstraint(int node_index, const Constrain
         _solver.setBandwidth(num_diagonals-1);
 
         _RHS_vec.conservativeResize(6*_num_constraints);
-        _internal_lambda.conservativeResize(6*_num_constraints);
+        _internalLambda().conservativeResize(6*_num_constraints);
         _dlam.conservativeResize(6*_num_constraints);
     }
 

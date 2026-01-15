@@ -1,9 +1,11 @@
 #pragma once
 
 #include "common/common.hpp"
-#include "common/constraint_containers.hpp"
+// #include "common/constraint_containers.hpp"
 #include "config/XPBDObjectConfig.hpp"
 #include "simobject/OrientedParticle.hpp"
+
+#include <memory>
 
 namespace SimObject
 {
@@ -21,9 +23,17 @@ class XPBDObject_Base
 {
 
 public:
-    XPBDObject_Base(const Config::XPBDObjectConfig& config)
-        : _name(config.name())
-    {}
+    XPBDObject_Base(const Config::XPBDObjectConfig& config);
+
+    virtual ~XPBDObject_Base();
+
+    // Move operations
+    XPBDObject_Base(XPBDObject_Base&&) noexcept;
+    XPBDObject_Base& operator=(XPBDObject_Base&&) noexcept;
+    
+    // Delete copy operations
+    XPBDObject_Base(const XPBDObject_Base&) = delete;
+    XPBDObject_Base& operator=(const XPBDObject_Base&) = delete;
     
     const std::string& name() const { return _name; }
 
@@ -41,7 +51,7 @@ public:
 
     /** Returns the "internal" constraints associated with this object. */
     // const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
-    // const VecXr& internalLambda() const { return _internal_lambda; }
+    // const VecXr& internalLambda() const { return _internalLambda(); }
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const { return std::vector<ConstraintAndLambda>(); }
 
     virtual std::vector<const OrientedParticle*> particles() const = 0;
@@ -53,12 +63,31 @@ protected:
      * The internal constraints are constraints that are intentionally hidden from the Gauss-Seidel solver so that they can be solved for in a special way.
      * E.g. the rod elastic constraints - these should not be solved 1-at-a-time but all together for improved convergence
      */
-    XPBDConstraints_Container _internal_constraints;
-
+    XPBDConstraints_Container& _internalConstraints();
+    const XPBDConstraints_Container& _internalConstraints() const;
+    
     /** Stores the Lagrange multipliers associated with the internal constraints for this object.
      * It is up to the derived classes to allocated an appropriate amount of space and update this during a solve.
      */
-    VecXr _internal_lambda;
+    VecXr& _internalLambda();
+    const VecXr& _internalLambda() const;
+
+private:
+    /** Use the PIMPL idiom to reduce build time. The internal constraints data structure is pretty heavy template, so try
+     * and move it to the .cpp file so that every file that include XPBDObject_Base doesn't have to build the template.
+     * 
+     * The Impl struct has the following members:
+     * - XPBDConstraints_Container _internal_constraints;
+     * - VecXr _internalLambda();
+     */
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
+
+    
+    // XPBDConstraints_Container _internal_constraints;
+
+    
+    // VecXr _internalLambda();
 
 };
 

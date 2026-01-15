@@ -13,9 +13,13 @@ set(SIMOBJECT_HEADERS
 
 set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/rod/XPBDRod.cpp
+    ${SIMOBJECT_SRC_DIR}/XPBDObject_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDObjectGroup_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDConcentricTubeRobot.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDPendulum.cpp
+    ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidBody_Base.cpp
+    ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidBox.cpp
+    ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidSphere.cpp
 )
 
 target_sources(SimObject

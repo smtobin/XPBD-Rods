@@ -11,21 +11,17 @@ class XPBDRigidBody_Base : public XPBDObject_Base
 {
 
 public:
-    XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config)
-        : XPBDObject_Base(config), _com()
-    {
-        _com.position = config.initialPosition();
-        _com.orientation = Math::RotMatFromXYZEulerAngles(config.initialRotation());
-        _com.lin_velocity = config.initialVelocity();
-        _com.ang_velocity = config.initialAngularVelocity();
+    XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config);
 
-        _prev_position = _com.position;
-        _prev_orientation = _com.orientation;
+    virtual ~XPBDRigidBody_Base();
 
-        // Derived classes are responsible for setting the mass and rotational inertia
-        _com.mass = -1;
-        _com.Ib = Vec3r::Zero();
-    }
+    // Move operations
+    XPBDRigidBody_Base(XPBDRigidBody_Base&&) noexcept;
+    XPBDRigidBody_Base& operator=(XPBDRigidBody_Base&&) noexcept;
+    
+    // Delete copy operations
+    XPBDRigidBody_Base(const XPBDRigidBody_Base&) = delete;
+    XPBDRigidBody_Base& operator=(const XPBDRigidBody_Base&) = delete;
 
     const OrientedParticle& com() const { return _com; }
     OrientedParticle& com() { return _com; }

@@ -2,11 +2,8 @@
 #define __SIMULATION_CONFIG_HPP
 
 #include "config/Config.hpp"
-#include "config/RodConfig.hpp"
-#include "config/XPBDRigidSphereConfig.hpp"
-#include "config/XPBDRigidBoxConfig.hpp"
-#include "config/XPBDPendulumConfig.hpp"
-#include "config/XPBDConcentricTubeRobotConfig.hpp"
+
+#include "common/config_containers.hpp"
 
 namespace Config
 {
