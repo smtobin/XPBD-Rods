@@ -1,7 +1,5 @@
 #include "simobject/rigidbody/XPBDRigidBody_Base.hpp"
 
-#include "common/constraint_containers.hpp"
-
 namespace SimObject
 {
 XPBDRigidBody_Base::XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config)

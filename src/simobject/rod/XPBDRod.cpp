@@ -6,6 +6,8 @@
 #include <iostream>
 #include <variant>
 
+#include <Eigen/Cholesky>
+
 namespace SimObject
 {
 

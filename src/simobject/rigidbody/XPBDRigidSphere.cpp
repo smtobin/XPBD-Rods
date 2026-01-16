@@ -1,5 +1,4 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
-#include "common/constraint_containers.hpp"
 
 namespace SimObject
 {

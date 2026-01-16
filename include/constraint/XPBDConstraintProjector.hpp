@@ -4,6 +4,8 @@
 #include "constraint/XPBDConstraintProjector_Base.hpp"
 #include "simobject/OrientedParticle.hpp"
 
+#include <Eigen/Cholesky>
+
 namespace Constraint
 {
 

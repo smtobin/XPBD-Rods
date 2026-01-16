@@ -6,6 +6,8 @@
 
 #include "constraint/PointLineConstraint.hpp"
 
+#include <Eigen/Cholesky>
+
 namespace SimObject
 {
 
@@ -252,14 +254,6 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     // std::cout << "Number of NaNs in LHS mat: " << _LHS_mat.array().isNaN().sum() << std::endl;
 
     Eigen::LLT<Eigen::MatrixXd> llt(_LHS_mat);
-    if (llt.info() != Eigen::Success)
-    {
-        std::cout << "LHS mat: " << _LHS_mat << std::endl;
-        std::cout << "Decomposition failed!" << std::endl;
-        // Check the matrix properties
-        std::cout << "Matrix determinant: " << _LHS_mat.determinant() << std::endl;
-        std::cout << "Min eigenvalue: " << _LHS_mat.eigenvalues().real().minCoeff() << std::endl;
-    }
     // solve and compute position update
     // _dlam = _LHS_mat.llt().solve(_RHS_vec);
     _dlam = llt.solve(_RHS_vec);

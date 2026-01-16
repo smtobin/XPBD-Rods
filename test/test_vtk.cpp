@@ -41,6 +41,10 @@
 #include <vtkTexture.h>
 #include <vtkPointData.h>
 
+#include <Eigen/Cholesky>
+
+
+
 void createRodPolyData(const SimObject::XPBDRod* rod, vtkPolyData* rod_poly_data)
 {
     const std::vector<SimObject::OrientedParticle>& nodes = rod->nodes();

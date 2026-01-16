@@ -1,5 +1,7 @@
 #include "constraint/RevoluteJointConstraint.hpp"
 
+#include <Eigen/Geometry>
+
 namespace Constraint
 {
 

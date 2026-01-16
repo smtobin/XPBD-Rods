@@ -12,6 +12,7 @@ set(SIMOBJECT_HEADERS
 )
 
 set(SIMOBJECT_SOURCES
+    ${SIMOBJECT_SRC_DIR}/OrientedParticle.cpp
     ${SIMOBJECT_SRC_DIR}/rod/XPBDRod.cpp
     ${SIMOBJECT_SRC_DIR}/XPBDObject_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDObjectGroup_Base.cpp

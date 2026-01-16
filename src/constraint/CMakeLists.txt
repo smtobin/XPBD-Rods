@@ -21,6 +21,7 @@ set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/SphericalJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/PrismaticJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/PointLineConstraint.cpp
+    ../../src/common/ExplicitTemplateInstantiations.cpp
 )
 
 target_sources(Constraint
