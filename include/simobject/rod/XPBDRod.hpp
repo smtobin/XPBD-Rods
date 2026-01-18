@@ -82,16 +82,6 @@ class XPBDRod : public XPBDObject_Base
         }
     }
 
-    ~XPBDRod() override;
-    
-    // Explicitly declare move operations
-    XPBDRod(XPBDRod&&) noexcept;
-    XPBDRod& operator=(XPBDRod&&) noexcept;
-    
-    // Delete copy operations (can't copy unique_ptr)
-    XPBDRod(const XPBDRod&) = delete;
-    XPBDRod& operator=(const XPBDRod&) = delete;
-
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 

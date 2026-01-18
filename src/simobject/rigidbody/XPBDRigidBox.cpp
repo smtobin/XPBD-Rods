@@ -15,8 +15,4 @@ XPBDRigidBox::XPBDRigidBox(const Config::XPBDRigidBoxConfig& config)
     _com.Ib = Vec3r(Ix, Iy, Iz);
 }
 
-XPBDRigidBox::~XPBDRigidBox() = default;
-XPBDRigidBox::XPBDRigidBox(XPBDRigidBox&&) noexcept = default;
-XPBDRigidBox& XPBDRigidBox::operator=(XPBDRigidBox&&) noexcept = default;
-
 }  // namespace SimObject

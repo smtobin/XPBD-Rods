@@ -19,7 +19,7 @@ class RodElasticConstraint : public XPBDConstraint<SimObject::OrientedParticle::
 
 
     private:
-    const Real _dl;
+    Real _dl;
 
 };
 

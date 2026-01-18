@@ -1,7 +1,5 @@
 #include "simobject/group/XPBDConcentricTubeRobot.hpp"
 
-#include "simobject/group/XPBDObjectGroup_Base_impl.hpp"
-
 #include "config/RodConfig.hpp"
 
 #include "constraint/PointLineConstraint.hpp"
@@ -17,10 +15,6 @@ XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(const Config::XPBDConcentricTub
     _base_position = config.initialPosition();
     _base_orientation = Math::RotMatFromXYZEulerAngles(config.initialRotation());
 }
-
-XPBDConcentricTubeRobot::~XPBDConcentricTubeRobot() = default;
-XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(XPBDConcentricTubeRobot&&) noexcept = default;
-XPBDConcentricTubeRobot& XPBDConcentricTubeRobot::operator=(XPBDConcentricTubeRobot&&) noexcept = default;
 
 void XPBDConcentricTubeRobot::setup()
 {
@@ -38,7 +32,7 @@ void XPBDConcentricTubeRobot::setup()
 
     SimObject::CircleCrossSection inner_cross_section(0.08/2.0, 10);
 
-    _objects().template reserve<XPBDRod>(2);
+    _objects.template reserve<XPBDRod>(2);
     _outer_rod = &_addObject<XPBDRod>(outer_rod_config, outer_cross_section);
     _inner_rod = &_addObject<XPBDRod>(inner_rod_config, inner_cross_section);
 
@@ -85,7 +79,7 @@ void XPBDConcentricTubeRobot::setup()
 void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 {
     // for now, clear the point-on-line constraints every time
-    _internalConstraints().template clear<Constraint::PointLineConstraint>();
+    _internal_constraints.template clear<Constraint::PointLineConstraint>();
 
     std::vector<OrientedParticle>& outer_nodes = _outer_rod->nodes();
     std::vector<OrientedParticle>& inner_nodes = _inner_rod->nodes();
@@ -138,13 +132,13 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     // std::cout << "Num outer rod constraints: " << outer_rod_constraints.size() << std::endl;
     const std::vector<Constraint::RodElasticConstraint>& inner_rod_constraints = _inner_rod->rodConstraints();
     // std::cout << "Num inner rod constraints: " << inner_rod_constraints.size() << std::endl;
-    const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>();
+    const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>();
 
     // calculate number of constraints
     int num_constraints = fixed_base_constraints.size()*Constraint::OneSidedFixedJointConstraint::ConstraintDim + 
                           outer_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim +
                           inner_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim + 
-                          _internalConstraints().template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
+                          _internal_constraints.template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
     
     _RHS_vec.conservativeResize(num_constraints, 1);
     _alpha.conservativeResize(num_constraints, 1);
@@ -206,7 +200,7 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         row_offset += Constraint::RodElasticConstraint::ConstraintDim;
     }
 
-    for (const auto& constraint : _internalConstraints().template get<Constraint::PointLineConstraint>())
+    for (const auto& constraint : _internal_constraints.template get<Constraint::PointLineConstraint>())
     {
         Real C = constraint.evaluate()[0];
         _RHS_vec[row_offset] = -C;
@@ -257,7 +251,7 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     // solve and compute position update
     // _dlam = _LHS_mat.llt().solve(_RHS_vec);
     _dlam = llt.solve(_RHS_vec);
-    _internalLambda() = _dlam;
+    _internal_lambda = _dlam;
     // std::cout << "dlam: " << _dlam.transpose() << std::endl;
     // std::cout << "Number of NaNs in dlam: " << _dlam.array().isNaN().sum() << std::endl;
     // std::cout << "_dlam size: " << _dlam.size() << std::endl;
@@ -287,13 +281,13 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
 
     const std::vector<Constraint::RodElasticConstraint>& outer_rod_constraints = _outer_rod->rodConstraints();
     const std::vector<Constraint::RodElasticConstraint>& inner_rod_constraints = _inner_rod->rodConstraints();
-    const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>();
+    const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>();
 
     // calculate number of constraints
     int num_constraints = fixed_base_constraints.size()*Constraint::OneSidedFixedJointConstraint::ConstraintDim + 
                           outer_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim +
                           inner_rod_constraints.size()*Constraint::RodElasticConstraint::ConstraintDim + 
-                          _internalConstraints().template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
+                          _internal_constraints.template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
     
     std::vector<ConstraintAndLambda> constraints_and_lambdas;
     constraints_and_lambdas.reserve(num_constraints);
@@ -309,7 +303,7 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
     for (const auto& constraint : fixed_base_constraints)
     {
         XPBDConstraints_ConstPtrVariantType var(&constraint);
-        const Real* lambda_ptr = _internalLambda().data() + lambda_index;
+        const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
         constraints_and_lambdas.emplace_back(var, lambda_ptr);
         lambda_index += Constraint::OneSidedFixedJointConstraint::ConstraintDim;
     } 
@@ -317,7 +311,7 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
     for (const auto& constraint : outer_rod_constraints)
     {
         XPBDConstraints_ConstPtrVariantType var(&constraint);
-        const Real* lambda_ptr = _internalLambda().data() + lambda_index;
+        const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
         constraints_and_lambdas.emplace_back(var, lambda_ptr);
         lambda_index += Constraint::RodElasticConstraint::ConstraintDim;
     }
@@ -325,15 +319,15 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
     for (const auto& constraint : inner_rod_constraints)
     {
         XPBDConstraints_ConstPtrVariantType var(&constraint);
-        const Real* lambda_ptr = _internalLambda().data() + lambda_index;
+        const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
         constraints_and_lambdas.emplace_back(var, lambda_ptr);
         lambda_index += Constraint::RodElasticConstraint::ConstraintDim;
     }
 
-    for (const auto& constraint : _internalConstraints().template get<Constraint::PointLineConstraint>())
+    for (const auto& constraint : _internal_constraints.template get<Constraint::PointLineConstraint>())
     {
         XPBDConstraints_ConstPtrVariantType var(&constraint);
-        const Real* lambda_ptr = _internalLambda().data() + lambda_index;
+        const Real* lambda_ptr = _internal_lambda.data() + lambda_index;
         constraints_and_lambdas.emplace_back(var, lambda_ptr);
         lambda_index += Constraint::PointLineConstraint::ConstraintDim;
     }

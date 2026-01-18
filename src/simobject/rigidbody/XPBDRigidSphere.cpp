@@ -12,8 +12,4 @@ XPBDRigidSphere::XPBDRigidSphere(const Config::XPBDRigidSphereConfig& config)
     _com.Ib = 0.4 * _com.mass * _radius * _radius * Vec3r::Ones();
 }
 
-XPBDRigidSphere::~XPBDRigidSphere() = default;
-XPBDRigidSphere::XPBDRigidSphere(XPBDRigidSphere&&) noexcept = default;
-XPBDRigidSphere& XPBDRigidSphere::operator=(XPBDRigidSphere&&) noexcept = default;
-
 } // namespace SimObject

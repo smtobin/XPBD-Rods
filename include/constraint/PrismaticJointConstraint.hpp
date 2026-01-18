@@ -25,11 +25,11 @@ public:
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
 private:
-    const Vec3r _r1;
-    const Mat3r _or1;
+    Vec3r _r1;
+    Mat3r _or1;
     
-    const Vec3r _r2;
-    const Mat3r _or2;
+    Vec3r _r2;
+    Mat3r _or2;
 
 };
 
@@ -56,11 +56,11 @@ public:
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
 
 private:
-    const Vec3r _base_pos;
-    const Mat3r _base_or;
+    Vec3r _base_pos;
+    Mat3r _base_or;
 
-    const Vec3r _r1;
-    const Mat3r _or1;
+    Vec3r _r1;
+    Mat3r _or1;
 };
 
 
@@ -88,11 +88,11 @@ public:
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
 private:
-    const Vec3r _r1;
-    const Mat3r _or1;
+    Vec3r _r1;
+    Mat3r _or1;
     
-    const Vec3r _r2;
-    const Mat3r _or2;
+    Vec3r _r2;
+    Mat3r _or2;
 
 };
 
@@ -120,11 +120,11 @@ public:
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
 
 private:
-    const Vec3r _base_pos;
-    const Mat3r _base_or;
+    Vec3r _base_pos;
+    Mat3r _base_or;
 
-    const Vec3r _r1;
-    const Mat3r _or1;
+    Vec3r _r1;
+    Mat3r _or1;
 };
 
 } // namespace Constraint

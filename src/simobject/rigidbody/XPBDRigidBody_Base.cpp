@@ -18,9 +18,5 @@ XPBDRigidBody_Base::XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config
     _com.Ib = Vec3r::Zero();
 }
 
-XPBDRigidBody_Base::~XPBDRigidBody_Base() = default;
-XPBDRigidBody_Base::XPBDRigidBody_Base(XPBDRigidBody_Base&&) noexcept = default;
-XPBDRigidBody_Base& XPBDRigidBody_Base::operator=(XPBDRigidBody_Base&&) noexcept = default;
-
 
 } // namespace SimObject

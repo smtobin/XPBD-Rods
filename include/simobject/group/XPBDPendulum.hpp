@@ -16,16 +16,6 @@ class XPBDPendulum : public XPBDObjectGroup_Base
 public:
     XPBDPendulum(const Config::XPBDPendulumConfig& config);
 
-    virtual ~XPBDPendulum();
-
-    // Move operations
-    XPBDPendulum(XPBDPendulum&&) noexcept;
-    XPBDPendulum& operator=(XPBDPendulum&&) noexcept;
-    
-    // Delete copy operations
-    XPBDPendulum(const XPBDPendulum&) = delete;
-    XPBDPendulum& operator=(const XPBDPendulum&) = delete;
-
     virtual void setup() override;
 
 private:

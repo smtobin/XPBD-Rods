@@ -1,5 +1,4 @@
 #include "simobject/group/XPBDPendulum.hpp"
-#include "simobject/group/XPBDObjectGroup_Base_impl.hpp"
 
 namespace SimObject
 {
@@ -10,10 +9,6 @@ XPBDPendulum::XPBDPendulum(const Config::XPBDPendulumConfig& config)
     _num_bodies = config.numBodies();
     _initial_angle = config.initialAngle();
 }
-
-XPBDPendulum::~XPBDPendulum() = default;
-XPBDPendulum::XPBDPendulum(XPBDPendulum&&) noexcept = default;
-XPBDPendulum& XPBDPendulum::operator=(XPBDPendulum&&) noexcept = default;
 
 void XPBDPendulum::setup()
 {
@@ -26,7 +21,7 @@ void XPBDPendulum::setup()
     Real body_length = 1.0;
 
 
-    std::vector<XPBDRigidBox>& bodies = _objects().template get<XPBDRigidBox>();
+    std::vector<XPBDRigidBox>& bodies = _objects.template get<XPBDRigidBox>();
     for (int i = 0; i < _num_bodies; i++)
     {
         Real pos_x = (0.5 + i*body_length) * std::sin(_initial_angle * M_PI/180.0);

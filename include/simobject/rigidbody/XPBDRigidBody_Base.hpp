@@ -13,16 +13,6 @@ class XPBDRigidBody_Base : public XPBDObject_Base
 public:
     XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config);
 
-    virtual ~XPBDRigidBody_Base();
-
-    // Move operations
-    XPBDRigidBody_Base(XPBDRigidBody_Base&&) noexcept;
-    XPBDRigidBody_Base& operator=(XPBDRigidBody_Base&&) noexcept;
-    
-    // Delete copy operations
-    XPBDRigidBody_Base(const XPBDRigidBody_Base&) = delete;
-    XPBDRigidBody_Base& operator=(const XPBDRigidBody_Base&) = delete;
-
     const OrientedParticle& com() const { return _com; }
     OrientedParticle& com() { return _com; }
 

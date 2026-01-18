@@ -15,16 +15,6 @@ class XPBDConcentricTubeRobot : public XPBDObjectGroup_Base
 public:
     XPBDConcentricTubeRobot(const Config::XPBDConcentricTubeRobotConfig& config);
 
-    virtual ~XPBDConcentricTubeRobot();
-
-    // Move operations
-    XPBDConcentricTubeRobot(XPBDConcentricTubeRobot&&) noexcept;
-    XPBDConcentricTubeRobot& operator=(XPBDConcentricTubeRobot&&) noexcept;
-    
-    // Delete copy operations
-    XPBDConcentricTubeRobot(const XPBDConcentricTubeRobot&) = delete;
-    XPBDConcentricTubeRobot& operator=(const XPBDConcentricTubeRobot&) = delete;
-
     virtual void setup() override;
 
     virtual void internalConstraintSolve(Real dt) override;
