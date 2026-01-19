@@ -1,5 +1,4 @@
-#ifndef __XPBD_ROD_HPP
-#define __XPBD_ROD_HPP
+#pragma once
 
 #include "common/common.hpp"
 #include "common/math.hpp"
@@ -295,5 +294,3 @@ class XPBDRod : public XPBDObject_Base
 };
 
 } // namespace SimObject
-
-#endif // __XPBD_ROD_HPP

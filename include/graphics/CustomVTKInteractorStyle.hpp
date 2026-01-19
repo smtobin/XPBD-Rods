@@ -1,5 +1,4 @@
-#ifndef __CUSTOM_VTK_INTERACTOR_HPP
-#define __CUSTOM_VTK_INTERACTOR_HPP
+#pragma once
 
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkObjectFactory.h>
@@ -32,5 +31,3 @@ class CustomVTKInteractorStyle : public vtkInteractorStyleTrackballCamera
 };
 
 } // namespace Graphics
-
-#endif // __CUSTOM_VTK_INTERACTOR_HPP

@@ -1,6 +1,4 @@
-#ifndef __ROD_ELASTIC_CONSTRAINT_HPP
-#define __ROD_ELASTIC_CONSTRAINT_HPP
-
+#pragma once
 #include "constraint/Constraint.hpp"
 
 namespace Constraint
@@ -24,5 +22,3 @@ class RodElasticConstraint : public XPBDConstraint<SimObject::OrientedParticle::
 };
 
 } // namespace Constraint
-
-#endif // __ROD_ELASTIC_CONSTRAINT_HPP

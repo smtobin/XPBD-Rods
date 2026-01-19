@@ -1,5 +1,4 @@
-#ifndef __SIMULATION_CONFIG_HPP
-#define __SIMULATION_CONFIG_HPP
+#pragma once
 
 #include "config/Config.hpp"
 
@@ -114,5 +113,3 @@ class SimulationConfig : public Config_Base
 };
 
 } // namespace Config
-
-#endif // __SIMULATION_CONFIG_HPP

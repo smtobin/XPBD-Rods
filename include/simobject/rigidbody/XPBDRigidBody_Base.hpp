@@ -24,7 +24,7 @@ public:
 
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
-    virtual void setup()
+    virtual void setup() override
     {
         // make sure that the mass and rotational inertia have been calculated
         assert(_com.mass != -1 && _com.Ib != Vec3r::Zero());

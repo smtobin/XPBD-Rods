@@ -1,5 +1,4 @@
-#ifndef __ROD_GRAPHICS_OBJECT_HPP
-#define __ROD_GRAPHICS_OBJECT_HPP
+#pragma once
 
 #include "simobject/rod/XPBDRod.hpp"
 #include "graphics/GraphicsObject.hpp"
@@ -42,5 +41,3 @@ private:
 };
 
 } // namespace Graphics
-
-#endif // __ROD_GRAPHICS_OBJECT_HPP

@@ -1,5 +1,4 @@
-#ifndef __BLOCK_THOMAS_SOLVER_HPP
-#define __BLOCK_THOMAS_SOLVER_HPP
+#pragma once
 
 #include "common/common.hpp"
 
@@ -78,7 +77,7 @@ class SymmetricBlockThomasSolver
     {
         // make sure the sizes of everything are correct
         assert(A_diag.size() == A_off_diag.size()+1);
-        assert(A_diag.size() * BlockSize == b.size());
+        assert(A_diag.size() * BlockSize == static_cast<unsigned long>(b.size()));
         assert(A_diag.size() == _H_ii.size());           
         
         // initial iterates H_11 and c_1
@@ -86,7 +85,7 @@ class SymmetricBlockThomasSolver
         _c_i[0] = _H_ii[0].matrixL().solve(b.template block<BlockSize, 1>(0,0));
 
         // compute the rest of H_ii and H_(i+1),i
-        for (int i = 1; i < A_diag.size(); i++)
+        for (unsigned i = 1; i < A_diag.size(); i++)
         {
             _H_iplus1_i[i-1] = _H_ii[i-1].matrixL().solve(A_off_diag[i-1].transpose());
 
@@ -119,5 +118,3 @@ class SymmetricBlockThomasSolver
 };
 
 } // namespace Solver
-
-#endif // __BLOCK_THOMAS_SOLVER_HPP

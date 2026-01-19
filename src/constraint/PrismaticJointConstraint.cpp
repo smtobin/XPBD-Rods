@@ -369,7 +369,6 @@ OneSidedPrismaticJointConstraint::GradientMatType OneSidedPrismaticJointConstrai
     GradientMatType grad;
     // gradients of positional constraints
     const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
 
     const Mat3r dCp_dp1 = _base_or.transpose();
     const Mat3r dCp_dor1 = -_base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
