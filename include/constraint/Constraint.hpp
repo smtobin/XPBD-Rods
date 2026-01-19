@@ -1,5 +1,4 @@
-#ifndef __CONSTRAINT_HPP
-#define __CONSTRAINT_HPP
+#pragma once
 
 #include "common/common.hpp"
 #include "simobject/OrientedParticle.hpp"
@@ -34,6 +33,8 @@ class XPBDConstraint
         std::copy(particles_list.begin(), particles_list.end(), _particles.begin());
     }
 
+    virtual ~XPBDConstraint() = default;
+
     virtual ConstraintVecType evaluate() const = 0;
     virtual GradientMatType gradient(bool update_cache=true) const = 0;
 
@@ -49,5 +50,3 @@ class XPBDConstraint
 };
 
 } // namespace Constraint
-
-#endif // __CONSTRAINT_HPP

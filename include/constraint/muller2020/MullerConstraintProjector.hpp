@@ -4,6 +4,8 @@
 #include "constraint/FixedJointConstraint.hpp"
 #include "constraint/RevoluteJointConstraint.hpp"
 
+#include <Eigen/Geometry>
+
 namespace Constraint
 {
 struct Muller2020ConstraintHelper

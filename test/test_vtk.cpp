@@ -41,11 +41,14 @@
 #include <vtkTexture.h>
 #include <vtkPointData.h>
 
+#include <Eigen/Cholesky>
+
+
+
 void createRodPolyData(const SimObject::XPBDRod* rod, vtkPolyData* rod_poly_data)
 {
     const std::vector<SimObject::OrientedParticle>& nodes = rod->nodes();
     const std::vector<Vec3r>& cross_section_points = rod->crossSection()->crossSectionPoints();
-    int num_vertices = nodes.size() * cross_section_points.size() + 2;
 
     // insert cross-section vertices
     vtkNew<vtkPoints> points;

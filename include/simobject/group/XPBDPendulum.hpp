@@ -14,12 +14,7 @@ class XPBDPendulum : public XPBDObjectGroup_Base
 {
 
 public:
-    XPBDPendulum(const Config::XPBDPendulumConfig& config)
-        : XPBDObjectGroup_Base(config)
-    {
-        _num_bodies = config.numBodies();
-        _initial_angle = config.initialAngle();
-    }
+    XPBDPendulum(const Config::XPBDPendulumConfig& config);
 
     virtual void setup() override;
 

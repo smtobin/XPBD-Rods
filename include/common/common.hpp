@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 #include <math.h>
 #include <iostream>
+#include <memory>
 
 #include "common/TypeList.hpp"
 // #include "common/VariadicVectorContainer.hpp"
@@ -62,7 +63,6 @@ namespace SimObject
     class XPBDRigidBox;
     class XPBDPendulum;
     class XPBDConcentricTubeRobot;
-    class XPBDFourBarLinkage;
 }
 using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;

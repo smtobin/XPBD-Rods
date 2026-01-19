@@ -3,6 +3,13 @@
 namespace SimObject
 {
 
+XPBDPendulum::XPBDPendulum(const Config::XPBDPendulumConfig& config)
+    : XPBDObjectGroup_Base(config)
+{
+    _num_bodies = config.numBodies();
+    _initial_angle = config.initialAngle();
+}
+
 void XPBDPendulum::setup()
 {
         

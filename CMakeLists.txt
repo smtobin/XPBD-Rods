@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 17)                       # specify C++ standard
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
 set(CMAKE_BUILD_TYPE Debug)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-ftime-trace)
+    message(STATUS "Added -ftime-trace flag")
+endif()
+
 find_package(Eigen3 3.3 REQUIRED)   # find Eigen
 find_package(VTK COMPONENTS
     CommonColor
@@ -78,10 +83,10 @@ add_executable(TestPBR test/test_pbr.cpp)
 target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
 
 add_executable(TestGradient test/test_gradient.cpp)
-target_link_libraries(TestGradient Eigen3::Eigen Constraint)
+target_link_libraries(TestGradient Eigen3::Eigen Constraint SimObject)
 
 add_executable(TestConstraintGradients test/test_constraint_gradients.cpp)
-target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint)
+target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint SimObject)
 
 
 

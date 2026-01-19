@@ -1,5 +1,7 @@
 #include "constraint/PointLineConstraint.hpp"
 
+#include <Eigen/Geometry>
+
 namespace Constraint
 {
 

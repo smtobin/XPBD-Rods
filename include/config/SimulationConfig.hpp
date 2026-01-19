@@ -1,12 +1,8 @@
-#ifndef __SIMULATION_CONFIG_HPP
-#define __SIMULATION_CONFIG_HPP
+#pragma once
 
 #include "config/Config.hpp"
-#include "config/RodConfig.hpp"
-#include "config/XPBDRigidSphereConfig.hpp"
-#include "config/XPBDRigidBoxConfig.hpp"
-#include "config/XPBDPendulumConfig.hpp"
-#include "config/XPBDConcentricTubeRobotConfig.hpp"
+
+#include "common/config_containers.hpp"
 
 namespace Config
 {
@@ -117,5 +113,3 @@ class SimulationConfig : public Config_Base
 };
 
 } // namespace Config
-
-#endif // __SIMULATION_CONFIG_HPP

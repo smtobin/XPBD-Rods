@@ -1,5 +1,4 @@
-#ifndef __BLOCK_BANDED_SOLVER_HPP
-#define __BLOCK_BANDED_SOLVER_HPP
+#pragma once
 
 #include "common/common.hpp"
 
@@ -187,5 +186,3 @@ class SymmetricBlockBandedSolver
 };
 
 } // namespace Solver
-
-#endif // __BLOCK_BANDED_SOLVER_HPP

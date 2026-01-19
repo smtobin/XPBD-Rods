@@ -2,6 +2,19 @@
 
 namespace SimObject
 {
+
+XPBDObjectGroup_Base::XPBDObjectGroup_Base(const Config::XPBDObjectConfig& config)
+    : XPBDObject_Base(config)
+{
+}
+
+XPBDObjectGroup_Base::~XPBDObjectGroup_Base() = default;
+XPBDObjectGroup_Base::XPBDObjectGroup_Base(XPBDObjectGroup_Base&&) noexcept = default;
+XPBDObjectGroup_Base& XPBDObjectGroup_Base::operator=(XPBDObjectGroup_Base&&) noexcept = default;
+
+const XPBDObjects_Container& XPBDObjectGroup_Base::objects() const { return _objects; }
+const XPBDConstraints_Container& XPBDObjectGroup_Base::constraints() const { return _constraints; }
+
 void XPBDObjectGroup_Base::inertialUpdate(Real dt)
 {
     _objects.for_each_element([&](auto& obj){

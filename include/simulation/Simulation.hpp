@@ -15,7 +15,6 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/group/XPBDPendulum.hpp"
-#include "simobject/group/XPBDFourBarLinkage.hpp"
 #include "simobject/group/XPBDConcentricTubeRobot.hpp"
 
 #include "solver/GaussSeidelSolver.hpp"

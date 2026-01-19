@@ -17,6 +17,8 @@ GraphicsObject(const Config::ObjectRenderConfig& /*config*/)
 {
 }
 
+virtual ~GraphicsObject() = default;
+
 virtual void update() = 0;
 
 vtkSmartPointer<vtkActor> actor() { return _vtk_actor; }

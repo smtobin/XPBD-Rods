@@ -1,5 +1,4 @@
-#ifndef __MATH_HPP
-#define __MATH_HPP
+#pragma once
 
 #include "common/common.hpp"
 #include <iostream>
@@ -130,5 +129,3 @@ static Real projectPointOntoLine(const Vec3r& p, const Vec3r& a, const Vec3r& b)
 }
 
 };
-
-#endif // __MATH_HPP

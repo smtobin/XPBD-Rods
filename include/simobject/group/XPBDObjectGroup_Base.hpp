@@ -6,7 +6,8 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 
-#include "constraint/AllConstraints.hpp"
+#include "common/constraint_containers.hpp"
+#include "common/object_containers.hpp"
 
 #include <vector>
 #include <memory>
@@ -17,13 +18,20 @@ namespace SimObject
 class XPBDObjectGroup_Base : public XPBDObject_Base
 {
 public:
-    XPBDObjectGroup_Base(const Config::XPBDObjectConfig& config)
-        : XPBDObject_Base(config)
-    {
-    }
+    XPBDObjectGroup_Base(const Config::XPBDObjectConfig& config);
 
-    const XPBDObjects_Container& objects() const { return _objects; }
-    const XPBDConstraints_Container& constraints() const { return _constraints; }
+    virtual ~XPBDObjectGroup_Base();
+
+    // Move operations
+    XPBDObjectGroup_Base(XPBDObjectGroup_Base&&) noexcept;
+    XPBDObjectGroup_Base& operator=(XPBDObjectGroup_Base&&) noexcept;
+    
+    // Delete copy operations
+    XPBDObjectGroup_Base(const XPBDObjectGroup_Base&) = delete;
+    XPBDObjectGroup_Base& operator=(const XPBDObjectGroup_Base&) = delete;
+
+    const XPBDObjects_Container& objects() const; //{ return _objects; }
+    const XPBDConstraints_Container& constraints() const;// { return _constraints; }
 
     virtual void inertialUpdate(Real dt) override;
 

@@ -5,6 +5,8 @@
 #include "config/XPBDObjectConfig.hpp"
 #include "simobject/OrientedParticle.hpp"
 
+#include <memory>
+
 namespace SimObject
 {
 
@@ -21,9 +23,9 @@ class XPBDObject_Base
 {
 
 public:
-    XPBDObject_Base(const Config::XPBDObjectConfig& config)
-        : _name(config.name())
-    {}
+    XPBDObject_Base(const Config::XPBDObjectConfig& config);
+
+    virtual ~XPBDObject_Base() {}
     
     const std::string& name() const { return _name; }
 
@@ -55,6 +57,7 @@ protected:
      */
     XPBDConstraints_Container _internal_constraints;
 
+    
     /** Stores the Lagrange multipliers associated with the internal constraints for this object.
      * It is up to the derived classes to allocated an appropriate amount of space and update this during a solve.
      */

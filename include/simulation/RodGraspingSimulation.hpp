@@ -1,5 +1,4 @@
-#ifndef __ROD_GRASPING_SIMULATION_HPP
-#define __ROD_GRASPING_SIMULATION_HPP
+#pragma once
 
 #include "simulation/Simulation.hpp"
 
@@ -33,5 +32,3 @@ class RodGraspingSimulation : public Simulation
 };
 
 } // namespace Sim
-
-#endif // __ROD_GRASPING_SIMULATION_HPP

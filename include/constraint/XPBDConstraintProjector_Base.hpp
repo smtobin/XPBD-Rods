@@ -12,6 +12,8 @@ public:
         : _dt(dt)
     {}
 
+    virtual ~XPBDConstraintProjector_Base() = default;
+
     virtual void initialize() = 0;
 
     virtual void project() = 0;

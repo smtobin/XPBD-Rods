@@ -1,5 +1,4 @@
-#ifndef __CROSS_SECTION_HPP
-#define __CROSS_SECTION_HPP
+#pragma once
 
 #include "common/common.hpp"
 
@@ -10,7 +9,8 @@ namespace SimObject
  */
 class CrossSection
 {
-    public:
+public:
+    virtual ~CrossSection() = default;
     /** Returns a vector of points corresponding to the points of the cross-section in the XY plane. Used for making graphics objects. */
     const std::vector<Vec3r>& crossSectionPoints() const { return _points; }
     /** Second moment of area about x-axis. */
@@ -53,5 +53,3 @@ class CircleCrossSection : public CrossSection
 };
 
 } // namespace SimObject
-
-#endif // __CROSS_SECTION_HPP
