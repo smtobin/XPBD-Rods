@@ -184,6 +184,11 @@ namespace Config
     class XPBDRigidSphereConfig;
     class XPBDPendulumConfig;
     class XPBDConcentricTubeRobotConfig;
+
+    class FixedJointConfig;
+    class PrismaticJointConfig;
+    class RevoluteJointConfig;
+    class SphericalJointConfig;
 }
 
 using XPBDObjectConfigs_TypeList = TypeList<
@@ -194,6 +199,14 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::XPBDConcentricTubeRobotConfig
 >;
 using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObjectConfigs_TypeList>::type;
+
+using XPBDJointConfigs_TypeList = TypeList<
+    Config::FixedJointConfig,
+    Config::PrismaticJointConfig,
+    Config::RevoluteJointConfig,
+    Config::SphericalJointConfig
+>;
+using XPBDJointConfigs_Container = VariadicVectorContainerFromTypeList<XPBDJointConfigs_TypeList>::type;
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity

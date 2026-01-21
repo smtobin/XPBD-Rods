@@ -67,6 +67,36 @@ class SimulationConfig : public Config_Base
                 assert(0);
             }
         }
+
+        for (const auto& joint_node : node["joints"])
+        {
+            std::string type;
+            try 
+            {
+                // extract type information
+                type = joint_node["type"].as<std::string>();
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+                std::cerr << "Type of object is needed!" << std::endl;
+                continue;
+            }
+
+            if (type == "Fixed")
+                _joint_configs.template emplace_back<Config::FixedJointConfig>(joint_node);
+            else if (type == "Revolute")
+                _joint_configs.template emplace_back<Config::RevoluteJointConfig>(joint_node);
+            else if (type == "Spherical")
+                _joint_configs.template emplace_back<Config::SphericalJointConfig>(joint_node);
+            else if (type == "Prismatic")
+                _joint_configs.template emplace_back<Config::PrismaticJointConfig>(joint_node);
+            else
+            {
+                std::cerr << "Unknown type of joint! \"" << type << "\" is not a type of joint." << std::endl;
+                assert(0);
+            }
+        }
     }
 
     explicit SimulationConfig(const std::string& name, Real time_step, Real end_time, Real g_accel, 
@@ -93,6 +123,8 @@ class SimulationConfig : public Config_Base
 
     const XPBDObjectConfigs_Container& objectConfigs() const { return _object_configs; }
 
+    const XPBDJointConfigs_Container& jointConfigs() const { return _joint_configs; }
+
     const SimulationRenderConfig& renderConfig() const { return _render_config; }
 
     protected:
@@ -108,6 +140,7 @@ class SimulationConfig : public Config_Base
 
 
     XPBDObjectConfigs_Container _object_configs;
+    XPBDJointConfigs_Container _joint_configs;
 
     SimulationRenderConfig _render_config;
 };
