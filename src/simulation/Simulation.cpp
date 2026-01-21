@@ -29,6 +29,84 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
 
 }
 
+SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
+{
+    SimObject::XPBDRigidBody_Base* body = nullptr;
+    _objects.for_each_element<SimObject::XPBDRigidBox, SimObject::XPBDRigidSphere>([&](auto& obj) {
+        if (obj.name() == name)
+        {
+            body = &obj;
+            return;
+        }
+    });
+
+    return body;
+}
+
+void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
+{
+    /** TODO: 
+     * - use TypeList to dictate which types to search over
+     * - create ConstraintReference type
+     * - simulation-level constraint type (normed, block projector, etc.)
+     */
+
+    bool one_sided = !config.body2().has_value();
+
+    // find the rigid body matching the body 1 name
+    SimObject::XPBDRigidBody_Base* body1 = _findRigidBodyWithName(config.body1());
+    // make sure body 1 was found
+    if (!body1)
+    {
+        std::cerr << "Error adding joint. Rigid body with name \"" << config.body1() << "\" was not found!" << std::endl;
+    }
+
+    // one-sided fixed joint
+    if (one_sided)
+    {
+        using ConstraintType = Constraint::OneSidedFixedJointConstraint;
+        ConstraintType& constraint = _constraints.template emplace_back<ConstraintType>(
+            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            &body1->com(),
+            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+        );
+        _solver.addConstraint(&constraint);
+    }
+    // two-sided fixed joint
+    else
+    {
+        // find rigid body matching the body 2 name
+        SimObject::XPBDRigidBody_Base* body2 = _findRigidBodyWithName(config.body2().value());
+        // make sure body 2 was found
+        if (!body2)
+        {
+            std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
+        }
+
+        using ConstraintType = Constraint::FixedJointConstraint;
+        ConstraintType& constraint = _constraints.template emplace_back<ConstraintType>(
+            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+        );
+        _solver.addConstraint(&constraint);
+    }
+}
+
+void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
+{
+    /** TODO */
+}
+
+void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
+{
+    /** TODO */
+}
+
+void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
+{
+    /** TODO */
+}
+
 
 void Simulation::setup()
 {
@@ -71,12 +149,17 @@ void Simulation::setup()
         }
     }
 
-    // create rod(s)
+    // create objects
     const XPBDObjectConfigs_Container& obj_configs = _config.objectConfigs();
     obj_configs.for_each_element([&](const auto& obj_config){
         _addObjectFromConfig(obj_config); 
     });
 
+    // create joint constraints
+    const XPBDJointConfigs_Container& joint_configs = _config.jointConfigs();
+    joint_configs.for_each_element([&](const auto& joint_config) {
+        _addJointFromConfig(joint_config);
+    });
     
 }
 

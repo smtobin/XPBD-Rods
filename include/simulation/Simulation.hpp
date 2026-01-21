@@ -140,6 +140,12 @@ class Simulation
         return &new_rod;
     }
 
+    SimObject::XPBDRigidBody_Base* _findRigidBodyWithName(const std::string& name);
+    void _addJointFromConfig(const Config::FixedJointConfig& joint_config);
+    void _addJointFromConfig(const Config::RevoluteJointConfig& joint_config);
+    void _addJointFromConfig(const Config::PrismaticJointConfig& joint_config);
+    void _addJointFromConfig(const Config::SphericalJointConfig& joint_config);
+
     void _timeStep();
 
     void _updateGraphics();
@@ -163,6 +169,7 @@ class Simulation
     Real _g_accel;
     int _viewer_refresh_time_ms;
 
+    XPBDConstraints_Container _constraints;
     XPBDObjects_Container _objects;
     XPBDObjectGroups_Container _object_groups;
 
