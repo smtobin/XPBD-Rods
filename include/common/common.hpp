@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "common/TypeList.hpp"
+#include "common/VectorHandle.hpp"
 // #include "common/VariadicVectorContainer.hpp"
 
 
@@ -53,6 +54,8 @@ struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
     using unique_ptr_type = VariadicVectorContainer<std::unique_ptr<Types>...>;
     using ptr_type = VariadicVectorContainer<Types*...>;
     using const_ptr_type = VariadicVectorContainer<const Types*...>;
+    using vector_handle_type = VariadicVectorContainer<VectorHandle<Types>...>;
+    using const_vector_handle_type = VariadicVectorContainer<ConstVectorHandle<Types>...>;
 };
 
 /** Simulation object types */
@@ -122,6 +125,7 @@ using XPBDRodConstraints_TypeList = TypeList<
 using XPBDConstraints_TypeList = ConcatenateTypeLists<XPBDRigidBodyConstraints_TypeList, XPBDRodConstraints_TypeList>::type;
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
+using XPBDConstraints_ConstVectorHandleContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_vector_handle_type;
 
 using XPBDConstraints_VariantType = VariantFromTypeList<XPBDConstraints_TypeList>::variant_type;
 using XPBDConstraints_ConstPtrVariantType = VariantFromTypeList<XPBDConstraints_TypeList>::const_ptr_variant_type;

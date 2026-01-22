@@ -65,12 +65,14 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
     if (one_sided)
     {
         using ConstraintType = Constraint::OneSidedFixedJointConstraint;
-        ConstraintType& constraint = _constraints.template emplace_back<ConstraintType>(
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
             config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
             &body1->com(),
             config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
         );
-        _solver.addConstraint(&constraint);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
     }
     // two-sided fixed joint
     else
@@ -84,11 +86,13 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
         }
 
         using ConstraintType = Constraint::FixedJointConstraint;
-        ConstraintType& constraint = _constraints.template emplace_back<ConstraintType>(
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
             &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
             &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
         );
-        _solver.addConstraint(&constraint);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
     }
 }
 

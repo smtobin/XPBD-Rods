@@ -11,14 +11,14 @@ namespace Constraint
 struct Muller2020ConstraintHelper
 {
     template<typename Constraint>
-    static Vec3r positionalCorrection(const Constraint* constraint)
+    static Vec3r positionalCorrection(const ConstVectorHandle<Constraint>& constraint)
     {
         Vec3r dp = constraint->evaluate().template head<3>();
         return dp;
     }
 
     template<typename Constraint>
-    static Vec3r angularCorrection(const Constraint* constraint)
+    static Vec3r angularCorrection(const ConstVectorHandle<Constraint>& constraint)
     {
         std::cout << "\n\nWRONG ANGULAR CORRECTION!" << std::endl;
         Vec3r dq = constraint->evaluate().template tail<3>();
@@ -26,7 +26,7 @@ struct Muller2020ConstraintHelper
     }
 
     template<typename Constraint>
-    static Real positionalW1(const Constraint* constraint)
+    static Real positionalW1(const ConstVectorHandle<Constraint>& constraint)
     {   
         const SimObject::OrientedParticle* particle1 = constraint->particles()[0];
         Vec3r dp = positionalCorrection(constraint);
@@ -40,7 +40,7 @@ struct Muller2020ConstraintHelper
     }
 
     template<typename Constraint>
-    static Real positionalW2(const Constraint* constraint)
+    static Real positionalW2(const ConstVectorHandle<Constraint>& constraint)
     {
         if constexpr (Constraint::NumParticles == 1)
         {
@@ -61,7 +61,7 @@ struct Muller2020ConstraintHelper
     }
 
     template<typename Constraint>
-    static Real angularW1(const Constraint* constraint)
+    static Real angularW1(const ConstVectorHandle<Constraint>& constraint)
     {
         const SimObject::OrientedParticle* particle1 = constraint->particles()[0];
         Vec3r dor = angularCorrection(constraint);
@@ -72,7 +72,7 @@ struct Muller2020ConstraintHelper
     }
 
     template<typename Constraint>
-    static Real angularW2(const Constraint* constraint)
+    static Real angularW2(const ConstVectorHandle<Constraint>& constraint)
     {
         if constexpr (Constraint::NumParticles == 1)
         {
@@ -90,7 +90,7 @@ struct Muller2020ConstraintHelper
     }
 
     /** RevoluteJointConstraint specialization */
-    static Vec3r angularCorrection(const Constraint::RevoluteJointConstraint* constraint)
+    static Vec3r angularCorrection(const ConstVectorHandle<Constraint::RevoluteJointConstraint>& constraint)
     {
         Vec3r a1 = constraint->jointOrientation1().col(2);
         Vec3r a2 = constraint->jointOrientation2().col(2);
@@ -98,7 +98,7 @@ struct Muller2020ConstraintHelper
         return a1.cross(a2);
     }
 
-    static Vec3r angularCorrection(const Constraint::OneSidedRevoluteJointConstraint* constraint)
+    static Vec3r angularCorrection(const ConstVectorHandle<Constraint::OneSidedRevoluteJointConstraint>& constraint)
     {
         Vec3r a1 = constraint->jointOrientation1().col(2);  // joint orientation 1 is fixed for a one-sided constraint
         Vec3r a2 = constraint->jointOrientation2().col(2);
@@ -112,7 +112,7 @@ template <typename Constraint>
 class Muller2020ConstraintProjector
 {
 public:
-    Muller2020ConstraintProjector(Real dt, const Constraint* constraint)
+    Muller2020ConstraintProjector(Real dt, ConstVectorHandle<Constraint> constraint)
         : _dt(dt), _positional_lambda(0), _angular_lambda(0), _constraint(constraint)
     {
 
@@ -252,7 +252,7 @@ private:
     Real _dt;
     Real _positional_lambda;
     Real _angular_lambda;
-    const Constraint* _constraint;
+    ConstVectorHandle<Constraint> _constraint;
 
 };
 

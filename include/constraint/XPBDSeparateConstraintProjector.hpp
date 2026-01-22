@@ -13,7 +13,7 @@ class XPBDSeparateConstraintProjector : public XPBDConstraintProjector_Base
 public:
     using Constraint = Constraint_;
 
-    XPBDSeparateConstraintProjector(Real dt, const Constraint* constraint)
+    XPBDSeparateConstraintProjector(Real dt, const ConstVectorHandle<Constraint>& constraint)
         : XPBDConstraintProjector_Base(dt), _constraint(constraint)
     {
     }
@@ -72,11 +72,11 @@ public:
     }
     
     const typename Constraint::ConstraintVecType& lambda() const { return _lambda; }
-    const Constraint* constraint() const { return _constraint; }
+    ConstVectorHandle<Constraint> constraint() const { return _constraint; }
 
 private:
     typename Constraint::ConstraintVecType _lambda;
-    const Constraint* _constraint;
+    ConstVectorHandle<Constraint> _constraint;
 };
 
 } // namespace Constraint

@@ -69,8 +69,13 @@ class Simulation
 
             // add the ObjectGroup's constraints to the solver
             const XPBDConstraints_Container& constraints = new_obj.constraints();
-            constraints.for_each_element([&](const auto& constraint) {
-                _solver.addConstraint(&constraint, obj_config.projectorType());
+            constraints.for_each_element_indexed([&](const auto& constraint, size_t index) {
+                // do some gymnastics to get the vector we're currently on
+                using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
+                const auto& single_type_constraint_vec = constraints.template get<ConstraintType>();
+                // create a VectorHandle
+                ConstVectorHandle<ConstraintType> handle(&single_type_constraint_vec, index);
+                _solver.addConstraint(handle, obj_config.projectorType());
             });
 
             new_obj_ptr = &new_obj;

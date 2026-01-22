@@ -15,12 +15,12 @@ public:
     GaussSeidelSolver(Real dt, int num_iter);
 
     template <typename ConstraintType>
-    void addConstraint(const ConstraintType* constraint, Config::XPBDObjectConfig::ProjectorType projector_type = Config::XPBDObjectConfig::ProjectorType::BLOCK)
+    void addConstraint(const ConstVectorHandle<ConstraintType>& constraint, Config::XPBDObjectConfig::ProjectorType projector_type = Config::XPBDObjectConfig::ProjectorType::BLOCK)
     {
         /** TODO: Probably need constraint reference or something here. When std::vector reallocates, the pointer to the constraint used by the
          * constraint projector will become invalid, leading to segfault.
          */
-        _constraints.template push_back<const ConstraintType*>(constraint);
+        _constraints.template push_back<ConstVectorHandle<ConstraintType>>(constraint);
         if (projector_type == Config::XPBDObjectConfig::ProjectorType::MULLER2020)
         {
             _muller2020_constraint_projectors.template emplace_back<Constraint::Muller2020ConstraintProjector<ConstraintType>>(_dt, constraint);
@@ -48,7 +48,8 @@ private:
     XPBDConstraintProjectors_Container _constraint_projectors;
     XPBDSeparateConstraintProjectors_Container _separate_constraint_projectors;
     Muller2020ConstraintProjectors_Container _muller2020_constraint_projectors;
-    XPBDConstraints_ConstPtrContainer _constraints;
+
+    XPBDConstraints_ConstVectorHandleContainer _constraints;
 
 };
     

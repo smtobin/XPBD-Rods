@@ -96,6 +96,24 @@ class VariadicVectorContainer<L>
         }
     }
 
+    template<typename Visitor>
+    void _for_each_element_indexed(Visitor&& visitor) const
+    {
+        for (size_t i = 0; i < _vec.size(); ++i)
+        {
+            visitor(_vec[i], i);
+        }
+    }
+
+    template<typename Visitor>
+    void _for_each_element_indexed(Visitor&& visitor)
+    {
+        for (size_t i = 0; i < _vec.size(); ++i)
+        {
+            visitor(_vec[i], i);
+        }
+    }
+
     private:
     std::vector<L> _vec;
 };
@@ -203,7 +221,20 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         _visit_elements<L, R...>(std::forward<Visitor>(visitor));
     }
 
+    template<typename Visitor>
+    void for_each_element_indexed(Visitor&& visitor) const
+    {
+        _visit_elements_indexed<L, R...>(std::forward<Visitor>(visitor));
+    }
+
+    template<typename Visitor>
+    void for_each_element_indexed(Visitor&& visitor)
+    {
+        _visit_elements_indexed<L, R...>(std::forward<Visitor>(visitor));
+    }
+
     private:
+    
     // recursive implementation to visit elements of all types
     template<typename T, typename... Ts, typename Visitor>
     void _visit_elements(Visitor&& visitor) const
@@ -224,6 +255,26 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         if constexpr (sizeof...(Ts) > 0)
         {
             _visit_elements<Ts...>(std::forward<Visitor>(visitor));
+        }
+    }
+
+    template<typename T, typename... Ts, typename Visitor>
+    void _visit_elements_indexed(Visitor&& visitor) const
+    {
+        this->VariadicVectorContainer<T>::_for_each_element_indexed(visitor);
+        if constexpr (sizeof...(Ts) > 0)
+        {
+            _visit_elements_indexed<Ts...>(std::forward<Visitor>(visitor));
+        }
+    }
+
+    template<typename T, typename... Ts, typename Visitor>
+    void _visit_elements_indexed(Visitor&& visitor)
+    {
+        this->VariadicVectorContainer<T>::_for_each_element_indexed(visitor);
+        if constexpr (sizeof...(Ts) > 0)
+        {
+            _visit_elements_indexed<Ts...>(std::forward<Visitor>(visitor));
         }
     }
 
