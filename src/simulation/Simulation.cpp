@@ -32,7 +32,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
 SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
 {
     SimObject::XPBDRigidBody_Base* body = nullptr;
-    _objects.for_each_element<SimObject::XPBDRigidBox, SimObject::XPBDRigidSphere>([&](auto& obj) {
+    _objects.for_each_element(XPBDRigidBodies_TypeList{}, [&](auto& obj) {
         if (obj.name() == name)
         {
             body = &obj;
@@ -47,7 +47,6 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
 {
     /** TODO: 
      * - use TypeList to dictate which types to search over
-     * - create ConstraintReference type
      * - simulation-level constraint type (normed, block projector, etc.)
      */
 

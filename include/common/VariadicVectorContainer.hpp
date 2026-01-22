@@ -208,6 +208,20 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         _visit_elements<Ts...>(std::forward<Visitor>(visitor));
     }
 
+    template<typename... Ts, typename Visitor>
+    std::enable_if_t<(sizeof...(Ts) > 0), void>
+    for_each_element(TypeList<Ts...>, Visitor&& visitor) const
+    {
+        _visit_elements<Ts...>(std::forward<Visitor>(visitor));
+    }
+
+    template<typename... Ts, typename Visitor>
+    std::enable_if_t<(sizeof...(Ts) > 0), void>
+    for_each_element(TypeList<Ts...>, Visitor&& visitor)
+    {
+        _visit_elements<Ts...>(std::forward<Visitor>(visitor));
+    }
+
     // visit all elements across all vectors
     template<typename Visitor>
     void for_each_element(Visitor&& visitor) const
