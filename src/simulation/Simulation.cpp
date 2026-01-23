@@ -46,7 +46,6 @@ SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::str
 void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
 {
     /** TODO: 
-     * - use TypeList to dictate which types to search over
      * - simulation-level constraint type (normed, block projector, etc.)
      */
 
@@ -97,17 +96,143 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
 
 void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
 {
-    /** TODO */
+    bool one_sided = !config.body2().has_value();
+
+    // find the rigid body matching the body 1 name
+    SimObject::XPBDRigidBody_Base* body1 = _findRigidBodyWithName(config.body1());
+    // make sure body 1 was found
+    if (!body1)
+    {
+        std::cerr << "Error adding joint. Rigid body with name \"" << config.body1() << "\" was not found!" << std::endl;
+    }
+
+    // one-sided fixed joint
+    if (one_sided)
+    {
+        using ConstraintType = Constraint::OneSidedRevoluteJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            &body1->com(),
+            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    // two-sided fixed joint
+    else
+    {
+        // find rigid body matching the body 2 name
+        SimObject::XPBDRigidBody_Base* body2 = _findRigidBodyWithName(config.body2().value());
+        // make sure body 2 was found
+        if (!body2)
+        {
+            std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
+        }
+
+        using ConstraintType = Constraint::RevoluteJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
 }
 
 void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
 {
-    /** TODO */
+    bool one_sided = !config.body2().has_value();
+
+    // find the rigid body matching the body 1 name
+    SimObject::XPBDRigidBody_Base* body1 = _findRigidBodyWithName(config.body1());
+    // make sure body 1 was found
+    if (!body1)
+    {
+        std::cerr << "Error adding joint. Rigid body with name \"" << config.body1() << "\" was not found!" << std::endl;
+    }
+
+    // one-sided fixed joint
+    if (one_sided)
+    {
+        using ConstraintType = Constraint::OneSidedSphericalJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            &body1->com(),
+            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    // two-sided fixed joint
+    else
+    {
+        // find rigid body matching the body 2 name
+        SimObject::XPBDRigidBody_Base* body2 = _findRigidBodyWithName(config.body2().value());
+        // make sure body 2 was found
+        if (!body2)
+        {
+            std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
+        }
+
+        using ConstraintType = Constraint::SphericalJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
 }
 
 void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
 {
-    /** TODO */
+    bool one_sided = !config.body2().has_value();
+
+    // find the rigid body matching the body 1 name
+    SimObject::XPBDRigidBody_Base* body1 = _findRigidBodyWithName(config.body1());
+    // make sure body 1 was found
+    if (!body1)
+    {
+        std::cerr << "Error adding joint. Rigid body with name \"" << config.body1() << "\" was not found!" << std::endl;
+    }
+
+    // one-sided fixed joint
+    if (one_sided)
+    {
+        using ConstraintType = Constraint::OneSidedPrismaticJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            &body1->com(),
+            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    // two-sided fixed joint
+    else
+    {
+        // find rigid body matching the body 2 name
+        SimObject::XPBDRigidBody_Base* body2 = _findRigidBodyWithName(config.body2().value());
+        // make sure body 2 was found
+        if (!body2)
+        {
+            std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
+        }
+
+        using ConstraintType = Constraint::PrismaticJointConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
 }
 
 
@@ -188,10 +313,10 @@ void Simulation::update()
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
         
         // if the simulation is ahead of the current elapsed wall time, stall
-        // if (_time > wall_time_elapsed_s)
-        // {
-        //     continue;
-        // }
+        if (_time > wall_time_elapsed_s)
+        {
+            continue;
+        }
 
         _timeStep();
 
