@@ -60,15 +60,18 @@ class Simulation
     {
         // using ObjPtrType = std::unique_ptr<typename ConfigType::SimObjectType>;
         using ObjType = typename ConfigType::SimObjectType;
+        using ObjPtrType = std::unique_ptr<ObjType>;
         ObjType* new_obj_ptr = nullptr;
         if constexpr (std::is_base_of_v<SimObject::XPBDObjectGroup_Base, ObjType>)
         {
-            ObjType& new_obj = _object_groups.template emplace_back<ObjType>(obj_config);
-            new_obj.setup();
-            _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
+            _object_groups.template push_back<ObjPtrType>(std::make_unique<ObjType>(obj_config));
+            new_obj_ptr = _object_groups.template get<ObjPtrType>().back().get();
+            new_obj_ptr->setup();
+
+            _graphics_scene.addObject(new_obj_ptr, obj_config.renderConfig());
 
             // add the ObjectGroup's constraints to the solver
-            const XPBDConstraints_Container& constraints = new_obj.constraints();
+            const XPBDConstraints_Container& constraints = new_obj_ptr->constraints();
             constraints.for_each_element_indexed([&](const auto& constraint, size_t index) {
                 // do some gymnastics to get the vector we're currently on
                 using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(constraint)>>;
@@ -77,17 +80,14 @@ class Simulation
                 ConstVectorHandle<ConstraintType> handle(&single_type_constraint_vec, index);
                 _solver.addConstraint(handle, obj_config.projectorType());
             });
-
-            new_obj_ptr = &new_obj;
         }
         else
         {
-            ObjType& new_obj = _objects.template emplace_back<ObjType>(obj_config);
-            new_obj.setup();
+            _objects.template emplace_back<ObjPtrType>(std::make_unique<ObjType>(obj_config));
+            new_obj_ptr = _objects.template get<ObjPtrType>().back().get();
+            new_obj_ptr->setup();
 
-            _graphics_scene.addObject(&new_obj, obj_config.renderConfig());
-
-            new_obj_ptr = &new_obj;
+            _graphics_scene.addObject(new_obj_ptr, obj_config.renderConfig());
         }
 
         // assign global indices to the new object's nodes
@@ -116,15 +116,17 @@ class Simulation
 
     SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
     {
+        using RodPtrType = std::unique_ptr<SimObject::XPBDRod>;
         SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-        SimObject::XPBDRod& new_rod = _objects.template emplace_back<SimObject::XPBDRod>(rod_config, cross_section);
-        new_rod.setup();
+        _objects.template push_back<RodPtrType>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
+        SimObject::XPBDRod* new_rod_ptr = _objects.template get<RodPtrType>().back().get();
+        new_rod_ptr->setup();
 
         // add new rod to graphics scene to be visualized
-        _graphics_scene.addObject(&new_rod, rod_config.renderConfig());
+        _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
 
         // assign global indices to the rod's nodes
-        std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod.particles();
+        std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod_ptr->particles();
         for (const auto& particle : obj_particles)
         {
             _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});
@@ -136,13 +138,13 @@ class Simulation
         // if the particles of this object should be logged, only log the first and last particle (rods may have many particles)
         if (rod_config.logParticles() && _logger)
         {
-            const std::string var_name_0 = new_rod.name() + "_particle0";
-            const std::string var_name_end = new_rod.name() + "_particle" + std::to_string(obj_particles.size()-1);
+            const std::string var_name_0 = new_rod_ptr->name() + "_particle0";
+            const std::string var_name_end = new_rod_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
             _logger->addOutput(var_name_0, obj_particles[0]);
             _logger->addOutput(var_name_end, obj_particles.back());   
         }
 
-        return &new_rod;
+        return new_rod_ptr;
     }
 
     SimObject::XPBDRigidBody_Base* _findRigidBodyWithName(const std::string& name);
@@ -175,8 +177,8 @@ class Simulation
     int _viewer_refresh_time_ms;
 
     XPBDConstraints_Container _constraints;
-    XPBDObjects_Container _objects;
-    XPBDObjectGroups_Container _object_groups;
+    XPBDObjects_UniquePtrContainer _objects;
+    XPBDObjectGroups_UniquePtrContainer _object_groups;
 
     /** Maps pointers to paritcles to global indices. Used primarily for computing the primary residual. */
     std::unordered_map<const SimObject::OrientedParticle*, int> _particle_ptr_to_index;

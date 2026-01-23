@@ -1,5 +1,5 @@
 name: "RodSim"
-time-step: 1e-3
+time-step: 1e-4
 end-time: 600
 
 hdr-image-filename: "../resource/studio_1k.hdr"
@@ -11,7 +11,7 @@ objects:
     name: "link1"
     size: [0.1, 1, 0.1]
     initial-position: [0,0,0]
-    initial-rotation: [0,0,10]
+    initial-rotation: [0,0,0]
     initial-velocity: [0,0,0]
     render-type: "PBR"
     metallic: 0.2
@@ -21,9 +21,9 @@ objects:
   -
     type: "RigidBox"
     name: "link2"
-    size: [0.1, 1, 0.1]
-    initial-position: [0,0,0]
-    initial-rotation: [0,0,0]
+    size: [0.1, 0.5, 0.1]
+    initial-position: [0, 1.25, 0]
+    initial-rotation: [0, 0, 0.001]
     render-type: "PBR"
     metallic: 0.2
     roughness: 0.5
@@ -33,11 +33,23 @@ joints:
   -
     type: "Revolute"
     body1: "link1"
-    body1-pos-offset: [0, -0.5, 0]
+    body1-pos-offset: [0, -0.45, 0]
+    body2-rot-offset: [0,0,0]
 
   -
-    type: "Fixed"
+    type: "Revolute"
     body1: "link1"
     body1-pos-offset: [0, 0.5, 0]
+    body1-rot-offset: [0, 1.507, 0]
     body2: "link2"
     body2-pos-offset: [0, -0.25, 0]
+    body2-rot-offset: [0, 0, 0]
+
+  # -
+  #   type: "Revolute"
+  #   body1: "link2"
+  #   body1-pos-offset: [0, 0.25, 0]
+  #   body1-rot-offset: [0, 0, 0]
+  #   body2: "link3"
+  #   body2-pos-offset: [0, -0.25, 0]
+  #   body2-rot-offset: [0, 0, 0]

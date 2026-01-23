@@ -68,13 +68,15 @@ namespace SimObject
     class XPBDConcentricTubeRobot;
 }
 using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
+/** TODO: automate this */
+using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>>; 
 using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
-using XPBDObject_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
+using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 
 using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot>;
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
-using XPBDObjectGroups_UniquePtrContrinaer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
+using XPBDObjectGroups_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
 
 /** Constraint types */

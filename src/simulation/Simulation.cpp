@@ -32,10 +32,10 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
 SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
 {
     SimObject::XPBDRigidBody_Base* body = nullptr;
-    _objects.for_each_element(XPBDRigidBodies_TypeList{}, [&](auto& obj) {
-        if (obj.name() == name)
+    _objects.for_each_element(XPBDRigidBodies_UniquePtrTypeList{}, [&](auto& obj) {
+        if (obj->name() == name)
         {
-            body = &obj;
+            body = obj.get();
             return;
         }
     });
@@ -384,7 +384,7 @@ VecXr Simulation::primaryResidual() const
 
     // iterate through internal constraints in individual objects and object groups
     auto process_internal_constraints = [&](const auto& obj) {
-        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj.internalConstraintsAndLambdas();
+        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj->internalConstraintsAndLambdas();
         // iterate through the internal constraints
         for (const auto& constraint_and_lambda : constraints_and_lambdas)
         {
@@ -448,7 +448,7 @@ VecXr Simulation::constraintResidual() const
 
     // iterate through internal constraints in individual objects and object groups
     auto process_internal_constraints = [&](const auto& obj) {
-        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj.internalConstraintsAndLambdas();
+        std::vector<SimObject::ConstraintAndLambda> constraints_and_lambdas = obj->internalConstraintsAndLambdas();
         // iterate through the internal constraints
         for (const auto& constraint_and_lambda : constraints_and_lambdas)
         {
@@ -523,8 +523,8 @@ void Simulation::notifyLeftMouseButtonReleased()
 void Simulation::_timeStep()
 {
     // std::cout << "t=" << _time << std::endl;
-    _objects.for_each_element([&](auto& obj) { obj.inertialUpdate(_dt); });
-    _object_groups.for_each_element([&](auto& obj) { obj.inertialUpdate(_dt); });
+    _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
 
     // store the inertially predicted positions and orientations
     // useful for computing the primary residual
@@ -535,13 +535,13 @@ void Simulation::_timeStep()
     }
 
 
-    _objects.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
-    _object_groups.for_each_element([&](auto& obj) { obj.internalConstraintSolve(_dt); });
+    _objects.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
 
     _solver.solve();
 
-    _objects.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
-    _object_groups.for_each_element([&](auto& obj) { obj.velocityUpdate(_dt); });
+    _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
 
     // log quantities
     if (_logger)
