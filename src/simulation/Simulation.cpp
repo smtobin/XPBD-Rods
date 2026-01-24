@@ -65,9 +65,9 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
         using ConstraintType = Constraint::OneSidedFixedJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset()),
             &body1->com(),
-            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+            config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -86,8 +86,8 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
         using ConstraintType = Constraint::FixedJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
-            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+            &body1->com(), config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -112,9 +112,9 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
         using ConstraintType = Constraint::OneSidedRevoluteJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset()),
             &body1->com(),
-            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+            config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -133,8 +133,8 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
         using ConstraintType = Constraint::RevoluteJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
-            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+            &body1->com(), config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -159,9 +159,9 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
         using ConstraintType = Constraint::OneSidedSphericalJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset()),
             &body1->com(),
-            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+            config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -180,8 +180,8 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
         using ConstraintType = Constraint::SphericalJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
-            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+            &body1->com(), config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -206,9 +206,9 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         using ConstraintType = Constraint::OneSidedPrismaticJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset()),
+            config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset()),
             &body1->com(),
-            config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset())
+            config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
@@ -227,8 +227,8 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         using ConstraintType = Constraint::PrismaticJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
-            &body1->com(), config.body1PositionalOffset(), Math::Exp_so3(config.body1RotationalOffset()),
-            &body2->com(), config.body2PositionalOffset(), Math::Exp_so3(config.body2RotationalOffset())
+            &body1->com(), config.body1PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body1RotationalOffset()),
+            &body2->com(), config.body2PositionalOffset(), Math::RotMatFromXYZEulerAngles(config.body2RotationalOffset())
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
