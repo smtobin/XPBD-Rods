@@ -58,9 +58,10 @@ public:
         // update nodes
         for (int i = 0; i < Constraint::NumParticles; i++)
         {
+            typename Constraint::SingleParticleGradientMatType particle_i_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
             SimObject::OrientedParticle* particle_i = _constraint->particles()[i];
             // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
-            const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * _constraint->singleParticleGradient(particle_i, true).transpose() * dlam;
+            const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam;
             // std::cout << "Position update: " << position_update.transpose() << std::endl;
             particle_i->positionUpdate(position_update);
         }

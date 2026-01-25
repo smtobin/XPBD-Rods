@@ -89,6 +89,8 @@ namespace Constraint
     class NormedOneSidedRevoluteJointConstraint;
     class RevoluteJointConstraint;
     class NormedRevoluteJointConstraint;
+    class RevoluteJointLimitConstraint;
+    class OneSidedRevoluteJointLimitConstraint;
 
     class SphericalJointConstraint;
     class OneSidedSphericalJointConstraint;
@@ -104,7 +106,7 @@ namespace Constraint
     class PointLineConstraint;
 }
 
-using XPBDRigidBodyConstraints_TypeList = TypeList<
+using XPBDJointConstraints_TypeList = TypeList<
     Constraint::OneSidedFixedJointConstraint,
     Constraint::FixedJointConstraint,
     Constraint::OneSidedRevoluteJointConstraint,
@@ -120,12 +122,23 @@ using XPBDRigidBodyConstraints_TypeList = TypeList<
     Constraint::NormedPrismaticJointConstraint,
     Constraint::NormedOneSidedPrismaticJointConstraint
 >;
+
+using XPBDJointLimitConstraints_TypeList = TypeList<
+    Constraint::RevoluteJointLimitConstraint,
+    Constraint::OneSidedRevoluteJointLimitConstraint
+>;
+
 using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticConstraint,
     Constraint::PointLineConstraint
 >;
 
-using XPBDConstraints_TypeList = ConcatenateTypeLists<XPBDRigidBodyConstraints_TypeList, XPBDRodConstraints_TypeList>::type;
+using XPBDConstraints_TypeList = ConcatenateTypeLists<
+    XPBDJointConstraints_TypeList,
+    XPBDJointLimitConstraints_TypeList,
+    XPBDRodConstraints_TypeList
+>::type;
+
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;
 using XPBDConstraints_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_ptr_type;
 using XPBDConstraints_ConstVectorHandleContainer = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::const_vector_handle_type;

@@ -126,7 +126,7 @@ public:
 
     void project()
     {
-        if constexpr (TypeListContains<Constraint, XPBDRigidBodyConstraints_TypeList>::value)
+        if constexpr (TypeListContains<Constraint, XPBDJointConstraints_TypeList>::value)
         {
             Vec3r dp = Muller2020ConstraintHelper::positionalCorrection(_constraint);
             Vec3r dor = Muller2020ConstraintHelper::angularCorrection(_constraint);

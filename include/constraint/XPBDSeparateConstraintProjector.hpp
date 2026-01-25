@@ -55,9 +55,9 @@ public:
             {
                 SimObject::OrientedParticle* particle_j = _constraint->particles()[j];
                 // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
-                typename Constraint::SingleParticleGradientMatType grad_j = _constraint->singleParticleGradient(particle_j, true);
+                typename Constraint::SingleParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
                 // std::cout << "grad_j.row(i).transpose(): " << grad_j.row(i).transpose() << std::endl;
-                const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * grad_j.row(i).transpose() * dlam;
+                const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * particle_j_grad.row(i).transpose() * dlam;
                 // std::cout << "Position update: " << position_update.transpose() << std::endl;
                 particle_j->positionUpdate(position_update);
             }
