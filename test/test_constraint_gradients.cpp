@@ -84,6 +84,7 @@ int main()
     SimObject::OrientedParticle particle1 = randomParticle();
     SimObject::OrientedParticle particle2 = randomParticle();
 
+    /** Revolute joint constraints */
     Constraint::RevoluteJointConstraint                 rev_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
     Constraint::OneSidedRevoluteJointConstraint         rev_constraint2(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());
     Constraint::NormedRevoluteJointConstraint           rev_constraint3(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -93,6 +94,7 @@ int main()
     testConstraint(rev_constraint3);
     testConstraint(rev_constraint4);
 
+    /** Spherical joint constraints */
     Constraint::SphericalJointConstraint                sph_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
     Constraint::OneSidedSphericalJointConstraint        sph_constraint2(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());
     Constraint::NormedSphericalJointConstraint          sph_constraint3(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -102,6 +104,7 @@ int main()
     testConstraint(sph_constraint3);
     testConstraint(sph_constraint4);
 
+    /** Prismatic joint constraints */
     Constraint::PrismaticJointConstraint                pr_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
     Constraint::OneSidedPrismaticJointConstraint        pr_constraint2(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());
     Constraint::NormedPrismaticJointConstraint          pr_constraint3(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -110,5 +113,16 @@ int main()
     testConstraint(pr_constraint2);
     testConstraint(pr_constraint3);
     testConstraint(pr_constraint4);
+
+    /** Joint limit constraints */
+    Constraint::RevoluteJointLimitConstraint            rev_lim_constraint1(rev_constraint1, -0.5, 0.5);
+    Constraint::OneSidedRevoluteJointLimitConstraint    rev_lim_constraint2(rev_constraint2, -0.5, 0.5);
+    testConstraint(rev_lim_constraint1);
+    testConstraint(rev_lim_constraint2);
+
+    Constraint::SphericalJointSwingLimitConstraint          sph_swing_lim_constraint1(sph_constraint1, 0.1, 0.8);
+    Constraint::OneSidedSphericalJointSwingLimitConstraint  sph_swing_lim_constraint2(sph_constraint2, 0.1, 0.8);
+    testConstraint(sph_swing_lim_constraint1);
+    testConstraint(sph_swing_lim_constraint2);
     
 }

@@ -29,9 +29,9 @@ RevoluteJointLimitConstraint::ConstraintVecType RevoluteJointLimitConstraint::ev
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // difference with min
-    Real min_diff = dtheta[3] - _min_angle;
+    Real min_diff = dtheta[2] - _min_angle;
     // difference with max
-    Real max_diff = _max_angle - dtheta[3];
+    Real max_diff = _max_angle - dtheta[2];
 
     ConstraintVecType C;
     C[0] = std::min(min_diff, max_diff);
@@ -48,9 +48,9 @@ RevoluteJointLimitConstraint::GradientMatType RevoluteJointLimitConstraint::grad
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // difference with min
-    Real min_diff = dtheta[3] - _min_angle;
+    Real min_diff = dtheta[2] - _min_angle;
     // difference with max
-    Real max_diff = _max_angle - dtheta[3];
+    Real max_diff = _max_angle - dtheta[2];
 
     const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
 
@@ -69,9 +69,9 @@ RevoluteJointLimitConstraint::GradientMatType RevoluteJointLimitConstraint::grad
     }
     
     grad.block<1,3>(0,0) = Vec3r::Zero();
-    grad.block<1,3>(0,3) = dC_dR1.row(3);
+    grad.block<1,3>(0,3) = dC_dR1.row(2);
     grad.block<1,3>(0,6) = Vec3r::Zero();
-    grad.block<1,3>(0,9) = dC_dR2.row(3);
+    grad.block<1,3>(0,9) = dC_dR2.row(2);
 
     return grad;
 }
@@ -111,9 +111,9 @@ OneSidedRevoluteJointLimitConstraint::ConstraintVecType OneSidedRevoluteJointLim
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // difference with min
-    Real min_diff = dtheta[3] - _min_angle;
+    Real min_diff = dtheta[2] - _min_angle;
     // difference with max
-    Real max_diff = _max_angle - dtheta[3];
+    Real max_diff = _max_angle - dtheta[2];
 
     ConstraintVecType C;
     C[0] = std::min(min_diff, max_diff);
@@ -130,9 +130,9 @@ OneSidedRevoluteJointLimitConstraint::GradientMatType OneSidedRevoluteJointLimit
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // difference with min
-    Real min_diff = dtheta[3] - _min_angle;
+    Real min_diff = dtheta[2] - _min_angle;
     // difference with max
-    Real max_diff = _max_angle - dtheta[3];
+    Real max_diff = _max_angle - dtheta[2];
 
     const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
 
@@ -149,7 +149,7 @@ OneSidedRevoluteJointLimitConstraint::GradientMatType OneSidedRevoluteJointLimit
     }
     
     grad.block<1,3>(0,0) = Vec3r::Zero();
-    grad.block<1,3>(0,3) = dC_dR1.row(3);
+    grad.block<1,3>(0,3) = dC_dR1.row(2);
 
     return grad;
 }
