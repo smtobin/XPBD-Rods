@@ -96,6 +96,8 @@ namespace Constraint
     class OneSidedSphericalJointConstraint;
     class NormedSphericalJointConstraint;
     class NormedOneSidedSphericalJointConstraint;
+    class SphericalJointSwingLimitConstraint;
+    class OneSidedSphericalJointSwingLimitConstraint;
 
     class PrismaticJointConstraint;
     class OneSidedPrismaticJointConstraint;
@@ -125,7 +127,9 @@ using XPBDJointConstraints_TypeList = TypeList<
 
 using XPBDJointLimitConstraints_TypeList = TypeList<
     Constraint::RevoluteJointLimitConstraint,
-    Constraint::OneSidedRevoluteJointLimitConstraint
+    Constraint::OneSidedRevoluteJointLimitConstraint,
+    Constraint::SphericalJointSwingLimitConstraint,
+    Constraint::OneSidedSphericalJointSwingLimitConstraint
 >;
 
 using XPBDRodConstraints_TypeList = TypeList<

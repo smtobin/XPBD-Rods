@@ -1,16 +1,16 @@
 #pragma once
 
 #include "constraint/Constraint.hpp"
-#include "constraint/RevoluteJointConstraint.hpp"
+#include "constraint/SphericalJointConstraint.hpp"
 
 namespace Constraint
 {
 
-class RevoluteJointLimitConstraint : public XPBDConstraint<1, 2>
+class SphericalJointSwingLimitConstraint : public XPBDConstraint<1, 2>
 {
 public:
-    RevoluteJointLimitConstraint(const RevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
-    RevoluteJointLimitConstraint(const NormedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
+    SphericalJointSwingLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha=0);
+    SphericalJointSwingLimitConstraint(const NormedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha=0);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
@@ -31,11 +31,11 @@ private:
 //////////////////////////////////////////////////////////////////////////////////
 
 
-class OneSidedRevoluteJointLimitConstraint : public XPBDConstraint<1, 1>
+class OneSidedSphericalJointSwingLimitConstraint : public XPBDConstraint<1, 1>
 {
 public:
-    OneSidedRevoluteJointLimitConstraint(const OneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
-    OneSidedRevoluteJointLimitConstraint(const NormedOneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
+    OneSidedSphericalJointSwingLimitConstraint(const OneSidedSphericalJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
+    OneSidedSphericalJointSwingLimitConstraint(const NormedOneSidedSphericalJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;

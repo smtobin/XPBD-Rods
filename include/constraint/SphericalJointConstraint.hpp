@@ -19,6 +19,9 @@ public:
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return _r2; }
 
+    const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
+    const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -49,6 +52,9 @@ public:
 
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return Vec3r::Zero(); }
+
+    const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
+    Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
@@ -82,6 +88,9 @@ public:
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return _r2; }
 
+    const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
+    const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -113,6 +122,9 @@ public:
 
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return Vec3r::Zero(); }
+
+    const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
+    Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
