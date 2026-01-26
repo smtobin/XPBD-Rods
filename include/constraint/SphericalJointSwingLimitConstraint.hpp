@@ -12,6 +12,8 @@ public:
     SphericalJointSwingLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha=0);
     SphericalJointSwingLimitConstraint(const NormedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha=0);
 
+    virtual bool isInequality() const override { return true; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -36,6 +38,8 @@ class OneSidedSphericalJointSwingLimitConstraint : public XPBDConstraint<1, 1>
 public:
     OneSidedSphericalJointSwingLimitConstraint(const OneSidedSphericalJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
     OneSidedSphericalJointSwingLimitConstraint(const NormedOneSidedSphericalJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
+
+    virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;

@@ -35,6 +35,8 @@ class XPBDConstraint
 
     virtual ~XPBDConstraint() = default;
 
+    virtual bool isInequality() const { return false; }
+
     virtual ConstraintVecType evaluate() const = 0;
     virtual GradientMatType gradient(bool update_cache=true) const = 0;
 

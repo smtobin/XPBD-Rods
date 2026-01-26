@@ -12,6 +12,8 @@ public:
     PrismaticJointLimitConstraint(const PrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
     PrismaticJointLimitConstraint(const NormedPrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
 
+    virtual bool isInequality() const override { return true; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -38,6 +40,8 @@ class OneSidedPrismaticJointLimitConstraint : public XPBDConstraint<1, 1>
 public:
     OneSidedPrismaticJointLimitConstraint(const OneSidedPrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
     OneSidedPrismaticJointLimitConstraint(const NormedOneSidedPrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
+
+    virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;

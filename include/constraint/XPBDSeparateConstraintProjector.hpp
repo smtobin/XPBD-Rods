@@ -39,6 +39,15 @@ public:
         {
             typename Constraint::ConstraintVecType C = _constraint->evaluate();
             // std::cout << "========\nC: " << C.transpose() << std::endl;
+
+            // special handling for inequality constraints
+            if (_constraint->isInequality())
+            {
+                // skip projecting this constraint if > 0 (i.e. constraint is not violated)
+                if (C[i] >= 0)
+                    continue;
+            }
+            
             typename Constraint::GradientMatType delC = _constraint->gradient(true);
             // std::cout << "delC:\n" << delC.transpose() << std::endl;
 

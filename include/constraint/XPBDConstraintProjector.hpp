@@ -28,6 +28,28 @@ public:
     virtual void project() override
     {
         typename Constraint::ConstraintVecType C = _constraint->evaluate();
+
+        // special handling for inequality constraints
+        if (_constraint->isInequality())
+        {
+            // inequality constraints are only enforced when C < 0
+            // for vector constraints, set rows of C that are > 0 to 0 so that nothing happens
+            // (does this work? I think so. But really XPBDSeparateConstraintProjector should be used instead)
+            if constexpr (Constraint::ConstraintDim > 1)
+            {
+                for (int i = 0; i < Constraint::ConstraintDim; i++)
+                {
+                    if (C[i] > 0)
+                        C[i] = 0;
+                }
+            }
+            // for scalar constraints, just return if C > 0
+            else
+            {
+                return;
+            }
+            
+        }
         // std::cout << "========\nC: " << C.transpose() << std::endl;
         typename Constraint::GradientMatType delC = _constraint->gradient(true);
         // std::cout << "delC:\n" << delC.transpose() << std::endl;

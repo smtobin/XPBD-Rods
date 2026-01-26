@@ -12,6 +12,8 @@ public:
     RevoluteJointLimitConstraint(const RevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
     RevoluteJointLimitConstraint(const NormedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
 
+    virtual bool isInequality() const override { return true; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
@@ -36,6 +38,8 @@ class OneSidedRevoluteJointLimitConstraint : public XPBDConstraint<1, 1>
 public:
     OneSidedRevoluteJointLimitConstraint(const OneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
     OneSidedRevoluteJointLimitConstraint(const NormedOneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
+
+    virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient(bool update_cache=true) const override;
