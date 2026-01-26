@@ -118,6 +118,18 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        // check if joint limits were specified
+        if (config.hasAngleLimit())
+        {
+            using LimitConstraintType = Constraint::OneSidedRevoluteJointLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.minAngle(), config.maxAngle(), config.limitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
     }
     // two-sided fixed joint
     else
@@ -138,6 +150,18 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        // check if joint limits were specified
+        if (config.hasAngleLimit())
+        {
+            using LimitConstraintType = Constraint::RevoluteJointLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.minAngle(), config.maxAngle(), config.limitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
     }
 }
 
@@ -165,8 +189,32 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        // check if swing limits were specified
+        if (config.hasSwingLimit())
+        {
+            using LimitConstraintType = Constraint::OneSidedSphericalJointSwingLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.swingMinAngle(), config.swingMaxAngle(), config.swingLimitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
+        // check if twist limits were specified
+        if (config.hasTwistLimit())
+        {
+            using LimitConstraintType = Constraint::OneSidedRevoluteJointLimitConstraint;   // same as twist for spherical joints
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.twistMinAngle(), config.twistMaxAngle(), config.twistLimitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
+        
     }
-    // two-sided fixed joint
+    // two-sided spherical joint
     else
     {
         // find rigid body matching the body 2 name
@@ -185,6 +233,29 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        // check if swing limits were specified
+        if (config.hasSwingLimit())
+        {
+            using LimitConstraintType = Constraint::SphericalJointSwingLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.swingMinAngle(), config.swingMaxAngle(), config.swingLimitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
+        // check if twist limits were specified
+        if (config.hasTwistLimit())
+        {
+            using LimitConstraintType = Constraint::RevoluteJointLimitConstraint;   // same as twist for spherical joints
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.twistMinAngle(), config.twistMaxAngle(), config.twistLimitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
     }
 }
 
@@ -200,7 +271,7 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         std::cerr << "Error adding joint. Rigid body with name \"" << config.body1() << "\" was not found!" << std::endl;
     }
 
-    // one-sided fixed joint
+    // one-sided prismatic joint
     if (one_sided)
     {
         using ConstraintType = Constraint::OneSidedPrismaticJointConstraint;
@@ -212,8 +283,19 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        if (config.hasTranslationLimit())
+        {
+            using LimitConstraintType = Constraint::OneSidedPrismaticJointLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.minTranslation(), config.maxTranslation(), config.limitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
     }
-    // two-sided fixed joint
+    // two-sided prismatic joint
     else
     {
         // find rigid body matching the body 2 name
@@ -232,6 +314,17 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         );
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+
+        if (config.hasTranslationLimit())
+        {
+            using LimitConstraintType = Constraint::PrismaticJointLimitConstraint;
+            auto& limit_constraint_vec = _constraints.template get<LimitConstraintType>();
+            limit_constraint_vec.emplace_back(
+                constraint_vec.back(), config.minTranslation(), config.maxTranslation(), config.limitCompliance()  
+            );
+            ConstVectorHandle<LimitConstraintType> limit_constraint_ref(&limit_constraint_vec, limit_constraint_vec.size()-1);
+            _solver.addConstraint(limit_constraint_ref);
+        }
     }
 }
 
