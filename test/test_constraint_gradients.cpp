@@ -124,5 +124,10 @@ int main()
     Constraint::OneSidedSphericalJointSwingLimitConstraint  sph_swing_lim_constraint2(sph_constraint2, 0.1, 0.8);
     testConstraint(sph_swing_lim_constraint1);
     testConstraint(sph_swing_lim_constraint2);
+
+    Constraint::PrismaticJointLimitConstraint           pr_lim_constraint1(pr_constraint1, -0.5, 0.5);
+    Constraint::OneSidedPrismaticJointLimitConstraint   pr_lim_constraint2(pr_constraint2, -0.5, 0.5);
+    testConstraint(pr_lim_constraint1);
+    testConstraint(pr_lim_constraint2);
     
 }

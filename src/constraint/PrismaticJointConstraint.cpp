@@ -343,18 +343,18 @@ OneSidedPrismaticJointConstraint::OneSidedPrismaticJointConstraint(
     const Vec3r& base_pos, const Mat3r& base_or,
     SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
 )
-    : XPBDConstraint<5,1>({particle}, AlphaVecType::Zero()), _base_pos(base_pos), _base_or(base_or), _r1(joint_pos), _or1(joint_or)
+    : XPBDConstraint<5,1>({particle}, AlphaVecType::Zero()), _base_pos(base_pos), _base_or(base_or), _r2(joint_pos), _or2(joint_or)
 {
 
 }
 
 OneSidedPrismaticJointConstraint::ConstraintVecType OneSidedPrismaticJointConstraint::evaluate() const
 {
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r2;
     const Vec3r dp = joint_pos1 - _base_pos;
 
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Vec3r dor = Math::Minus_SO3(joint_or1, _base_or);
+    const Mat3r joint_or2 = _particles[0]->orientation * _or2;
+    const Vec3r dor = Math::Minus_SO3(joint_or2, _base_or);
     const Vec3r joint_dp = _base_or.transpose() * dp;
     
     ConstraintVecType C_vec;
@@ -368,14 +368,14 @@ OneSidedPrismaticJointConstraint::GradientMatType OneSidedPrismaticJointConstrai
 {
     GradientMatType grad;
     // gradients of positional constraints
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
+    const Mat3r joint_or2 = _particles[0]->orientation * _or2;
 
     const Mat3r dCp_dp1 = _base_or.transpose();
-    const Mat3r dCp_dor1 = -_base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
+    const Mat3r dCp_dor1 = -_base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r2);
     
-    const Vec3r dtheta = Math::Minus_SO3(joint_or1, _base_or);
+    const Vec3r dtheta = Math::Minus_SO3(joint_or2, _base_or);
     const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
-    const Mat3r dCor_dor1 = jac_inv * _or1.transpose();
+    const Mat3r dCor_dor1 = jac_inv * _or2.transpose();
 
     grad.block<2,3>(0,0) = dCp_dp1.block<2,3>(0,0);
     grad.block<2,3>(0,3) = dCp_dor1.block<2,3>(0,0);
@@ -421,18 +421,18 @@ NormedOneSidedPrismaticJointConstraint::NormedOneSidedPrismaticJointConstraint(
     const Vec3r& base_pos, const Mat3r& base_or,
     SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
 )
-    : XPBDConstraint<2,1>({particle}, AlphaVecType::Zero()), _base_pos(base_pos), _base_or(base_or), _r1(joint_pos), _or1(joint_or)
+    : XPBDConstraint<2,1>({particle}, AlphaVecType::Zero()), _base_pos(base_pos), _base_or(base_or), _r2(joint_pos), _or2(joint_or)
 {
 
 }
 
 NormedOneSidedPrismaticJointConstraint::ConstraintVecType NormedOneSidedPrismaticJointConstraint::evaluate() const
 {
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
-    const Vec3r dp = joint_pos1 - _base_pos;
+    const Vec3r joint_pos2 = _particles[0]->position + _particles[0]->orientation * _r2;
+    const Vec3r dp = joint_pos2 - _base_pos;
 
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Vec3r dor = Math::Minus_SO3(joint_or1, _base_or);
+    const Mat3r joint_or2 = _particles[0]->orientation * _or2;
+    const Vec3r dor = Math::Minus_SO3(joint_or2, _base_or);
     const Vec3r joint_dp = _base_or.transpose() * dp;
 
     ConstraintVecType C_vec;
@@ -446,11 +446,11 @@ NormedOneSidedPrismaticJointConstraint::GradientMatType NormedOneSidedPrismaticJ
 {
     GradientMatType grad;
     // gradients of positional constraints
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
-    const Vec3r dp_full = joint_pos1 - _base_pos;
+    const Vec3r joint_pos2 = _particles[0]->position + _particles[0]->orientation * _r2;
+    const Vec3r dp_full = joint_pos2 - _base_pos;
 
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Vec3r dor = Math::Minus_SO3(joint_or1, _base_or);
+    const Mat3r joint_or2 = _particles[0]->orientation * _or2;
+    const Vec3r dor = Math::Minus_SO3(joint_or2, _base_or);
     const Vec3r joint_dp_full = _base_or.transpose() * dp_full;
     const Vec2r joint_dp = joint_dp_full.head<2>();
 
@@ -465,7 +465,7 @@ NormedOneSidedPrismaticJointConstraint::GradientMatType NormedOneSidedPrismaticJ
         const Vec2r n = joint_dp/joint_dp.norm();
         const Vec3r n3(n[0], n[1], 0);
         dCp_dp1 = n3.transpose()*_base_or.transpose();
-        dCp_dor1 = -n3.transpose() * _base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
+        dCp_dor1 = -n3.transpose() * _base_or.transpose() * _particles[0]->orientation * Math::Skew3(_r2);
     }
 
     // gradients of rotational constraints
@@ -473,12 +473,11 @@ NormedOneSidedPrismaticJointConstraint::GradientMatType NormedOneSidedPrismaticJ
     if (dor.norm() < CONSTRAINT_EPS)
     {
         dCor_dor1 = Vec3r(1,0,0);
-        dCor_dor2 = Vec3r(1,0,0);
     }
     else
     {
         const Vec3r n = dor/dor.norm();
-        dCor_dor1 = n.transpose() * _or1.transpose();
+        dCor_dor1 = n.transpose() * _or2.transpose();
     }
     
     

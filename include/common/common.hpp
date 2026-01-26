@@ -103,6 +103,8 @@ namespace Constraint
     class OneSidedPrismaticJointConstraint;
     class NormedPrismaticJointConstraint;
     class NormedOneSidedPrismaticJointConstraint;
+    class PrismaticJointLimitConstraint;
+    class OneSidedPrismaticJointLimitConstraint;
 
     class RodElasticConstraint;
     class PointLineConstraint;
@@ -129,7 +131,9 @@ using XPBDJointLimitConstraints_TypeList = TypeList<
     Constraint::RevoluteJointLimitConstraint,
     Constraint::OneSidedRevoluteJointLimitConstraint,
     Constraint::SphericalJointSwingLimitConstraint,
-    Constraint::OneSidedSphericalJointSwingLimitConstraint
+    Constraint::OneSidedSphericalJointSwingLimitConstraint,
+    Constraint::PrismaticJointLimitConstraint,
+    Constraint::OneSidedPrismaticJointLimitConstraint
 >;
 
 using XPBDRodConstraints_TypeList = TypeList<
