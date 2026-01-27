@@ -1,0 +1,32 @@
+name: "Sphere-Sphere Collision"
+time-step: 1e-3
+end-time: 5
+
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+
+objects:
+  - 
+    type: "RigidSphere"
+    name: "sphere1"
+    initial-position: [0, 10, 0.0]
+    initial-rotation: [0, 0, 0]
+    radius: 0.5
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]
+
+  -
+    type: "RigidSphere"
+    name: "sphere2"
+    initial-position: [0,0,0]
+    initial-velocity: [0,10,0]
+    fixed: true
+    radius: 0.5
+    render-type: "PBR"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]

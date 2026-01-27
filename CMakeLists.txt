@@ -30,6 +30,10 @@ endif()
 
 include_directories("./include")
 
+add_library(Collision)
+add_subdirectory("src/collision")
+target_link_libraries(Collision Eigen3::Eigen)
+
 add_library(Solver)
 add_subdirectory("src/solver")
 target_link_libraries(Solver Eigen3::Eigen)
@@ -42,16 +46,13 @@ add_library(SimObject)
 add_subdirectory("src/simobject")
 target_link_libraries(SimObject Eigen3::Eigen Constraint)
 
-# add_library(RigidBody)
-# add_subdirectory("src/simobject/rigidbody")
-
 add_library(Graphics)
 add_subdirectory("src/graphics")
 target_link_libraries(Graphics Eigen3::Eigen ${VTK_LIBRARIES} SimObject)
 
 add_library(Simulation)
 add_subdirectory("src/simulation")
-target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} SimObject Solver Graphics yaml-cpp)
+target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} SimObject Solver Graphics Collision yaml-cpp)
 
 
 #####################################################

@@ -15,4 +15,15 @@ XPBDRigidBox::XPBDRigidBox(const Config::XPBDRigidBoxConfig& config)
     _com.Ib = Vec3r(Ix, Iy, Iz);
 }
 
+AABB XPBDRigidBox::boundingBox() const
+{
+    Mat3r R_abs = _com.orientation.cwiseAbs();
+    Vec3r AABB_size = R_abs.col(0) * _size[0] + R_abs.col(1) * _size[1] + R_abs.col(2) * _size[2];
+    AABB bbox;
+    bbox.min = _com.position - AABB_size/2;
+    bbox.max = _com.position + AABB_size/2;
+
+    return bbox;
+}
+
 }  // namespace SimObject

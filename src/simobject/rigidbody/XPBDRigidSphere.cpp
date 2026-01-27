@@ -12,4 +12,13 @@ XPBDRigidSphere::XPBDRigidSphere(const Config::XPBDRigidSphereConfig& config)
     _com.Ib = 0.4 * _com.mass * _radius * _radius * Vec3r::Ones();
 }
 
+AABB XPBDRigidSphere::boundingBox() const
+{
+    AABB bbox;
+    bbox.min = _com.position - _radius * Vec3r::Ones();
+    bbox.max = _com.position + _radius * Vec3r::Ones();
+
+    return bbox;
+}
+
 } // namespace SimObject

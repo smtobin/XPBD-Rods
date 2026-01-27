@@ -8,12 +8,24 @@ XPBDObjectGroup_Base::XPBDObjectGroup_Base(const Config::XPBDObjectConfig& confi
 {
 }
 
-XPBDObjectGroup_Base::~XPBDObjectGroup_Base() = default;
-XPBDObjectGroup_Base::XPBDObjectGroup_Base(XPBDObjectGroup_Base&&) noexcept = default;
-XPBDObjectGroup_Base& XPBDObjectGroup_Base::operator=(XPBDObjectGroup_Base&&) noexcept = default;
+AABB XPBDObjectGroup_Base::boundingBox() const
+{
+    // iterate through all bodies and combine their bounding boxes
+    AABB bbox;
+    _objects.for_each_element([&](auto& obj) {
+        AABB obj_bbox = obj.boundingBox();
 
-const XPBDObjects_Container& XPBDObjectGroup_Base::objects() const { return _objects; }
-const XPBDConstraints_Container& XPBDObjectGroup_Base::constraints() const { return _constraints; }
+        bbox.min[0] = std::min(bbox.min[0], obj_bbox.min[0]);
+        bbox.min[1] = std::min(bbox.min[1], obj_bbox.min[1]);
+        bbox.min[2] = std::min(bbox.min[2], obj_bbox.min[2]);
+
+        bbox.max[0] = std::max(bbox.max[0], obj_bbox.max[0]);
+        bbox.max[1] = std::max(bbox.max[1], obj_bbox.max[1]);
+        bbox.max[2] = std::max(bbox.max[2], obj_bbox.max[2]);
+    });
+
+    return bbox;
+}
 
 void XPBDObjectGroup_Base::inertialUpdate(Real dt)
 {

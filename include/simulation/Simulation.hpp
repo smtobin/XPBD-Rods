@@ -19,6 +19,8 @@
 
 #include "solver/GaussSeidelSolver.hpp"
 
+#include "collision/CollisionScene.hpp"
+
 #include <vector>
 #include <deque>
 #include <functional>
@@ -196,6 +198,9 @@ class Simulation
 
     // graphics
     Graphics::GraphicsScene _graphics_scene;
+
+    // collisions
+    Collision::CollisionScene _collision_scene;
 
     Config::SimulationConfig _config;
 };

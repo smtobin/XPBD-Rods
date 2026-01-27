@@ -13,7 +13,8 @@ Simulation::Simulation()
       _time(0), _dt(1e-3), _end_time(10),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
       _solver(_dt, 1),
-      _graphics_scene()
+      _graphics_scene(),
+      _collision_scene()
 {
 
 }
@@ -24,6 +25,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _viewer_refresh_time_ms(1000.0/30.0),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
+    _collision_scene(),
     _config(sim_config)
 {
 
@@ -381,6 +383,18 @@ void Simulation::setup()
     joint_configs.for_each_element([&](const auto& joint_config) {
         _addJointFromConfig(joint_config);
     });
+
+    // add objects to collision scene
+    /** TODO: determine grid size based on object sizes */
+    _objects.for_each_element([&](auto& obj) {
+        _collision_scene.addObject(obj.get());
+    });
+    _object_groups.for_each_element([&](auto& obj_group) {
+        auto& objects = obj_group->objects();
+        objects.for_each_element([&](auto& obj) {
+            _collision_scene.addObject(&obj);
+        });
+    });
     
 }
 
@@ -410,6 +424,8 @@ void Simulation::update()
         {
             continue;
         }
+
+        _collision_scene.detectCollisions();
 
         _timeStep();
 

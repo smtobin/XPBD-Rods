@@ -64,6 +64,26 @@ void XPBDRod::setup()
     
 }
 
+AABB XPBDRod::boundingBox() const
+{
+    AABB bbox;
+    bbox.min = _nodes.front().position;
+    bbox.max = _nodes.front().position;
+
+    for (int i = 1; i < _num_nodes; i++)
+    {
+        bbox.min[0] = std::min(bbox.min[0], _nodes[i].position[0]);
+        bbox.min[1] = std::min(bbox.min[1], _nodes[i].position[1]);
+        bbox.min[2] = std::min(bbox.min[2], _nodes[i].position[2]);
+
+        bbox.max[0] = std::max(bbox.max[0], _nodes[i].position[0]);
+        bbox.max[1] = std::max(bbox.max[1], _nodes[i].position[1]);
+        bbox.max[2] = std::max(bbox.max[2], _nodes[i].position[2]);
+    }
+
+    return bbox;
+}
+
 void XPBDRod::internalConstraintSolve(Real dt)
 {
     _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));

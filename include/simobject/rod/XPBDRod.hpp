@@ -6,6 +6,7 @@
 #include "config/RodConfig.hpp"
 #include "simobject/XPBDObject_Base.hpp"
 #include "simobject/rod/CrossSection.hpp"
+#include "simobject/rod/XPBDRodSegment.hpp"
 #include "simobject/OrientedParticle.hpp"
 #include "solver/BlockThomasSolver.hpp"
 #include "solver/BlockBandedSolver.hpp"
@@ -79,10 +80,19 @@ class XPBDRod : public XPBDObject_Base
             _nodes[i].mass = _m_node;
             _nodes[i].Ib = _I_rot;
         }
+
+        _segments.reserve(_num_nodes-1);
+        for (int i = 0; i < _num_nodes-1; i++)
+        {
+            _segments.emplace_back(&_nodes[i], &_nodes[i+1]);
+        }
     }
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
+
+    const std::vector<XPBDRodSegment>& segments() const { return _segments; }
+    std::vector<XPBDRodSegment>& segments() { return _segments; }
 
     /** Required override of XPBDObject_Base */
     virtual std::vector<const OrientedParticle*> particles() const override;
@@ -102,6 +112,8 @@ class XPBDRod : public XPBDObject_Base
 
     /** Computes the new translational and angular velocities of each node. */
     virtual void velocityUpdate(Real dt) override;
+
+    virtual AABB boundingBox() const override;
 
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override;
 
@@ -256,6 +268,9 @@ class XPBDRod : public XPBDObject_Base
     VecXr _inertia_mat_inv;
     VecXr _dlam;
     VecXr _dx;
+
+    /** Stores the individual rod segments (useful for collision detection). */
+    std::vector<XPBDRodSegment> _segments;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

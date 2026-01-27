@@ -13,6 +13,8 @@ public:
 
     Real radius() const { return _radius; }
 
+    virtual AABB boundingBox() const override;
+
 private:
     Real _radius;
 };

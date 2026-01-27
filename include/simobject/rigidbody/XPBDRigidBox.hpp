@@ -13,6 +13,8 @@ public:
 
     Vec3r size() const { return _size; }
 
+    virtual AABB boundingBox() const override;
+
 private:
     Vec3r _size;
 };

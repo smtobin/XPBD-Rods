@@ -20,24 +20,18 @@ class XPBDObjectGroup_Base : public XPBDObject_Base
 public:
     XPBDObjectGroup_Base(const Config::XPBDObjectConfig& config);
 
-    virtual ~XPBDObjectGroup_Base();
-
-    // Move operations
-    XPBDObjectGroup_Base(XPBDObjectGroup_Base&&) noexcept;
-    XPBDObjectGroup_Base& operator=(XPBDObjectGroup_Base&&) noexcept;
+    const XPBDObjects_Container& objects() const { return _objects; }
+    XPBDObjects_Container& objects() { return _objects; }
     
-    // Delete copy operations
-    XPBDObjectGroup_Base(const XPBDObjectGroup_Base&) = delete;
-    XPBDObjectGroup_Base& operator=(const XPBDObjectGroup_Base&) = delete;
-
-    const XPBDObjects_Container& objects() const; //{ return _objects; }
-    const XPBDConstraints_Container& constraints() const;// { return _constraints; }
+    const XPBDConstraints_Container& constraints() const { return _constraints; }
 
     virtual void inertialUpdate(Real dt) override;
 
     virtual void internalConstraintSolve(Real dt) override;
 
     virtual void velocityUpdate(Real dt) override;
+
+    virtual AABB boundingBox() const override;
 
     virtual std::vector<const OrientedParticle*> particles() const override;
 

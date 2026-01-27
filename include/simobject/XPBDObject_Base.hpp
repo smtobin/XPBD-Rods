@@ -4,6 +4,7 @@
 #include "common/constraint_containers.hpp"
 #include "config/XPBDObjectConfig.hpp"
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/AABB.hpp"
 
 #include <memory>
 
@@ -40,6 +41,9 @@ public:
 
     /** Updates the object's velocity. Should be called at the end of a time step. */
     virtual void velocityUpdate(Real dt) = 0;
+
+    /** Computes the object's axis-aligned bounding box. */
+    virtual AABB boundingBox() const = 0;
 
     /** Returns the "internal" constraints associated with this object. */
     // const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }

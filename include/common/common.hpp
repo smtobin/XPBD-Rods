@@ -61,7 +61,9 @@ struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
 /** Simulation object types */
 namespace SimObject
 {
+    class XPBDObject_Base;
     class XPBDRod;
+    class XPBDRodSegment;
     class XPBDRigidSphere;
     class XPBDRigidBox;
     class XPBDPendulum;
@@ -73,6 +75,8 @@ using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XP
 using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
+using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
+using XPBDObjects_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::const_ptr_type;
 
 using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot>;
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
