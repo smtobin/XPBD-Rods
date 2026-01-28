@@ -133,6 +133,9 @@ OneSidedSphericalJointSwingLimitConstraint::ConstraintVecType OneSidedSphericalJ
     // swing angle = norm of first 2 components
     Real swing_angle = dtheta.head<2>().norm();
 
+    std::cout << "Theta: " << dtheta.transpose() << std::endl;
+    std::cout << "Swing angle: " << swing_angle << std::endl;
+
     // difference with min
     Real min_diff = swing_angle - _min_angle;
     // difference with max

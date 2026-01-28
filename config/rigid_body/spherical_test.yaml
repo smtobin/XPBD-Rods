@@ -1,0 +1,49 @@
+## Description: test out revolute joint constraints with joint limits
+name: "RodSim"
+time-step: 1e-3
+end-time: 55
+
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+
+objects:
+  -
+    type: "RigidBox"
+    name: "link1"
+    size: [0.1, 1, 0.1]
+    initial-position: [0.5,0,0]
+    initial-rotation: [0,0,-90]
+    initial-velocity: [0,0,0]
+    render-type: "PBR"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]
+
+  -
+    type: "RigidBox"
+    name: "link2"
+    size: [0.1, 0.5, 0.1]
+    initial-position: [1, 0, 0.25]
+    initial-rotation: [90, 0, 0]
+    render-type: "PBR"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 0.0, 0.0]
+
+joints:
+  -
+    type: "Spherical"
+    body1: "link1"
+    body1-pos-offset: [0,-0.5, 0]
+    body2-rot-offset: [90,0,0]
+    swing-max-angle: 1
+
+  # -
+  #   type: "Spherical"
+  #   body1: "link1"
+  #   body1-pos-offset: [0, 0.5, 0]
+  #   body1-rot-offset: [0, 90, 0]
+  #   body2: "link2"
+  #   body2-pos-offset: [0, -0.25, 0]
+  #   body2-rot-offset: [0, 0, 0]
+  #   swing-max-angle: 2

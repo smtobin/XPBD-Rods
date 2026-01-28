@@ -152,6 +152,8 @@ OneSidedRevoluteJointLimitConstraint::ConstraintVecType OneSidedRevoluteJointLim
     // difference with max
     Real max_diff = _max_angle - dtheta[2];
 
+    std::cout << "Angle: " << dtheta[2] << std::endl;
+
     ConstraintVecType C;
     C[0] = std::min(min_diff, max_diff);
     return C;
@@ -173,7 +175,7 @@ OneSidedRevoluteJointLimitConstraint::GradientMatType OneSidedRevoluteJointLimit
 
     const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
 
-    Mat3r dC_dR1, dC_dR2;
+    Mat3r dC_dR1;
     if (min_diff < max_diff)
     {
         // the minimum limit is active
