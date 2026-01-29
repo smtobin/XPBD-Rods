@@ -112,6 +112,8 @@ namespace Constraint
 
     class RodElasticConstraint;
     class PointLineConstraint;
+
+    class RigidBodyCollisionConstraint;
 }
 
 using XPBDJointConstraints_TypeList = TypeList<
@@ -145,10 +147,15 @@ using XPBDRodConstraints_TypeList = TypeList<
     Constraint::PointLineConstraint
 >;
 
+using XPBDCollisionConstraints_TypeList = TypeList<
+    Constraint::RigidBodyCollisionConstraint
+>;
+
 using XPBDConstraints_TypeList = ConcatenateTypeLists<
     XPBDJointConstraints_TypeList,
     XPBDJointLimitConstraints_TypeList,
-    XPBDRodConstraints_TypeList
+    XPBDRodConstraints_TypeList,
+    XPBDCollisionConstraints_TypeList   // important that this goes last (I think)
 >::type;
 
 using XPBDConstraints_Container = VariadicVectorContainerFromTypeList<XPBDConstraints_TypeList>::type;

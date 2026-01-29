@@ -13,3 +13,5 @@
 #include "constraint/RevoluteJointLimitConstraint.hpp"
 #include "constraint/SphericalJointSwingLimitConstraint.hpp"
 #include "constraint/PrismaticJointLimitConstraint.hpp"
+
+#include "constraint/RigidBodyCollisionConstraint.hpp"

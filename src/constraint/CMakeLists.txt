@@ -15,6 +15,8 @@ set(CONSTRAINT_HEADERS
     ${CONSTRAINT_INCLUDE_DIR}/SphericalJointSwingLimitConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/PrismaticJointLimitConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/PointLineConstraint.hpp
+
+    ${CONSTRAINT_INCLUDE_DIR}/RigidBodyCollisionConstraint.hpp
 )
 
 set(CONSTRAINT_SOURCES
@@ -26,7 +28,10 @@ set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/RevoluteJointLimitConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/SphericalJointSwingLimitConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/PrismaticJointLimitConstraint.cpp
+
     ${CONSTRAINT_SRC_DIR}/PointLineConstraint.cpp
+
+    ${CONSTRAINT_SRC_DIR}/RigidBodyCollisionConstraint.cpp
 )
 
 target_sources(Constraint
