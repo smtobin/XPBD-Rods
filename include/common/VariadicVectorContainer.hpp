@@ -127,6 +127,11 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         return _size_helper<L, R...>();
     }
 
+    void clear()
+    {
+        _clear_helper<L, R...>();
+    }
+
     template<class T>
     const std::vector<T>& get() const
     {
@@ -303,5 +308,15 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         }
         
         return sizeT + sizeTs;
+    }
+
+    template<typename T, typename... Ts>
+    void _clear_helper()
+    {
+        clear<T>();
+        if constexpr (sizeof...(Ts) > 0)
+        {
+            _clear_helper<Ts...>();
+        }
     }
 };

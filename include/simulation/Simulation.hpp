@@ -55,6 +55,15 @@ class Simulation
     virtual void notifyLeftMouseButtonPressed();
     virtual void notifyLeftMouseButtonReleased();
 
+    template <class ConstraintType, class ...Args>
+    void addConstraint(Args&&... args)
+    {
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(std::forward<Args>(args)...);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+
     protected:
 
     template<typename ConfigType>        

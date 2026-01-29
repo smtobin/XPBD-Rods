@@ -114,6 +114,7 @@ namespace Constraint
     class PointLineConstraint;
 
     class RigidBodyCollisionConstraint;
+    class OneSidedRigidBodyCollisionConstraint;
 }
 
 using XPBDJointConstraints_TypeList = TypeList<
@@ -148,7 +149,8 @@ using XPBDRodConstraints_TypeList = TypeList<
 >;
 
 using XPBDCollisionConstraints_TypeList = TypeList<
-    Constraint::RigidBodyCollisionConstraint
+    Constraint::RigidBodyCollisionConstraint,
+    Constraint::OneSidedRigidBodyCollisionConstraint
 >;
 
 using XPBDConstraints_TypeList = ConcatenateTypeLists<
@@ -164,6 +166,8 @@ using XPBDConstraints_ConstVectorHandleContainer = VariadicVectorContainerFromTy
 
 using XPBDConstraints_VariantType = VariantFromTypeList<XPBDConstraints_TypeList>::variant_type;
 using XPBDConstraints_ConstPtrVariantType = VariantFromTypeList<XPBDConstraints_TypeList>::const_ptr_variant_type;
+
+using XPBDCollisionConstraints_Container = VariadicVectorContainerFromTypeList<XPBDCollisionConstraints_TypeList>::type;
 
 
 /** Constraint projector types */

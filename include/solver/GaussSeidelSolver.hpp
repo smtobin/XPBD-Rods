@@ -35,6 +35,13 @@ public:
         }
     }
 
+    template <typename ConstraintType>
+    void clearProjectorsOfType()
+    {
+        _constraint_projectors.template clear<Constraint::XPBDConstraintProjector<ConstraintType>>();
+        _separate_constraint_projectors.template clear<Constraint::XPBDSeparateConstraintProjector<ConstraintType>>();
+    }
+
     void solve();
 
     const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
