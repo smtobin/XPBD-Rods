@@ -1,4 +1,4 @@
-name: "Sphere-Sphere Collision"
+name: "Sphere-Box Collision"
 time-step: 1e-3
 end-time: 5
 
@@ -20,12 +20,13 @@ objects:
     color: [1.0, 1.0, 1.0]
 
   -
-    type: "RigidSphere"
-    name: "sphere2"
+    type: "RigidBox"
+    name: "box1"
     initial-position: [0,0,0]
-    initial-velocity: [0.1,10,0]
+    initial-velocity: [0,12,0]
+    initial-angular-velocity: [2,0,3]
     fixed: true
-    radius: 1
+    size: [1.2, 0.5, 1.8]
     render-type: "PBR"
     metallic: 0.2
     roughness: 0.5
