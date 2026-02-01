@@ -9,12 +9,21 @@ set(COLLISION_HEADERS
     ${COLLISION_INCLUDE_DIR}/CollisionBucket.hpp
     ${COLLISION_INCLUDE_DIR}/SpatialHasher.hpp
     ${COLLISION_INCLUDE_DIR}/CollisionScene.hpp
+
+    # SDFs
+    ${COLLISION_INCLUDE_DIR}/sdf/SDF.hpp
+    ${COLLISION_INCLUDE_DIR}/sdf/SphereSDF.hpp
+    ${COLLISION_INCLUDE_DIR}/sdf/BoxSDF.hpp
 )
 
 set(COLLISION_SOURCES
     ${COLLISION_SRC_DIR}/CollisionObject.cpp
     ${COLLISION_SRC_DIR}/SpatialHasher.cpp
     ${COLLISION_SRC_DIR}/CollisionScene.cpp
+
+    # SDFs
+    ${COLLISION_SRC_DIR}/sdf/SphereSDF.cpp
+    ${COLLISION_SRC_DIR}/sdf/BoxSDF.cpp
 )
 
 target_sources(Collision
