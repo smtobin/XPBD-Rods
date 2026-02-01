@@ -62,7 +62,7 @@ void CollisionScene::_initCollisionTable()
 }
 
 CollisionScene::CollisionScene()
-    : _spatial_hasher(0.5, 1499)
+    : _spatial_hasher(0.5, 14909)
 {
     _initCollisionTable();
 }
@@ -196,6 +196,22 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment)
 {
     std::cout << "Potential collision between a sphere and rod segment!" << std::endl;
+
+    // project the sphere center onto the line segment, and clamp between [0,1]
+    const Vec3r& sphere_center = sphere->com().position;
+    const Vec3r& endpoint1 = segment->particle1()->position;
+    const Vec3r& endpoint2 = segment->particle2()->position;
+    Real t = Math::projectPointOntoLine(sphere_center, endpoint1, endpoint2);
+    t = std::clamp(t, 0.0, 1.0);
+
+    // get the closest point on the line segment
+    const Vec3r segment_cp = (1-t)*endpoint1 + t*endpoint2;
+
+    // find the distance
+    const Vec3r diff = sphere_center - segment_cp;
+    Real sq_dist = diff.squaredNorm();
+    
+
 }
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box1, SimObject::XPBDRigidBox* box2)
@@ -204,7 +220,79 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         return;
 
     std::cout << "Potential collision between two boxes!" << std::endl;
+
+    // separating axis theorem - look for axes where projections don't overlap
+    // 15 potential separating axes:
+    //  - 3 face normals of box 1
+    //  - 3 face normals of box 2
+    //  - 9 edge cross products (3 edges of box 1 x 3 edges of box 2)
+    
+    Real min_penetration = std::numeric_limits<Real>::max();
+    Vec3r best_axis = box1->com().orientation.col(0);
+
+    auto test_axis = [&](const Vec3r& axis) -> bool
+    {
+        Real proj1 =    box1->size()[0]/2 * std::abs(box1->com().orientation.col(0).dot(axis)) +
+                        box1->size()[1]/2 * std::abs(box1->com().orientation.col(1).dot(axis)) +
+                        box1->size()[2]/2 * std::abs(box1->com().orientation.col(2).dot(axis));
+        Real proj2 =    box2->size()[0]/2 * std::abs(box2->com().orientation.col(0).dot(axis)) +
+                        box2->size()[1]/2 * std::abs(box2->com().orientation.col(1).dot(axis)) +
+                        box2->size()[2]/2 * std::abs(box2->com().orientation.col(2).dot(axis));
+        Vec3r diff = box2->com().position - box1->com().position;
+        Real dist = std::abs(diff.dot(axis));
+
+        Real overlap = proj1 + proj2 - dist;
+
+        if (overlap < 0)
+            return false;
+        
+        if (overlap < min_penetration)
+        {
+            min_penetration = overlap;
+            best_axis = axis;
+        }
+
+        return true;
+    };
+
+    // 3 face normals of box 1 and 2
+    for (int i = 0; i < 3; i++)
+    {
+        if (!test_axis(box1->com().orientation.col(i)))
+            return;
+
+        if (!test_axis(box2->com().orientation.col(i)))
+            return;
+    }
+
+    // edge cross products
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            Vec3r axis = box1->com().orientation.col(i).cross(box2->com().orientation.col(i));
+            Real sq_len = axis.squaredNorm();
+            // skip near-parallel edges
+            if (sq_len < 1e-6)
+                continue;
+
+            axis = axis / std::sqrt(sq_len);
+
+            if (!test_axis(axis))
+                return;
+        }
+    }
+
+    // all axes overlap ==> collision!
+    
+
+
+
+    
+
+    
 }
+
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRodSegment* segment)
 {

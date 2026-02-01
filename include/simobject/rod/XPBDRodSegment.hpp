@@ -8,8 +8,8 @@ namespace SimObject
 class XPBDRodSegment
 {
 public:
-    explicit XPBDRodSegment(OrientedParticle* particle1, OrientedParticle* particle2)
-        : _particle1(particle1), _particle2(particle2)
+    explicit XPBDRodSegment(OrientedParticle* particle1, OrientedParticle* particle2, Real radius)
+        : _particle1(particle1), _particle2(particle2), _radius(radius)
     {}
 
     OrientedParticle* particle1() { return _particle1; }
@@ -17,6 +17,8 @@ public:
 
     OrientedParticle* particle2() { return _particle2; }
     const OrientedParticle* particle2() const { return _particle2; }
+
+    Real radius() const { return _radius; }
 
     AABB boundingBox() const
     {
@@ -37,6 +39,9 @@ public:
 private:
     OrientedParticle* _particle1;
     OrientedParticle* _particle2;
+
+    /** TODO: adapt for non-circular cross-sections */
+    Real _radius;
 };
 
 } // namespace SimObject

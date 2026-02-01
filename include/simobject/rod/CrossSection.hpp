@@ -47,6 +47,8 @@ class CircleCrossSection : public CrossSection
     
     Real area() const override { return M_PI * _radius * _radius; }
 
+    Real radius() const { return _radius; }
+
     private:
     Real _radius;
     const int _tubular_resolution;

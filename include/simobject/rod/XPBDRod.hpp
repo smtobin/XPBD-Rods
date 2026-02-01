@@ -84,7 +84,7 @@ class XPBDRod : public XPBDObject_Base
         _segments.reserve(_num_nodes-1);
         for (int i = 0; i < _num_nodes-1; i++)
         {
-            _segments.emplace_back(&_nodes[i], &_nodes[i+1]);
+            _segments.emplace_back(&_nodes[i], &_nodes[i+1], cross_section.radius());
         }
     }
 
