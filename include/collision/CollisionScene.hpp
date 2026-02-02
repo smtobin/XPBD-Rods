@@ -6,6 +6,8 @@
 #include "common/VariadicVectorContainer.hpp"
 #include "constraint/RigidBodyCollisionConstraint.hpp"
 
+#include "collision/sdf/SDF.hpp"
+
 namespace Collision
 {
 
@@ -35,6 +37,8 @@ private:
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRodSegment* segment1, SimObject::XPBDRodSegment* segment2);
 
     static void _initCollisionTable();
+
+    static Vec3r _frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3);
 
     /** Container for the newly added collision constraints. */
     XPBDCollisionConstraints_Container _new_collision_constraints;

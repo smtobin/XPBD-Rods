@@ -1,0 +1,33 @@
+name: "Box-Box Collision"
+time-step: 1e-3
+end-time: 5
+
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+
+objects:
+  - 
+    type: "RigidBox"
+    name: "box1"
+    initial-position: [0.1, 10, 0.1]
+    initial-rotation: [0, 0, 0]
+    size: [1,1,1]
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]
+
+  -
+    type: "RigidBox"
+    name: "box2"
+    initial-position: [0,0,0]
+    initial-velocity: [0,10,0]
+    initial-angular-velocity: [0,0,0]
+    fixed: true
+    size: [1,1,1]
+    render-type: "PBR"
+    metallic: 0.2
+    roughness: 0.5
+    color: [1.0, 1.0, 1.0]

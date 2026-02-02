@@ -4,6 +4,10 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rod/XPBDRodSegment.hpp"
 
+#include "collision/sdf/SDF.hpp"
+#include "collision/sdf/SphereSDF.hpp"
+#include "collision/sdf/BoxSDF.hpp"
+
 namespace Collision
 {
 
@@ -221,76 +225,120 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
     std::cout << "Potential collision between two boxes!" << std::endl;
 
-    // separating axis theorem - look for axes where projections don't overlap
-    // 15 potential separating axes:
-    //  - 3 face normals of box 1
-    //  - 3 face normals of box 2
-    //  - 9 edge cross products (3 edges of box 1 x 3 edges of box 2)
-    
-    Real min_penetration = std::numeric_limits<Real>::max();
-    Vec3r best_axis = box1->com().orientation.col(0);
+    BoxSDF box1_sdf(box1);
 
-    auto test_axis = [&](const Vec3r& axis) -> bool
+    // get vertices (in local frame) of box 2
+    Vec3r v1_local = box2->com().position - box2->size()/2;
+    Vec3r v2_local = v1_local; v2_local[0] += box2->size()[0];
+    Vec3r v3_local = v2_local; v3_local[1] += box2->size()[1];
+    Vec3r v4_local = v1_local; v4_local[1] += box2->size()[1];
+
+    Vec3r v5_local = v1_local; v1_local[2] += box2->size()[2];
+    Vec3r v6_local = v5_local; v6_local[0] += box2->size()[0];
+    Vec3r v7_local = v6_local; v7_local[1] += box2->size()[1];
+    Vec3r v8_local = v5_local; v8_local[1] += box2->size()[1];
+
+    // get vertices (in global frame) of box 2
+    Vec3r v1 = box2->com().orientation * v1_local;
+    Vec3r v2 = box2->com().orientation * v2_local;
+    Vec3r v3 = box2->com().orientation * v3_local;
+    Vec3r v4 = box2->com().orientation * v4_local;
+    Vec3r v5 = box2->com().orientation * v5_local;
+    Vec3r v6 = box2->com().orientation * v6_local;
+    Vec3r v7 = box2->com().orientation * v7_local;
+    Vec3r v8 = box2->com().orientation * v8_local;
+
+    auto check_vertex = [&](const Vec3r& v)
     {
-        Real proj1 =    box1->size()[0]/2 * std::abs(box1->com().orientation.col(0).dot(axis)) +
-                        box1->size()[1]/2 * std::abs(box1->com().orientation.col(1).dot(axis)) +
-                        box1->size()[2]/2 * std::abs(box1->com().orientation.col(2).dot(axis));
-        Real proj2 =    box2->size()[0]/2 * std::abs(box2->com().orientation.col(0).dot(axis)) +
-                        box2->size()[1]/2 * std::abs(box2->com().orientation.col(1).dot(axis)) +
-                        box2->size()[2]/2 * std::abs(box2->com().orientation.col(2).dot(axis));
-        Vec3r diff = box2->com().position - box1->com().position;
-        Real dist = std::abs(diff.dot(axis));
-
-        Real overlap = proj1 + proj2 - dist;
-
-        if (overlap < 0)
-            return false;
-        
-        if (overlap < min_penetration)
+        Real dist = box1_sdf.evaluate(v);
+        if (dist < 0)
         {
-            min_penetration = overlap;
-            best_axis = axis;
-        }
+            Vec3r grad = box1_sdf.gradient(v);
+            Vec3r cp_box1 = v - dist * grad;
+            Vec3r cp_box1_local = box1->com().orientation.transpose() * (cp_box1 - box1->com().position);
+            Vec3r cp_box2_local = box2->com().orientation.transpose() * (v - box2->com().position);
 
-        return true;
+            scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+                &box1->com(), cp_box1_local,
+                &box2->com(), cp_box2_local,
+                grad
+            );
+        }
     };
 
-    // 3 face normals of box 1 and 2
-    for (int i = 0; i < 3; i++)
+    auto check_side = [&](const Vec3r& p1, const Vec3r& p2, const Vec3r& p3, const Vec3r& p4, Real max_side_dim)
     {
-        if (!test_axis(box1->com().orientation.col(i)))
-            return;
-
-        if (!test_axis(box2->com().orientation.col(i)))
-            return;
-    }
-
-    // edge cross products
-    for (int i = 0; i < 3; i++)
-    {
-        for (int j = 0; j < 3; j++)
+        // check SDF distance at center
+        Vec3r c = (p1 + p2 + p3 + p4) / 4.0;
+        if (box1_sdf.evaluate(c) < max_side_dim)
         {
-            Vec3r axis = box1->com().orientation.col(i).cross(box2->com().orientation.col(i));
-            Real sq_len = axis.squaredNorm();
-            // skip near-parallel edges
-            if (sq_len < 1e-6)
-                continue;
+            Vec3r res1 = _frankWolfe(&box1_sdf, p1, p2, p3);
+            Vec3r res2 = _frankWolfe(&box1_sdf, p1, p3, p4);
 
-            axis = axis / std::sqrt(sq_len);
+            Real dist1 = box1_sdf.evaluate(res1);
+            if (dist1 < 0)
+            {
+                // res1 is contact point on box2
+                // get contact point on box1
+                Vec3r grad1 = box1_sdf.gradient(res1);
+                Vec3r cp_box1 = res1 - dist1 * grad1;
+                Vec3r cp_box1_local = box1->com().orientation.transpose() * (cp_box1 - box1->com().position);
+                Vec3r cp_box2_local = box2->com().orientation.transpose() * (res1 - box2->com().position);
 
-            if (!test_axis(axis))
-                return;
+                scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+                    &box1->com(), cp_box1_local,
+                    &box2->com(), cp_box2_local,
+                    grad1
+                );
+
+                std::cout << "\n\nBOX-BOX COLLISION!" << std::endl;
+                std::cout << "Box1 collision point: " << cp_box1 << std::endl;
+                std::cout << "Box2 collision point: " << res1 << std::endl;
+                std::cout << "Collision normal: " << grad1 << std::endl;
+
+                // assert(0);
+            }
+
+            Real dist2 = box1_sdf.evaluate(res2);
+            if (dist2 < 0)
+            {
+                Vec3r grad2 = box1_sdf.gradient(res2);
+                Vec3r cp_box1 = res2 - dist2 * grad2;
+                Vec3r cp_box1_local = box1->com().orientation.transpose() * (cp_box1 - box1->com().position);
+                Vec3r cp_box2_local = box2->com().orientation.transpose() * (res2 - box2->com().position);
+
+                scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+                    &box1->com(), cp_box1_local,
+                    &box2->com(), cp_box2_local,
+                    grad2
+                );
+
+                std::cout << "\n\nBOX-BOX COLLISION!" << std::endl;
+                std::cout << "Box1 collision point: " << cp_box1 << std::endl;
+                std::cout << "Box2 collision point: " << res2 << std::endl;
+                std::cout << "Collision normal: " << grad2 << std::endl;
+
+                // assert(0);
+            }
         }
-    }
+    };
 
-    // all axes overlap ==> collision!
-    
+    check_side(v1, v2, v3, v4, std::max(box2->size()[0], box2->size()[1]) );
+    check_side(v5, v6, v7, v8, std::max(box2->size()[0], box2->size()[1]) );
+    check_side(v1, v2, v5, v6, std::max(box2->size()[0], box2->size()[2]) );
+    check_side(v3, v4, v7, v8, std::max(box2->size()[0], box2->size()[2]) );
+    check_side(v1, v4, v5, v8, std::max(box2->size()[1], box2->size()[2]) );
+    check_side(v2, v3, v5, v6, std::max(box2->size()[1], box2->size()[2]) );
 
+    check_vertex(v1);
+    check_vertex(v2);
+    check_vertex(v3);
+    check_vertex(v4);
+    check_vertex(v5);
+    check_vertex(v6);
+    check_vertex(v7);
+    check_vertex(v8);
 
-
-    
-
-    
 }
 
 
@@ -305,6 +353,38 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
         return;
 
     std::cout << "Potential collision between two rod segments!" << std::endl;
+}
+
+Vec3r CollisionScene::_frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3)
+{
+    // find starting iterate - the triangle vertex with the smallest value of SDF
+    const Real d_p1 = sdf->evaluate(p1);
+    const Real d_p2 = sdf->evaluate(p2);
+    const Real d_p3 = sdf->evaluate(p3);
+
+    Vec3r x;
+    if (d_p1 <= d_p2 && d_p1 <= d_p3)       x = p1;
+    else if (d_p2 <= d_p1 && d_p2 <= d_p3)  x = p2;
+    else                                    x = p3;
+
+    Vec3r s;
+    for (int i = 0; i < 10; i++)
+    {
+        const Real alpha = 2.0/(i+3);
+        const Vec3r& gradient = sdf->gradient(x);
+        const Real sg1 = p1.dot(gradient);
+        const Real sg2 = p2.dot(gradient);
+        const Real sg3 = p3.dot(gradient);
+
+        if (sg1 < sg2 && sg1 < sg3)       s = p1;
+        else if (sg2 < sg1 && sg2 < sg3)  s = p2;
+        else                                s = p3;
+
+        x = x + alpha * (s - x);
+        
+    }
+
+    return x;
 }
 
 } // namespace Collision
