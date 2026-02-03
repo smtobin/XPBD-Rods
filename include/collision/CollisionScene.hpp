@@ -40,6 +40,11 @@ private:
 
     static Vec3r _frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3);
 
+
+    static std::pair<Real,Real> _closestPointBetweenLines(const Vec3r& p1, const Vec3r& u1, const Vec3r& p2, const Vec3r& u2);
+    static void _cullPoints2(int n, Real p[], int m, int i0, int iret[]);
+    static int _intersectRectQuad2(Real h[2], Real p[8], Real ret[16]);
+
     /** Container for the newly added collision constraints. */
     XPBDCollisionConstraints_Container _new_collision_constraints;
 
