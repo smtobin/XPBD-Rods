@@ -11,6 +11,15 @@
 namespace Collision
 {
 
+struct DetectedCollision
+{
+    SimObject::OrientedParticle* particle1;
+    SimObject::OrientedParticle* particle2;
+    Vec3r cp_local1;
+    Vec3r cp_local2;
+    Vec3r normal;
+};
+
 class CollisionScene
 {
 public:
@@ -24,7 +33,8 @@ public:
         _spatial_hasher.addObject(obj);
     }
 
-    const XPBDCollisionConstraints_Container& detectCollisions();
+    // const XPBDCollisionConstraints_Container& detectCollisions();
+    const std::vector<DetectedCollision>& detectCollisions();
 
 private:
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere1, SimObject::XPBDRigidSphere* sphere2);
@@ -47,6 +57,8 @@ private:
 
     /** Container for the newly added collision constraints. */
     XPBDCollisionConstraints_Container _new_collision_constraints;
+
+    std::vector<DetectedCollision> _new_collisions;
 
     /** Performs broad-phase collision detection. Finds potentially colliding pairs of objects. */
     SpatialHasher _spatial_hasher;

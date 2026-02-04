@@ -77,9 +77,11 @@ CollisionScene::CollisionScene(Real grid_size, int num_buckets)
     _initCollisionTable();
 }
 
-const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
+// const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
+const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
 {
     _new_collision_constraints.clear();
+    _new_collisions.clear();
 
     // run broad-phase collision detection using spatial hashing
     _spatial_hasher.hashObjects();
@@ -91,7 +93,8 @@ const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
         _collision_table[static_cast<int>(pair.obj1->type)][static_cast<int>(pair.obj2->type)](this, pair.obj1->obj, pair.obj2->obj);
     }
 
-    return _new_collision_constraints;
+    // return _new_collision_constraints;
+    return _new_collisions;
 }
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere1, SimObject::XPBDRigidSphere* sphere2)
@@ -333,7 +336,16 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         p1 += alpha * u1;
         p2 += beta * u2;
 
-        /** TODO: generate collision */
+        Vec3r p1_local = box1->com().orientation.transpose() * (p1 - box1->com().position);
+        Vec3r p2_local = box2->com().orientation.transpose() * (p2 - box2->com().position);
+
+        DetectedCollision new_collision;
+        new_collision.cp_local1 = p1_local;
+        new_collision.cp_local2 = p2_local;
+        new_collision.normal = normal;
+        new_collision.particle1 = &box1->com();
+        new_collision.particle2 = &box2->com();
+        scene->_new_collisions.push_back(std::move(new_collision));
 
         return;
     }
@@ -551,14 +563,24 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         for(int j = 0; j < cnum; ++j)
         {
             int i = iret[j];
-            Vec3r cp1_local = points[i];
-            Vec3r cp2_global = cp1_local + p1 + normal * dep[i];
+            Vec3r cp2_global = points[i] + p1;
             Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
-            scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
-                com1, cp1_local,
-                com2, cp2_local,
-                normal
-            );
+            Vec3r cp1_global = cp2_global + normal * dep[i];
+            Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
+            
+            // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+            //     com1, cp1_local,
+            //     com2, cp2_local,
+            //     normal
+            // );
+
+            DetectedCollision new_collision;
+            new_collision.cp_local1 = cp1_local;
+            new_collision.cp_local2 = cp2_local;
+            new_collision.normal = normal;
+            new_collision.particle1 = com1;
+            new_collision.particle2 = com2;
+            scene->_new_collisions.push_back(std::move(new_collision));
         }
     } 
     else 
@@ -566,14 +588,24 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         for(int j = 0; j < cnum; ++j)
         {
             int i = iret[j];
-            Vec3r cp1_local = points[i];
-            Vec3r cp2_global = cp1_local + p1 - normal * dep[i];
+            Vec3r cp2_global = points[i] + p1;
             Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
-            scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
-                com1, cp1_local,
-                com2, cp2_local,
-                normal
-            );
+            Vec3r cp1_global = cp2_global - normal * dep[i];
+            Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
+            
+            // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+            //     com1, cp1_local,
+            //     com2, cp2_local,
+            //     normal
+            // );
+
+            DetectedCollision new_collision;
+            new_collision.cp_local1 = cp1_local;
+            new_collision.cp_local2 = cp2_local;
+            new_collision.normal = normal;
+            new_collision.particle1 = com1;
+            new_collision.particle2 = com2;
+            scene->_new_collisions.push_back(std::move(new_collision));
         }
     }
 

@@ -89,6 +89,9 @@ target_link_libraries(TestGradient Eigen3::Eigen Constraint SimObject)
 add_executable(TestConstraintGradients test/test_constraint_gradients.cpp)
 target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint SimObject)
 
+add_executable(TestCollision test/test_collision.cpp)
+target_link_libraries(TestCollision Eigen3::Eigen Collision SimObject Graphics ${VTK_LIBRARIES})
+
 
 
 # vtk_module_autoinit is needed
@@ -99,6 +102,11 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS TestPBR
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS TestCollision
   MODULES ${VTK_LIBRARIES}
 )
 
