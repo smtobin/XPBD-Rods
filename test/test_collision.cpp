@@ -20,6 +20,11 @@
 #include <vtkVertexGlyphFilter.h>
 #include <vtkPolyDataMapper.h>
 
+#include <tuple>
+#include <functional>
+
+using ReturnTuple = std::tuple<SimObject::XPBDRigidBox, SimObject::XPBDRigidBox, std::vector<Vec3r>, std::vector<Vec3r>>;
+
 void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBox& box2, 
     const std::vector<Vec3r>& box1_collision_points, const std::vector<Vec3r>& box2_collision_points)
 {
@@ -109,18 +114,10 @@ void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBo
     interactor->Start();
 }
 
-int main()
+ReturnTuple testCollision(Vec3r pos1, Vec3r rot1, Vec3r size1, Vec3r pos2, Vec3r rot2, Vec3r size2)
 {
     Collision::CollisionScene scene;
-
-    Vec3r pos1(0,0,-0.1);
-    Vec3r rot1(0,0,45);  // XYZ Euler angle convention (in degrees)
-    Vec3r size1(1,1,1);
     Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size1);
-
-    Vec3r pos2(0.2, 1, 0);
-    Vec3r rot2(45,0,0);
-    Vec3r size2(1,1,1);
     Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size2);
 
     SimObject::XPBDRigidBox box1(box1_config);
@@ -160,8 +157,84 @@ int main()
         std::cout << "(cp2 - cp1).dot(normal): " << (cp2_global - cp1_global).dot(collision.normal) << std::endl;
     }
 
+    return std::make_tuple(box1, box2, box1_collision_points, box2_collision_points);
+}
+
+ReturnTuple testCode1()
+{
+    // Code 1: face normal X of box1
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(1,1,1), 
+        Vec3r(0.9,0,0), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode2()
+{
+    // Code 2: face normal Y of box1
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(1,1,1), 
+        Vec3r(0,0.9,0), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode3()
+{
+    // Code 3: face normal Z of box1
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(1,1,1), 
+        Vec3r(0,0,0.9), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode4()
+{
+    // Code 4: face normal X of box2
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(30,20,10), Vec3r(1,1,1), // rotate box1 so box2's axis is the minimum
+        Vec3r(0.9,0,0), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode5()
+{
+    // Code 5: face normal Y of box2
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(30,20,10), Vec3r(1,1,1), 
+        Vec3r(0,0.9,0), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode6()
+{
+    // Code 6: face normal Z of box2
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(30,20,10), Vec3r(1,1,1), 
+        Vec3r(0,0,0.9), Vec3r(0,0,0), Vec3r(1,1,1)
+    );
+}
+
+int main()
+{
+    using TestFuncType = std::function<ReturnTuple ()>;
+    std::vector<TestFuncType> test_funcs = {testCode1, testCode2, testCode3, testCode4, testCode5, testCode6};
+    std::vector<ReturnTuple> test_results;
+
+    int visualize_index = 3;
+
+    std::cout << "\n=== Running tests ===" << std::endl;
+    for (unsigned i = 0; i < test_funcs.size(); i++)
+    {
+        std::cout << " \n\n--------------------\nRUNNING TEST " << i << "\n--------------------" << std::endl;
+        auto result = test_funcs[i]();
+        test_results.push_back(std::move(result));
+    }
+
 
     /** Visualize boxes */
-
-    visualize(box1, box2, box1_collision_points, box2_collision_points);
+    if (visualize_index >= 0 && visualize_index < test_results.size())
+    {
+        const auto& result = test_results[visualize_index];
+        visualize(std::get<0>(result), std::get<1>(result), std::get<2>(result), std::get<3>(result));
+    }
 }

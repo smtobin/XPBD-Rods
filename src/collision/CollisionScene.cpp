@@ -401,7 +401,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
     // normal vector of the reference face
     Vec3r normal2 = normal;
-    if (code > 4)
+    if (code >= 4)
         // needs to be flipped if the reference face is on box 2
         normal2 = -normal;
 
@@ -580,12 +580,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
             Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
             Vec3r cp1_global = cp2_global + normal * dep[i];
             Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
-            
-            // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
-            //     com1, cp1_local,
-            //     com2, cp2_local,
-            //     normal
-            // );
 
             RigidRigidCollision new_collision;
             new_collision.cp_local1 = cp1_local;
@@ -605,17 +599,11 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
             Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
             Vec3r cp1_global = cp2_global - normal * dep[i];
             Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
-            
-            // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
-            //     com1, cp1_local,
-            //     com2, cp2_local,
-            //     normal
-            // );
 
             RigidRigidCollision new_collision;
             new_collision.cp_local1 = cp1_local;
             new_collision.cp_local2 = cp2_local;
-            new_collision.normal = normal;
+            new_collision.normal = -normal;
             new_collision.particle1 = com1;
             new_collision.particle2 = com2;
             scene->_new_collisions.push_back(std::move(new_collision));
