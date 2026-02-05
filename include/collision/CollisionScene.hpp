@@ -3,22 +3,12 @@
 #include "common/common.hpp"
 #include "collision/SpatialHasher.hpp"
 
-#include "common/VariadicVectorContainer.hpp"
-#include "constraint/RigidBodyCollisionConstraint.hpp"
-
 #include "collision/sdf/SDF.hpp"
+
+#include "collision/CollisionTypes.hpp"
 
 namespace Collision
 {
-
-struct DetectedCollision
-{
-    SimObject::OrientedParticle* particle1;
-    SimObject::OrientedParticle* particle2;
-    Vec3r cp_local1;
-    Vec3r cp_local2;
-    Vec3r normal;
-};
 
 class CollisionScene
 {
@@ -55,9 +45,10 @@ private:
     static void _cullPoints2(int n, Real p[], int m, int i0, int iret[]);
     static int _intersectRectQuad2(Real h[2], Real p[8], Real ret[16]);
 
-    /** Container for the newly added collision constraints. */
-    XPBDCollisionConstraints_Container _new_collision_constraints;
-
+    /** Store all the newly detected collisions (in the latest call of detectCollisions()).
+     * DetectedCollision is a std::variant type that stores different information depending on the type of collision
+     * (i.e. Rigid-rigid, rigid-rod segment, rod segment-rod segment, etc.)
+     */
     std::vector<DetectedCollision> _new_collisions;
 
     /** Performs broad-phase collision detection. Finds potentially colliding pairs of objects. */

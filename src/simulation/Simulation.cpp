@@ -427,6 +427,21 @@ void Simulation::update()
 
         _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
         _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
+        const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
+        for (const auto& detected_collision : detected_collisions)
+        {
+            std::visit([&](auto&& collision) {
+                using T = std::decay_t<decltype(collision)>;
+                if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
+                {
+                    using ConstraintType = Constraint::RigidBodyCollisionConstraint;
+                    auto& constraint_vec = _constraints.template get<ConstraintType>();
+                    constraint_vec.emplace_back(collision.particle1, collision.cp_local1, collision.particle2, collision.cp_local2, collision.normal);
+                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                    _solver.addConstraint(constraint_ref);
+                }
+            }, detected_collision);
+        }
         // const XPBDCollisionConstraints_Container& new_collision_constraints = _collision_scene.detectCollisions();
         // new_collision_constraints.for_each_element([&](const auto& collision_constraint) {
         //     using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(collision_constraint)>>;

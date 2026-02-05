@@ -113,14 +113,14 @@ int main()
 {
     Collision::CollisionScene scene;
 
-    Vec3r pos1(0,0,0);
+    Vec3r pos1(0,0,-0.1);
     Vec3r rot1(0,0,45);  // XYZ Euler angle convention (in degrees)
-    Vec3r size1(1.2,1.8,1);
+    Vec3r size1(1,1,1);
     Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size1);
 
-    Vec3r pos2(0.4, 1.1, 0.4);
-    Vec3r rot2(45,60,0);
-    Vec3r size2(0.4,1,1.2);
+    Vec3r pos2(0.2, 1, 0);
+    Vec3r rot2(45,0,0);
+    Vec3r size2(1,1,1);
     Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size2);
 
     SimObject::XPBDRigidBox box1(box1_config);
@@ -132,8 +132,9 @@ int main()
     const std::vector<Collision::DetectedCollision>& detected_collisions = scene.detectCollisions();
     std::vector<Vec3r> box1_collision_points;
     std::vector<Vec3r> box2_collision_points;
-    for (const auto& collision : detected_collisions)
+    for (const auto& detected_collision : detected_collisions)
     {
+        Collision::RigidRigidCollision collision = std::get<Collision::RigidRigidCollision>(detected_collision);
         std::cout << "\n=== Collision between " << collision.particle1 << " and " << collision.particle2 << " ===" << std::endl;
         std::cout << "Position1: " << collision.particle1->position.transpose() << std::endl;
         std::cout << "Position2: " << collision.particle2->position.transpose() << std::endl;

@@ -9,7 +9,7 @@ objects:
   - 
     type: "RigidBox"
     name: "box1"
-    initial-position: [0.1, 10, 0.1]
+    initial-position: [0, 10, 0]
     initial-rotation: [0, 0, 0]
     size: [1,1,1]
     render-type: "PBR"

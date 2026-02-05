@@ -80,7 +80,6 @@ CollisionScene::CollisionScene(Real grid_size, int num_buckets)
 // const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
 const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
 {
-    _new_collision_constraints.clear();
     _new_collisions.clear();
 
     // run broad-phase collision detection using spatial hashing
@@ -124,11 +123,18 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         // Vec3r cp2 = sphere2->com() - collision_normal * sphere2->radius();
 
         // create collision constraint
-        scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(
-            &sphere1->com(), r1, 
-            &sphere2->com(), r2, 
-            collision_normal
-        );
+        // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(
+        //     &sphere1->com(), r1, 
+        //     &sphere2->com(), r2, 
+        //     collision_normal
+        // );
+        RigidRigidCollision new_collision;
+        new_collision.particle1 = &sphere1->com();
+        new_collision.particle2 = &sphere2->com();
+        new_collision.cp_local1 = r1;
+        new_collision.cp_local2 = r2;
+        new_collision.normal = collision_normal;
+        scene->_new_collisions.push_back(std::move(new_collision));
     }
         
 }
@@ -192,11 +198,18 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         Vec3r cp_sphere_local = -sphere->com().orientation.transpose() * collision_normal * sphere->radius();
 
         // create collision constraint
-        scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
-            &box->com(), box_closest_point,
-            &sphere->com(), cp_sphere_local,
-            collision_normal
-        );
+        // scene->_new_collision_constraints.template emplace_back<Constraint::RigidBodyCollisionConstraint>(  
+        //     &box->com(), box_closest_point,
+        //     &sphere->com(), cp_sphere_local,
+        //     collision_normal
+        // );
+        RigidRigidCollision new_collision;
+        new_collision.particle1 = &box->com();
+        new_collision.particle2 = &sphere->com();
+        new_collision.cp_local1 = box_closest_point;
+        new_collision.cp_local2 = cp_sphere_local;
+        new_collision.normal = collision_normal;
+        scene->_new_collisions.push_back(std::move(new_collision));
     }
 }
 
@@ -282,7 +295,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     {
         for (int j = 0; j < 3; j++)
         {
-            Vec3r axis = box1->com().orientation.col(i).cross(box2->com().orientation.col(i));
+            Vec3r axis = box1->com().orientation.col(i).cross(box2->com().orientation.col(j));
             Real sq_len = axis.squaredNorm();
             // skip near-parallel edges
             if (sq_len < 1e-6)
@@ -313,15 +326,15 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         for (int k = 0; k < 3; k++)
         {
             int sign = (box1->com().orientation.col(k).dot(normal) > 0) ? 1 : -1;
-            p1 += box1->com().orientation.col(k) * (box1->size()[k] * sign);
+            p1 += box1->com().orientation.col(k) * (box1->size()[k]/2.0 * sign);
         }
 
         // find point p2 on the intersecting edge of box 2
         Vec3r p2(box2->com().position);
         for (int k = 0; k < 3; k++)
         {
-            int sign = (box2->com().orientation.col(k).dot(normal) > 0) ? 1 : -1;
-            p2 += box2->com().orientation.col(k) * (box2->size()[k] * sign);
+            int sign = (box2->com().orientation.col(k).dot(normal) > 0) ? -1 : 1;
+            p2 += box2->com().orientation.col(k) * (box2->size()[k]/2.0 * sign);
         }
 
         // directions of intersecting edges for each box ==> just the columns of the rotation matrix
@@ -339,7 +352,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         Vec3r p1_local = box1->com().orientation.transpose() * (p1 - box1->com().position);
         Vec3r p2_local = box2->com().orientation.transpose() * (p2 - box2->com().position);
 
-        DetectedCollision new_collision;
+        RigidRigidCollision new_collision;
         new_collision.cp_local1 = p1_local;
         new_collision.cp_local2 = p2_local;
         new_collision.normal = normal;
@@ -497,7 +510,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     // intersect the incident and reference faces
     Real ret[16];
     int n_intersect = _intersectRectQuad2(rect, quad, ret);
-    if(n_intersect < 1) { assert(0); return; } // this should never happen
+    if(n_intersect < 1) { std::cout << "LINE 513 assert(0);"<< std::endl; return; } // this should never happen
 
     // convert the intersection points into reference-face coordinates,
     // and compute the contact position and depth for each point. only keep
@@ -574,7 +587,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
             //     normal
             // );
 
-            DetectedCollision new_collision;
+            RigidRigidCollision new_collision;
             new_collision.cp_local1 = cp1_local;
             new_collision.cp_local2 = cp2_local;
             new_collision.normal = normal;
@@ -599,7 +612,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
             //     normal
             // );
 
-            DetectedCollision new_collision;
+            RigidRigidCollision new_collision;
             new_collision.cp_local1 = cp1_local;
             new_collision.cp_local2 = cp2_local;
             new_collision.normal = normal;
