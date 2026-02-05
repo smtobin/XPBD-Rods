@@ -214,13 +214,99 @@ ReturnTuple testCode6()
     );
 }
 
+/** Got these from Claude, so not super accurate lol
+ * But they do in fact test some of the edge-edge cases
+ */
+
+ReturnTuple testCode7()
+{
+    // Code 7: Box1 X-edge x Box2 X-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0, 0, 45), Vec3r(1,1,1), 
+        Vec3r(0,1.4,0), Vec3r(45,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode8()
+{
+    // Code 8: Box1 X-edge x Box2 Y-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0, 0, 45), Vec3r(1,1,1), 
+        Vec3r(0,0,1.4), Vec3r(0,45,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode9()
+{
+    // Code 9: Box1 X-edge x Box2 Z-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0, 0, 45), Vec3r(1,1,1), 
+        Vec3r(0,1.4,0), Vec3r(0,0,45), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode10()
+{
+    // Code 10: Box1 Y-edge x Box2 X-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0,45,0), Vec3r(1,1,1), 
+        Vec3r(1.4,0,0), Vec3r(0,0,45), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode11()
+{
+    // Code 11: Box1 Y-edge x Box2 Y-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(45,0,0), Vec3r(1,1,1), 
+        Vec3r(1.4,0,0), Vec3r(0,45,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode12()
+{
+    // Code 12: Box1 Y-edge x Box2 Z-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(45,0,0), Vec3r(1,1,1), 
+        Vec3r(0,1.4,0), Vec3r(0,0,45), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode13()
+{
+    // Code 13: Box1 Z-edge x Box2 X-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0, 0, 45), Vec3r(1,1,1), 
+        Vec3r(0,1.4,0), Vec3r(45,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode14()
+{
+    // Code 14: Box1 Z-edge x Box2 Y-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(0, 0, 45), Vec3r(1,1,1), 
+        Vec3r(0,1.4,0), Vec3r(45,0,0), Vec3r(1,1,1)
+    );
+}
+
+ReturnTuple testCode15()
+{
+    // Code 15: Box1 Z-edge x Box2 Z-edge
+    return testCollision(
+        Vec3r(0,0,0), Vec3r(45,0,0), Vec3r(1,1,1), 
+        Vec3r(0,0,1.4), Vec3r(0,45,0), Vec3r(1,1,1)
+    );
+}
+
 int main()
 {
     using TestFuncType = std::function<ReturnTuple ()>;
-    std::vector<TestFuncType> test_funcs = {testCode1, testCode2, testCode3, testCode4, testCode5, testCode6};
+    std::vector<TestFuncType> test_funcs = {testCode1, testCode2, testCode3, testCode4, testCode5, testCode6,
+        testCode7, testCode8, testCode9, testCode10, testCode11, testCode12, testCode13, testCode14, testCode15};
     std::vector<ReturnTuple> test_results;
 
-    int visualize_index = 3;
+    int visualize_index = 11;
 
     std::cout << "\n=== Running tests ===" << std::endl;
     for (unsigned i = 0; i < test_funcs.size(); i++)
@@ -232,7 +318,7 @@ int main()
 
 
     /** Visualize boxes */
-    if (visualize_index >= 0 && visualize_index < test_results.size())
+    if (visualize_index >= 0 && (unsigned)visualize_index < test_results.size())
     {
         const auto& result = test_results[visualize_index];
         visualize(std::get<0>(result), std::get<1>(result), std::get<2>(result), std::get<3>(result));

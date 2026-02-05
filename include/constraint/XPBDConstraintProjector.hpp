@@ -51,7 +51,7 @@ public:
             }
             
         }
-        std::cout << "========\nC: " << C.transpose() << std::endl;
+        // std::cout << "========\nC: " << C.transpose() << std::endl;
         typename Constraint::GradientMatType delC = _constraint->gradient(true);
         // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
@@ -89,8 +89,8 @@ public:
             particle_i->positionUpdate(position_update);
         }
 
-        typename Constraint::ConstraintVecType newC = _constraint->evaluate();
-        std::cout << "New C: " << newC.transpose() << std::endl;
+        // typename Constraint::ConstraintVecType newC = _constraint->evaluate();
+        // std::cout << "New C: " << newC.transpose() << std::endl;
         // assert(0);
     }
 

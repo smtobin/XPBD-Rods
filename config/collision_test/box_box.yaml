@@ -11,6 +11,7 @@ objects:
     name: "box1"
     initial-position: [0, 10, 0]
     initial-rotation: [0, 0, 0]
+    initial-angular-velocity: [2, 2, 2]
     size: [1,1,1]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
@@ -24,9 +25,10 @@ objects:
     name: "box2"
     initial-position: [0,0,0]
     initial-velocity: [0,10,0]
-    initial-angular-velocity: [0,0,0]
+    initial-angular-velocity: [10,0,20]
     fixed: true
-    size: [1,1,1]
+    size: [.2,3,3]
+    density: 1000
     render-type: "PBR"
     metallic: 0.2
     roughness: 0.5

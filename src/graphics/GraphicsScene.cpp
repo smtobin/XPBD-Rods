@@ -61,6 +61,7 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
     if (scene->_should_render.exchange(false))
     {
         // std::cout << "Rendering... t=" << simulation->_time << std::endl;
+        scene->_renderer->ResetCameraClippingRange();
         scene->_render_window->Render();
     }
 }
