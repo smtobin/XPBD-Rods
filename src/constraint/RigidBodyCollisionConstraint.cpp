@@ -55,8 +55,8 @@ RigidBodyCollisionConstraint::SingleParticleGradientMatType RigidBodyCollisionCo
 
 
 OneSidedRigidBodyCollisionConstraint::OneSidedRigidBodyCollisionConstraint(
-    SimObject::OrientedParticle* com1, const Vec3r& r1,
     const Vec3r& cp,
+    SimObject::OrientedParticle* com1, const Vec3r& r1,
     const Vec3r& n
 )
     : XPBDConstraint<1, 1>({com1}, AlphaVecType::Zero()), _r1(r1), _cp(cp), _n(n)

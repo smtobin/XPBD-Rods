@@ -25,9 +25,9 @@ public:
 
     explicit XPBDPlaneConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
         const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity,
-        Real density,
+        Real density, bool fixed,
         Real width, Real height, const Vec3r& normal)
-        : XPBDRigidBodyConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density)
+        : XPBDRigidBodyConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, density, fixed)
     {
         _width.value = width;
         _height.value = height;

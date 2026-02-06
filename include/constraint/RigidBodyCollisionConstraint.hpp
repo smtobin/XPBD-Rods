@@ -43,8 +43,8 @@ class OneSidedRigidBodyCollisionConstraint : public XPBDConstraint<1, 1>
 {
 public:
     OneSidedRigidBodyCollisionConstraint(
-        SimObject::OrientedParticle* com1, const Vec3r& r1,
         const Vec3r& cp,
+        SimObject::OrientedParticle* com1, const Vec3r& r1,
         const Vec3r& n
     );
 
@@ -63,7 +63,7 @@ private:
     Vec3r _cp;
 
     /** Collision normal.
-     * Points outward from body 1
+     * Points outward from fixed body
      */
     Vec3r _n;
 };

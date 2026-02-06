@@ -9,6 +9,8 @@ XPBDPlane::XPBDPlane(const Config::XPBDPlaneConfig& plane_config)
 {
     _com.mass = _width * _height * plane_config.density();  // density is assumed to be per unit area
     _com.Ib = _com.mass * Vec3r(_width * _width/12, _height * _height/12, (_width * _width + _height * _height)/12);
+
+    _com.fixed = true;
 }
 
 AABB XPBDPlane::boundingBox() const

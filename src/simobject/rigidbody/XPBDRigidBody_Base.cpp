@@ -10,6 +10,8 @@ XPBDRigidBody_Base::XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config
     _com.lin_velocity = config.initialVelocity();
     _com.ang_velocity = config.initialAngularVelocity();
 
+    _com.fixed = config.fixed();
+
     _prev_position = _com.position;
     _prev_orientation = _com.orientation;
 

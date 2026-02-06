@@ -85,6 +85,28 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     _renderer->SetBackground(0.3, 0.3, 0.3);
     _renderer->SetAutomaticLightCreation(false);
 
+    // set camera to look at (0,0,0) from its current position
+    _renderer->ResetCamera();
+    vtkCamera* camera = _renderer->GetActiveCamera();
+    double focal_point[3];
+    camera->GetFocalPoint(focal_point);
+
+    // Set focal point to ground level (or slightly above)
+    focal_point[1] = 0.0;  // assuming y is up
+    camera->SetFocalPoint(focal_point[0], focal_point[1], focal_point[2]);
+
+    // position camera above and back from the focal point
+    double distance = 5*camera->GetDistance();
+    double angle = 30.0 * M_PI / 180.0;
+    camera->SetPosition(
+        focal_point[0],
+        distance * sin(angle),           // height above ground
+        focal_point[2] + distance * cos(angle)  // distance back
+    );
+
+    camera->SetViewUp(0, 1, 0);
+    camera->SetClippingRange(0.01, 1000.0);
+
     //////////////////////////////////////////////////////////
     // Create HDR lighting (if specified in the config)
     /////////////////////////////////////////////////////////

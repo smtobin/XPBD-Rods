@@ -117,8 +117,8 @@ void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBo
 ReturnTuple testCollision(Vec3r pos1, Vec3r rot1, Vec3r size1, Vec3r pos2, Vec3r rot2, Vec3r size2)
 {
     Collision::CollisionScene scene;
-    Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size1);
-    Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), 1000, size2);
+    Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), 1000, false, size1);
+    Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), 1000, false, size2);
 
     SimObject::XPBDRigidBox box1(box1_config);
     SimObject::XPBDRigidBox box2(box2_config);
