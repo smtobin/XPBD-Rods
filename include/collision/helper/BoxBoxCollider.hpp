@@ -232,6 +232,23 @@ public:
             // needs to be flipped if the reference face is on box 2
             normal2 = -normal;
 
+        generateContactsForFaceSomethingCollision(com1, halfsize1, com2, halfsize2, normal2, code, collisions);
+
+        return collisions;
+    }
+
+    static void generateContactsForFaceSomethingCollision(
+        SimObject::OrientedParticle* com1, const Vec3r& halfsize1,
+        SimObject::OrientedParticle* com2, const Vec3r& halfsize2,
+        const Vec3r& normal2, int code,
+        std::vector<DetectedCollision>& collisions
+    )
+    {
+        const Mat3r& R1 = com1->orientation;
+        const Mat3r& R2 = com2->orientation;
+        const Vec3r& p1 = com1->position;
+        const Vec3r& p2 = com2->position;
+
         // normal vector of reference face dotted with axes of incident box
         Vec3r nr = R2.transpose() * normal2;
         // absolute value of "   "
@@ -337,7 +354,7 @@ public:
         // intersect the incident and reference faces
         Real ret[16];
         int n_intersect = _intersectRectQuad2(rect, quad, ret);
-        if(n_intersect < 1) { std::cerr << "n_intersect < 1 assert(0);"<< std::endl; assert(0); return collisions; } // this should never happen
+        if(n_intersect < 1) { std::cerr << "n_intersect < 1 assert(0);"<< std::endl; assert(0); return; } // this should never happen
 
         // convert the intersection points into reference-face coordinates,
         // and compute the contact position and depth for each point. only keep
@@ -364,7 +381,7 @@ public:
                 cnum++;
             }
         }
-        if(cnum < 1) { std::cerr << "cnum < 1 assert(0);"<< std::endl; assert(0); return collisions; } // this should never happen
+        if(cnum < 1) { std::cerr << "cnum < 1 assert(0);"<< std::endl; assert(0); return; } // this should never happen
 
         // we can't generate more contacts than we actually have
         int maxc = 4;
@@ -398,46 +415,22 @@ public:
             cnum = maxc;
         }
 
-        if (code < 4)
+        for(int j = 0; j < cnum; ++j)
         {
-            for(int j = 0; j < cnum; ++j)
-            {
-                int i = iret[j];
-                Vec3r cp2_global = points[i] + p1;
-                Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
-                Vec3r cp1_global = cp2_global + normal * dep[i];
-                Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
+            int i = iret[j];
+            Vec3r cp2_global = points[i] + p1;
+            Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
+            Vec3r cp1_global = cp2_global + normal2 * dep[i];
+            Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
 
-                RigidRigidCollision new_collision;
-                new_collision.cp_local1 = cp1_local;
-                new_collision.cp_local2 = cp2_local;
-                new_collision.normal = normal;
-                new_collision.particle1 = com1;
-                new_collision.particle2 = com2;
-                collisions.push_back(std::move(new_collision));
-            }
-        } 
-        else 
-        {
-            for(int j = 0; j < cnum; ++j)
-            {
-                int i = iret[j];
-                Vec3r cp2_global = points[i] + p1;
-                Vec3r cp2_local = R2.transpose() * (cp2_global - p2);
-                Vec3r cp1_global = cp2_global - normal * dep[i];
-                Vec3r cp1_local = R1.transpose() * (cp1_global - p1);
-
-                RigidRigidCollision new_collision;
-                new_collision.cp_local1 = cp1_local;
-                new_collision.cp_local2 = cp2_local;
-                new_collision.normal = -normal;
-                new_collision.particle1 = com1;
-                new_collision.particle2 = com2;
-                collisions.push_back(std::move(new_collision));
-            }
+            RigidRigidCollision new_collision;
+            new_collision.cp_local1 = cp1_local;
+            new_collision.cp_local2 = cp2_local;
+            new_collision.normal = normal2;
+            new_collision.particle1 = com1;
+            new_collision.particle2 = com2;
+            collisions.push_back(std::move(new_collision));
         }
-
-        return collisions;
     }
 
     static std::pair<Real, Real> _closestPointBetweenLines(const Vec3r& p1, const Vec3r& u1, const Vec3r& p2, const Vec3r& u2)

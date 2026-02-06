@@ -11,26 +11,26 @@ objects:
     name: "box1"
     initial-position: [0, 2, 0.0]
     initial-rotation: [40, 0, 0]
-    size: [1,1,1]
+    size: [0.5,0.5,1]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [1.0, 0.0, 0.0]
 
-  # - 
-  #   type: "RigidBox"
-  #   name: "box2"
-  #   initial-position: [0.1, 2.5, 0.0]
-  #   initial-rotation: [0, 0, 0]
-  #   size: [1,1,1]
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.2
-  #   roughness: 0.5
-  #   color: [0, 0.0, 1.0]
+  - 
+    type: "RigidBox"
+    name: "box2"
+    initial-position: [0.1, 5, 0.0]
+    initial-rotation: [0, 0, 20]
+    size: [1.2,1,1]
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [0, 0.0, 1.0]
 
   -
     type: "Plane"
@@ -41,5 +41,5 @@ objects:
     height: 1000
     normal: [0,1,0]
     render-type: "PBR"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5

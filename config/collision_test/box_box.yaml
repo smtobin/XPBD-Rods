@@ -26,7 +26,7 @@ objects:
     initial-position: [0,0,0]
     initial-velocity: [0,10,0]
     initial-angular-velocity: [10,0,8]
-    fixed: true
+    fixed: false
     density: 1000
     size: [.2,3,3]
     density: 1000
