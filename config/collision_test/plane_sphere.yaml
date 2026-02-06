@@ -9,7 +9,7 @@ objects:
   - 
     type: "RigidSphere"
     name: "sphere1"
-    initial-position: [0, 10, 0.0]
+    initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
     radius: 0.1
     render-type: "PBR"
@@ -24,9 +24,9 @@ objects:
     name: "plane"
     initial-position: [0,0,0]
     fixed: true
-    width: 20
-    height: 20
+    width: 1000
+    height: 1000
+    normal: [0,1,0]
     render-type: "PBR"
     metallic: 0.2
     roughness: 0.5
-    color: [1.0, 1.0, 1.0]

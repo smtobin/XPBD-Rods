@@ -61,7 +61,10 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
     if (scene->_should_render.exchange(false))
     {
         // std::cout << "Rendering... t=" << simulation->_time << std::endl;
-        scene->_renderer->ResetCameraClippingRange();
+        // set the clipping range every time
+        vtkCamera* camera = scene->_renderer->GetActiveCamera();
+        camera->SetClippingRange(0.01, 10000.0);
+
         scene->_render_window->Render();
     }
 }
@@ -171,10 +174,11 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     _interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     // vtkNew<vtkInteractorStyleTrackballCamera> style;
     vtkNew<CustomVTKInteractorStyle> style;
+    style->AutoAdjustCameraClippingRangeOff();
     style->registerSimulation(sim);
     _interactor->SetInteractorStyle(style);
     _interactor->SetRenderWindow(_render_window);
-
+    
     
     
     /////////////////////////////////////////////////////////

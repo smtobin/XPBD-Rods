@@ -50,7 +50,6 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("roughness", node, _roughness);
         _extractParameter("opacity", node, _opacity);
         _extractParameter("color", node, _color);
-        _extractParameter("colors", node, _colors);
 
         _extractParameter("smooth-normals", node, _smooth_normals);
         _extractParameter("draw-faces", node, _draw_faces);
@@ -90,8 +89,7 @@ class ObjectRenderConfig : public Config_Base
     Real metallic() const { return _metallic.value; }
     Real roughness() const { return _roughness.value; }
     Real opacity() const { return _opacity.value; }
-    std::optional<Vec3r> color() const { return _color.value; }
-    std::optional<std::vector<Vec3r>> colors() const { return _colors.value; }
+    Vec3r color() const { return _color.value; }
 
     bool smoothNormals() const { return _smooth_normals.value; }
     bool drawFaces() const { return _draw_faces.value; }
@@ -109,8 +107,7 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<Real> _metallic = ConfigParameter<Real>(0.0);
     ConfigParameter<Real> _roughness = ConfigParameter<Real>(0.5);
     ConfigParameter<Real> _opacity = ConfigParameter<Real>(1.0);
-    ConfigParameter<std::optional<Vec3r>> _color = ConfigParameter<std::optional<Vec3r>>();
-    ConfigParameter<std::optional<std::vector<Vec3r>>> _colors = ConfigParameter<std::optional<std::vector<Vec3r>>>();
+    ConfigParameter<Vec3r> _color = ConfigParameter<Vec3r>(Vec3r(1.0, 1.0, 1.0));
 
     ConfigParameter<bool> _smooth_normals = ConfigParameter<bool>(true);
     ConfigParameter<bool> _draw_faces = ConfigParameter<bool>(true);

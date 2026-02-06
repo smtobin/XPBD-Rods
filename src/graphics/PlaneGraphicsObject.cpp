@@ -1,4 +1,5 @@
 #include "graphics/PlaneGraphicsObject.hpp"
+#include "graphics/VTKUtils.hpp"
 
 #include "simobject/rigidbody/XPBDPlane.hpp"
 
@@ -49,6 +50,7 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
     texture->SetInputData(image_data);
     texture->SetRepeat(1);  // Enable tiling
     texture->InterpolateOff();  // Sharp edges, no blurring
+    texture->UseSRGBColorSpaceOn();
     
     // Set up texture coordinates for proper tiling
     vtkNew<vtkPolyDataMapper> mapper;
@@ -56,8 +58,9 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
     
     _vtk_actor = vtkSmartPointer<vtkActor>::New();
     _vtk_actor->SetMapper(mapper);
-    _vtk_actor->SetTexture(texture);
-    
+    _vtk_actor->GetProperty()->SetBaseColorTexture(texture);
+    _vtk_actor->SetUseBounds(false);    // ignore the plane in camera clipping computations
+
     // Calculate how many times to repeat the texture
     double repeat_count_x = _plane->width();
     double repeat_count_y = _plane->height();
@@ -74,6 +77,36 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
     
     _plane_source->Update();
     _plane_source->GetOutput()->GetPointData()->SetTCoords(tcoords);
+
+    VTKUtils::setupActorFromRenderConfig(_vtk_actor.Get(), render_config);
+
+    // Transform the actor to match the plane's normal
+    Vec3r desired_normal = _plane->normal().normalized();
+    Vec3r default_normal(0, 0, 1);
+
+    _vtk_transform = vtkSmartPointer<vtkTransform>::New();
+
+    Vec3r axis = default_normal.cross(desired_normal);
+    double axis_length = axis.norm();
+
+    if (axis_length > 1e-6)
+    {
+        axis /= axis_length;
+        double angle = std::acos(default_normal.dot(desired_normal));
+        double angle_degrees = angle * 180.0 / M_PI;
+        
+        _vtk_transform->RotateWXYZ(angle_degrees, axis[0], axis[1], axis[2]);
+    }
+    else if (desired_normal.dot(default_normal) < 0)
+    {
+        _vtk_transform->RotateWXYZ(180.0, 1, 0, 0);
+    }
+
+    // Also apply position offset if your plane has one
+    // Vec3r position = _plane->position();
+    // transform->Translate(position[0], position[1], position[2]);
+
+    _vtk_actor->SetUserTransform(_vtk_transform);
 
 }
 
