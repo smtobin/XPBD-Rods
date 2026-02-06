@@ -15,7 +15,7 @@ namespace Collision
 
 // initialize static values
 bool CollisionScene::_collision_table_initialized = false;
-CollisionScene::CollisionFunc CollisionScene::_collision_table[3][3] = {};
+CollisionScene::CollisionFunc CollisionScene::_collision_table[static_cast<int>(ColliderType::COUNT)][static_cast<int>(ColliderType::COUNT)] = {};
 
 // [](void* a, void* b) {
     // CollisionScene::_checkCollision(static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::XPBDRigidSphere*>(b));
@@ -64,6 +64,23 @@ void CollisionScene::_initCollisionTable()
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRodSegment*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
     };
 
+    // first type is a plane
+    _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Sphere)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDRigidSphere*>(b));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Box)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDRigidBox*>(b));     // switched
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Plane)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDPlane*>(b));
+    };
+
     _collision_table_initialized = true;
 }
 
@@ -94,9 +111,40 @@ const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
         _collision_table[static_cast<int>(pair.obj1->type)][static_cast<int>(pair.obj2->type)](this, pair.obj1->obj, pair.obj2->obj);
     }
 
+    // iterate through planes and collide with all other objects in the scene
+    const std::vector<CollisionObject>& collision_objects = _spatial_hasher.collisionObjects();
+    for (auto& plane : _planes)
+    {
+        for (auto& collision_obj : collision_objects)
+        {
+            _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(collision_obj.type)](this, plane, collision_obj.obj);
+        }
+    }
+
     // return _new_collision_constraints;
     return _new_collisions;
 }
+
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane1, SimObject::XPBDPlane* plane2)
+{
+    return;
+}
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere)
+{
+
+}
+
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box)
+{
+
+}
+
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRodSegment* segment)
+{
+
+}
+
+
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere1, SimObject::XPBDRigidSphere* sphere2)
 {

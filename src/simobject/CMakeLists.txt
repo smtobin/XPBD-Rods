@@ -21,6 +21,7 @@ set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidBody_Base.cpp
     ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidBox.cpp
     ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDRigidSphere.cpp
+    ${SIMOBJECT_SRC_DIR}/rigidbody/XPBDPlane.cpp
 )
 
 target_sources(SimObject

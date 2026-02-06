@@ -9,7 +9,8 @@ namespace Collision
 
 enum class ColliderType : uint8_t
 {
-    Sphere, Box, RodSegment
+    Sphere, Box, RodSegment, Plane,
+    COUNT
 };
 
 /** An object being tested for collision.
@@ -30,6 +31,10 @@ struct CollisionObject
 
     CollisionObject(SimObject::XPBDRodSegment* segment)
         : obj(segment), type(ColliderType::RodSegment)
+    {}
+
+    CollisionObject(SimObject::XPBDPlane* plane)
+        : obj(plane), type(ColliderType::Plane)
     {}
 
     SimObject::AABB boundingBox() const;

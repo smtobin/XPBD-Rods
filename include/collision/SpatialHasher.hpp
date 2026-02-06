@@ -31,6 +31,8 @@ public:
 
     const CollisionPairSet& collisionPairs() const { return _collision_pairs; }
 
+    const std::vector<CollisionObject>& collisionObjects() const { return _collision_objects; }
+
 private:
     /** Helper function to add an object to buckets.
      * @param obj - collision object pointer

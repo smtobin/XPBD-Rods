@@ -8,6 +8,7 @@
 #include "graphics/SphereGraphicsObject.hpp"
 #include "graphics/BoxGraphicsObject.hpp"
 #include "graphics/RodGraphicsObject.hpp"
+#include "graphics/PlaneGraphicsObject.hpp"
 
 #include "config/SimulationRenderConfig.hpp"
 
@@ -47,6 +48,7 @@ class GraphicsScene
     void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::ObjectRenderConfig& render_config);
 
     Vec3r cameraPosition() const;

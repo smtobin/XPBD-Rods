@@ -1,4 +1,4 @@
-name: "Box-Box Collision"
+name: "Plane-Sphere Collision"
 time-step: 1e-3
 end-time: 5
 
@@ -7,12 +7,11 @@ create-skybox: True
 
 objects:
   - 
-    type: "RigidBox"
-    name: "box1"
-    initial-position: [0, 10, 0]
+    type: "RigidSphere"
+    name: "sphere1"
+    initial-position: [0, 10, 0.0]
     initial-rotation: [0, 0, 0]
-    initial-angular-velocity: [2, 2, 2]
-    size: [1,1,1]
+    radius: 0.1
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
@@ -21,15 +20,12 @@ objects:
     color: [1.0, 1.0, 1.0]
 
   -
-    type: "RigidBox"
-    name: "box2"
+    type: "Plane"
+    name: "plane"
     initial-position: [0,0,0]
-    initial-velocity: [0,10,0]
-    initial-angular-velocity: [10,0,8]
     fixed: true
-    density: 1000
-    size: [.2,3,3]
-    density: 1000
+    width: 20
+    height: 20
     render-type: "PBR"
     metallic: 0.2
     roughness: 0.5

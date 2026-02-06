@@ -66,13 +66,15 @@ namespace SimObject
     class XPBDRodSegment;
     class XPBDRigidSphere;
     class XPBDRigidBox;
+    class XPBDPlane;
+
     class XPBDPendulum;
     class XPBDConcentricTubeRobot;
 }
-using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
+using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 /** TODO: automate this */
-using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>>; 
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox>;
+using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>, std::unique_ptr<SimObject::XPBDPlane>>; 
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
@@ -225,6 +227,7 @@ namespace Config
     class RodConfig;
     class XPBDRigidBoxConfig;
     class XPBDRigidSphereConfig;
+    class XPBDPlaneConfig;
     class XPBDPendulumConfig;
     class XPBDConcentricTubeRobotConfig;
 
@@ -238,6 +241,7 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::RodConfig,
     Config::XPBDRigidBoxConfig,
     Config::XPBDRigidSphereConfig,
+    Config::XPBDPlaneConfig,
     Config::XPBDPendulumConfig,
     Config::XPBDConcentricTubeRobotConfig
 >;

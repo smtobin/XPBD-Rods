@@ -53,6 +53,10 @@ class SimulationConfig : public Config_Base
             {
                 _object_configs.template emplace_back<Config::XPBDRigidSphereConfig>(obj_node);
             }
+            else if (type == "Plane")
+            {
+                _object_configs.template emplace_back<Config::XPBDPlaneConfig>(obj_node);
+            }
             else if (type == "Pendulum")
             {
                 _object_configs.template emplace_back<Config::XPBDPendulumConfig>(obj_node);
