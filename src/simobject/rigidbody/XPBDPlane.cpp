@@ -11,6 +11,7 @@ XPBDPlane::XPBDPlane(const Config::XPBDPlaneConfig& plane_config)
     _com.Ib = _com.mass * Vec3r(_width * _width/12, _height * _height/12, (_width * _width + _height * _height)/12);
 
     _com.fixed = true;
+    _com.orientation = Mat3r::Identity();
 }
 
 AABB XPBDPlane::boundingBox() const

@@ -69,17 +69,17 @@ OneSidedRigidBodyCollisionConstraint::ConstraintVecType OneSidedRigidBodyCollisi
     const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
 
     ConstraintVecType C;
-    C[0] = (_cp - cp1).dot(_n);
+    C[0] = (cp1 - _cp).dot(_n);
     return C;
 }
 
 OneSidedRigidBodyCollisionConstraint::GradientMatType OneSidedRigidBodyCollisionConstraint::gradient(bool /*update_cache*/) const
 {
     // positional gradients
-    Vec3r dC_dp1 = -_n;
+    Vec3r dC_dp1 = _n;
 
     // orientation gradients
-    Vec3r dC_dR1 = _n.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dR1 = -_n.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
 
     GradientMatType grad;
     grad.block<1,3>(0,0) = dC_dp1;

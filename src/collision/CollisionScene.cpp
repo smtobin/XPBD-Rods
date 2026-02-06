@@ -2,6 +2,7 @@
 
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/rigidbody/XPBDPlane.hpp"
 #include "simobject/rod/XPBDRodSegment.hpp"
 
 #include "collision/sdf/SDF.hpp"
@@ -131,7 +132,20 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 }
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere)
 {
+    Vec3r cp_sphere_global = sphere->com().position - sphere->radius() * plane->normal();
+    Vec3r diff = cp_sphere_global - plane->com().position;
+    if (diff.dot(plane->normal()) <= 0)
+    {
+        // Collision!
+        RigidRigidCollision new_collision;
+        new_collision.normal = plane->normal();
+        new_collision.particle1 = &plane->com();
+        new_collision.cp_local1 = Vec3r::Zero();
+        new_collision.particle2 = &sphere->com();
+        new_collision.cp_local2 = sphere->com().orientation.transpose() * (cp_sphere_global - sphere->com().position);
 
+        scene->_new_collisions.push_back(std::move(new_collision));
+    }
 }
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box)

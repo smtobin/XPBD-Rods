@@ -17,7 +17,20 @@ objects:
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
     metallic: 0.2
     roughness: 0.5
-    color: [1.0, 1.0, 1.0]
+    color: [1.0, 0.0, 0.0]
+
+  - 
+    type: "RigidSphere"
+    name: "sphere2"
+    initial-position: [0.1, 2, 0.0]
+    initial-rotation: [0, 0, 0]
+    radius: 0.15
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.2
+    roughness: 0.5
+    color: [0, 0.0, 1.0]
 
   -
     type: "Plane"

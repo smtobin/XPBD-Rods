@@ -13,6 +13,8 @@ SphereGraphicsObject::SphereGraphicsObject(const SimObject::XPBDRigidSphere* sph
      // create the vtkActor from a sphere source
     _sphere_source = vtkSmartPointer<vtkSphereSource>::New();
     _sphere_source->SetRadius(sphere->radius());
+    _sphere_source->SetThetaResolution(25);
+    _sphere_source->SetPhiResolution(25);
 
     
     vtkNew<vtkPolyDataMapper> data_mapper;

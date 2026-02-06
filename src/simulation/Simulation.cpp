@@ -434,11 +434,24 @@ void Simulation::update()
                 using T = std::decay_t<decltype(collision)>;
                 if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
                 {
-                    using ConstraintType = Constraint::RigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    constraint_vec.emplace_back(collision.particle1, collision.cp_local1, collision.particle2, collision.cp_local2, collision.normal);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
+                    if (collision.particle1->fixed)
+                    {
+                        using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
+                        auto& constraint_vec = _constraints.template get<ConstraintType>();
+                        Vec3r cp = collision.particle1->position + collision.particle1->orientation * collision.cp_local1;
+                        constraint_vec.emplace_back(cp, collision.particle2, collision.cp_local2, collision.normal);
+                        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                        _solver.addConstraint(constraint_ref);
+                    }
+                    else
+                    {
+                        using ConstraintType = Constraint::RigidBodyCollisionConstraint;
+                        auto& constraint_vec = _constraints.template get<ConstraintType>();
+                        constraint_vec.emplace_back(collision.particle1, collision.cp_local1, collision.particle2, collision.cp_local2, collision.normal);
+                        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                        _solver.addConstraint(constraint_ref);
+                    }
+                    
                 }
             }, detected_collision);
         }
