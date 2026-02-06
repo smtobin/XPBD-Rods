@@ -150,6 +150,47 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box)
 {
+    Vec3r hsbox = box->size()/2;
+    const Vec3r& pn = plane->normal();
+    Real box_radius =   hsbox[0] * std::abs(box->com().orientation.col(0).dot(pn)) +
+                        hsbox[1] * std::abs(box->com().orientation.col(1).dot(pn)) +
+                        hsbox[2] * std::abs(box->com().orientation.col(2).dot(pn));
+    Real box_proj = box->com().position.dot(pn);
+    Real plane_proj = plane->com().position.dot(pn);
+    if (box_proj - box_radius <= plane_proj)
+    {
+        // naively check all the vertices
+        auto test_vertex = [&](const Vec3r& dirs)
+        {
+            const Vec3r vert = box->com().position + 
+                dirs[0] * box->com().orientation.col(0) * hsbox[0] +
+                dirs[1] * box->com().orientation.col(1) * hsbox[1] +
+                dirs[2] * box->com().orientation.col(2) * hsbox[2];
+            
+            Real vert_proj = vert.dot(pn);
+            if (vert_proj <= plane_proj)
+            {
+                RigidRigidCollision new_collision;
+                new_collision.normal = plane->normal();
+                new_collision.particle1 = &plane->com();
+                new_collision.cp_local1 = Vec3r::Zero();
+                new_collision.particle2 = &box->com();
+                new_collision.cp_local2 = box->com().orientation.transpose() * (vert - box->com().position);
+
+                scene->_new_collisions.push_back(std::move(new_collision));
+            }
+        };
+
+        test_vertex(Vec3r(1,1,1));
+        test_vertex(Vec3r(1,-1,-1));
+        test_vertex(Vec3r(1,1,-1));
+        test_vertex(Vec3r(1,-1,1));
+
+        test_vertex(Vec3r(-1,-1,-1));
+        test_vertex(Vec3r(-1, 1, 1));
+        test_vertex(Vec3r(-1,-1,1));
+        test_vertex(Vec3r(-1,1,-1));
+    }
 
 }
 
