@@ -81,30 +81,36 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
     VTKUtils::setupActorFromRenderConfig(_vtk_actor.Get(), render_config);
 
     // Transform the actor to match the plane's normal
-    Vec3r desired_normal = _plane->normal().normalized();
-    Vec3r default_normal(0, 0, 1);
+    // Vec3r desired_normal = _plane->normal().normalized();
+    // Vec3r default_normal(0, 0, 1);
 
     _vtk_transform = vtkSmartPointer<vtkTransform>::New();
 
-    Vec3r axis = default_normal.cross(desired_normal);
-    double axis_length = axis.norm();
+    // Vec3r axis = default_normal.cross(desired_normal);
+    // double axis_length = axis.norm();
 
-    if (axis_length > 1e-6)
-    {
-        axis /= axis_length;
-        double angle = std::acos(default_normal.dot(desired_normal));
-        double angle_degrees = angle * 180.0 / M_PI;
+    // if (axis_length > 1e-6)
+    // {
+    //     axis /= axis_length;
+    //     double angle = std::acos(default_normal.dot(desired_normal));
+    //     double angle_degrees = angle * 180.0 / M_PI;
         
-        _vtk_transform->RotateWXYZ(angle_degrees, axis[0], axis[1], axis[2]);
-    }
-    else if (desired_normal.dot(default_normal) < 0)
-    {
-        _vtk_transform->RotateWXYZ(180.0, 1, 0, 0);
-    }
+    //     _vtk_transform->RotateWXYZ(angle_degrees, axis[0], axis[1], axis[2]);
+    // }
+    // else if (desired_normal.dot(default_normal) < 0)
+    // {
+    //     _vtk_transform->RotateWXYZ(180.0, 1, 0, 0);
+    // }
 
     // Also apply position offset if your plane has one
     // Vec3r position = _plane->position();
     // transform->Translate(position[0], position[1], position[2]);
+
+    // IMPORTANT: use row-major ordering since that is what VTKTransform expects (default for Eigen is col-major)
+    Eigen::Matrix<Real, 4, 4, Eigen::RowMajor> plane_transform_mat = Eigen::Matrix<Real, 4, 4, Eigen::RowMajor>::Identity();
+    plane_transform_mat.block<3,3>(0,0) = _plane->com().orientation;
+    plane_transform_mat.block<3,1>(0,3) = _plane->com().position;
+    _vtk_transform->SetMatrix(plane_transform_mat.data());
 
     _vtk_actor->SetUserTransform(_vtk_transform);
 
@@ -113,10 +119,10 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
 void PlaneGraphicsObject::update()
 {
     // IMPORTANT: use row-major ordering since that is what VTKTransform expects (default for Eigen is col-major)
-    // Eigen::Matrix<Real, 4, 4, Eigen::RowMajor> sphere_transform_mat = Eigen::Matrix<Real, 4, 4, Eigen::RowMajor>::Identity();
-    // sphere_transform_mat.block<3,3>(0,0) = _sphere->com().orientation;
-    // sphere_transform_mat.block<3,1>(0,3) = _sphere->com().position;
-    // _vtk_transform->SetMatrix(sphere_transform_mat.data());
+    Eigen::Matrix<Real, 4, 4, Eigen::RowMajor> plane_transform_mat = Eigen::Matrix<Real, 4, 4, Eigen::RowMajor>::Identity();
+    plane_transform_mat.block<3,3>(0,0) = _plane->com().orientation;
+    plane_transform_mat.block<3,1>(0,3) = _plane->com().position;
+    _vtk_transform->SetMatrix(plane_transform_mat.data());
 }
 
 } // namespace Graphics

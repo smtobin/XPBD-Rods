@@ -159,37 +159,49 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
     Real plane_proj = plane->com().position.dot(pn);
     if (box_proj - box_radius <= plane_proj)
     {
+
+        // collision!
+        Vec3r hsplane(plane->width()/2.0, plane->height()/2.0, 1e-6);
+        int code = 3;   // always the Z-axis of the plane (com1) that is the separating axis
+
+        std::vector<DetectedCollision> collisions;
+        BoxBoxCollider::generateContactsForFaceSomethingCollision(
+            &plane->com(), hsplane, &box->com(), hsbox,
+            plane->normal(), code, collisions
+        );
+        scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
+
         // naively check all the vertices
-        auto test_vertex = [&](const Vec3r& dirs)
-        {
-            const Vec3r vert = box->com().position + 
-                dirs[0] * box->com().orientation.col(0) * hsbox[0] +
-                dirs[1] * box->com().orientation.col(1) * hsbox[1] +
-                dirs[2] * box->com().orientation.col(2) * hsbox[2];
+        // auto test_vertex = [&](const Vec3r& dirs)
+        // {
+        //     const Vec3r vert = box->com().position + 
+        //         dirs[0] * box->com().orientation.col(0) * hsbox[0] +
+        //         dirs[1] * box->com().orientation.col(1) * hsbox[1] +
+        //         dirs[2] * box->com().orientation.col(2) * hsbox[2];
             
-            Real vert_proj = vert.dot(pn);
-            if (vert_proj <= plane_proj)
-            {
-                RigidRigidCollision new_collision;
-                new_collision.normal = plane->normal();
-                new_collision.particle1 = &plane->com();
-                new_collision.cp_local1 = Vec3r::Zero();
-                new_collision.particle2 = &box->com();
-                new_collision.cp_local2 = box->com().orientation.transpose() * (vert - box->com().position);
+        //     Real vert_proj = vert.dot(pn);
+        //     if (vert_proj <= plane_proj)
+        //     {
+        //         RigidRigidCollision new_collision;
+        //         new_collision.normal = plane->normal();
+        //         new_collision.particle1 = &plane->com();
+        //         new_collision.cp_local1 = Vec3r::Zero();
+        //         new_collision.particle2 = &box->com();
+        //         new_collision.cp_local2 = box->com().orientation.transpose() * (vert - box->com().position);
 
-                scene->_new_collisions.push_back(std::move(new_collision));
-            }
-        };
+        //         scene->_new_collisions.push_back(std::move(new_collision));
+        //     }
+        // };
 
-        test_vertex(Vec3r(1,1,1));
-        test_vertex(Vec3r(1,-1,-1));
-        test_vertex(Vec3r(1,1,-1));
-        test_vertex(Vec3r(1,-1,1));
+        // test_vertex(Vec3r(1,1,1));
+        // test_vertex(Vec3r(1,-1,-1));
+        // test_vertex(Vec3r(1,1,-1));
+        // test_vertex(Vec3r(1,-1,1));
 
-        test_vertex(Vec3r(-1,-1,-1));
-        test_vertex(Vec3r(-1, 1, 1));
-        test_vertex(Vec3r(-1,-1,1));
-        test_vertex(Vec3r(-1,1,-1));
+        // test_vertex(Vec3r(-1,-1,-1));
+        // test_vertex(Vec3r(-1, 1, 1));
+        // test_vertex(Vec3r(-1,-1,1));
+        // test_vertex(Vec3r(-1,1,-1));
     }
 
 }

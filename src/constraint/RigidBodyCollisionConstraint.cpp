@@ -8,7 +8,7 @@ RigidBodyCollisionConstraint::RigidBodyCollisionConstraint(
     SimObject::OrientedParticle* com2, const Vec3r& r2,
     const Vec3r& n
 )
-    : XPBDConstraint<1, 2>({com1, com2}, AlphaVecType::Zero()), _r1(r1), _r2(r2), _n(n)
+    : XPBDConstraint<1, 2>({com1, com2}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _r2(r2), _n(n)
 {
 }
 
@@ -59,7 +59,7 @@ OneSidedRigidBodyCollisionConstraint::OneSidedRigidBodyCollisionConstraint(
     SimObject::OrientedParticle* com1, const Vec3r& r1,
     const Vec3r& n
 )
-    : XPBDConstraint<1, 1>({com1}, AlphaVecType::Zero()), _r1(r1), _cp(cp), _n(n)
+    : XPBDConstraint<1, 1>({com1}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _cp(cp), _n(n)
 {
 }
 
