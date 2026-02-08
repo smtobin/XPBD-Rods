@@ -15,3 +15,4 @@
 #include "constraint/PrismaticJointLimitConstraint.hpp"
 
 #include "constraint/RigidBodyCollisionConstraint.hpp"
+#include "constraint/RodRigidBodyCollisionConstraint.hpp"

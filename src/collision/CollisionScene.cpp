@@ -332,7 +332,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment)
 {
-    std::cout << "Potential collision between a sphere and rod segment!" << std::endl;
+    // std::cout << "Potential collision between a sphere and rod segment!" << std::endl;
 
     // project the sphere center onto the line segment, and clamp between [0,1]
     const Vec3r& sphere_center = sphere->com().position;
@@ -347,6 +347,40 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     // find the distance
     const Vec3r diff = sphere_center - segment_cp;
     Real sq_dist = diff.squaredNorm();
+    Real combined_radius = sphere->radius() + segment->radius();
+
+    if (sq_dist < combined_radius*combined_radius)
+    {
+        // Collision!
+        // special case: sphere center is almost on the line segment between the two rod nodes
+        // normal should just be any perpendicular vector to the line
+        Vec3r normal;
+        if (sq_dist < 1e-8)
+        {
+            Vec3r segment_vec = endpoint2 - endpoint1;
+            // get an arbitrary vector thats NOT parallel
+            if (segment_vec[0] < segment_vec[1])
+                normal = segment_vec.cross(Vec3r(1,0,0));
+            else
+                normal = segment_vec.cross(Vec3r(0,1,0));
+        }
+        else
+        {
+            normal = diff / std::sqrt(sq_dist);
+        }
+
+        Vec3r sphere_cp_local = -sphere->com().orientation.transpose() * normal*sphere->radius();
+
+        RigidSegmentCollision new_collision;
+        new_collision.alpha = t;
+        new_collision.normal = normal;
+        new_collision.radius = segment->radius();
+        new_collision.segment_particle1 = segment->particle1();
+        new_collision.segment_particle2 = segment->particle2();
+        new_collision.rb_particle = &sphere->com();
+        new_collision.rb_cp_local = sphere_cp_local;
+        scene->_new_collisions.push_back(std::move(new_collision));    
+    }
     
 
 }
@@ -371,7 +405,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
     if (segment1 == segment2)
         return;
 
-    std::cout << "Potential collision between two rod segments!" << std::endl;
+    // std::cout << "Potential collision between two rod segments!" << std::endl;
 }
 
 Vec3r CollisionScene::_frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3)
