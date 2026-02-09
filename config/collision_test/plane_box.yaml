@@ -1,7 +1,7 @@
 name: "Plane-Box Collision"
-time-step: 1e-2
+time-step: 1e-3
 end-time: 100
-solver-iters: 50
+solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True

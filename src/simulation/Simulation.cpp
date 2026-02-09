@@ -428,9 +428,11 @@ void Simulation::update()
         _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
         _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
         _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
+        _constraints.clear<Constraint::RodRodCollisionConstraint>();
         _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
         _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
         _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
+        _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint>();
         const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
         for (const auto& detected_collision : detected_collisions)
         {
@@ -463,6 +465,18 @@ void Simulation::update()
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
                     constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
                         collision.rb_particle, collision.rb_cp_local, collision.normal);
+                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                    _solver.addConstraint(constraint_ref);
+                }
+                if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
+                {
+                    using ConstraintType = Constraint::RodRodCollisionConstraint;
+                    auto& constraint_vec = _constraints.template get<ConstraintType>();
+                    constraint_vec.emplace_back(
+                        collision.segment1_particle1, collision.segment1_particle2, collision.alpha1, collision.radius1, 
+                        collision.segment2_particle1, collision.segment2_particle2, collision.alpha2, collision.radius2,
+                        collision.normal
+                    );
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }

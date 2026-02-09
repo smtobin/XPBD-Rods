@@ -118,6 +118,7 @@ namespace Constraint
     class RigidBodyCollisionConstraint;
     class OneSidedRigidBodyCollisionConstraint;
     class RodRigidBodyCollisionConstraint;
+    class RodRodCollisionConstraint;
 }
 
 using XPBDJointConstraints_TypeList = TypeList<
@@ -154,7 +155,8 @@ using XPBDRodConstraints_TypeList = TypeList<
 using XPBDCollisionConstraints_TypeList = TypeList<
     Constraint::RigidBodyCollisionConstraint,
     Constraint::OneSidedRigidBodyCollisionConstraint,
-    Constraint::RodRigidBodyCollisionConstraint
+    Constraint::RodRigidBodyCollisionConstraint,
+    Constraint::RodRodCollisionConstraint
 >;
 
 using XPBDConstraints_TypeList = ConcatenateTypeLists<

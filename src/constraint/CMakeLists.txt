@@ -18,6 +18,7 @@ set(CONSTRAINT_HEADERS
 
     ${CONSTRAINT_INCLUDE_DIR}/RigidBodyCollisionConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RodRigidBodyCollisionConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/RodRodCollisionConstraint.hpp
 )
 
 set(CONSTRAINT_SOURCES
@@ -34,6 +35,7 @@ set(CONSTRAINT_SOURCES
 
     ${CONSTRAINT_SRC_DIR}/RigidBodyCollisionConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/RodRigidBodyCollisionConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/RodRodCollisionConstraint.cpp
 )
 
 target_sources(Constraint
