@@ -23,7 +23,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
     _dt(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
     _viewer_refresh_time_ms(1000.0/30.0),
-    _solver(_dt, 1),
+    _solver(_dt, sim_config.solverIters()),
     _graphics_scene(sim_config.renderConfig()),
     _collision_scene(),
     _config(sim_config)

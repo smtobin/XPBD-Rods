@@ -1,6 +1,7 @@
 name: "Plane-Box Collision"
 time-step: 1e-2
 end-time: 100
+solver-iters: 50
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -9,9 +10,9 @@ objects:
   - 
     type: "RigidBox"
     name: "box1"
-    initial-position: [0, 3, 0.0]
-    initial-rotation: [40, 0, 10]
-    size: [0.5,0.5,1]
+    initial-position: [0, 1, 0.0]
+    initial-rotation: [0, 0, 0]
+    size: [0.3,0.3,0.3]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
@@ -19,18 +20,18 @@ objects:
     roughness: 0.5
     color: [1.0, 0.0, 0.0]
 
-  - 
-    type: "RigidBox"
-    name: "box2"
-    initial-position: [0.1, 5, 0.0]
-    initial-rotation: [0, 0, 20]
-    size: [1.2,1,1]
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [0, 0.0, 1.0]
+  # - 
+  #   type: "RigidBox"
+  #   name: "box2"
+  #   initial-position: [0, 3, 0.0]
+  #   initial-rotation: [0, 0, 0]
+  #   size: [0.3,0.3,0.3]
+  #   render-type: "PBR"
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.0
+  #   roughness: 0.5
+  #   color: [0, 0.0, 1.0]
 
   -
     type: "Plane"

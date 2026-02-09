@@ -25,6 +25,7 @@ class SimulationConfig : public Config_Base
         _extractParameter("logging-output-folder", node, _logging_output_dir);
         _extractParameter("logging-interval", node, _logging_interval);
         _extractParameter("log-residuals", node, _log_residuals);
+        _extractParameter("solver-iters", node, _solver_iters);
 
         for (const auto& obj_node : node["objects"])
         {
@@ -103,13 +104,15 @@ class SimulationConfig : public Config_Base
         }
     }
 
-    explicit SimulationConfig(const std::string& name, Real time_step, Real end_time, Real g_accel, 
+    explicit SimulationConfig(const std::string& name, Real time_step, Real end_time, Real g_accel, int solver_iters, 
         bool logging, const std::string& logging_output_dir, Real logging_interval, bool log_residuals)
         : Config_Base(name), _render_config()
     {
         _time_step.value = time_step;
         _end_time.value = end_time;
         _g_accel.value = g_accel;
+        _solver_iters.value = solver_iters;
+
         _logging.value = logging;
         _logging_output_dir.value = logging_output_dir;
         _logging_interval.value = logging_interval;
@@ -119,6 +122,7 @@ class SimulationConfig : public Config_Base
     Real timeStep() const { return _time_step.value; }
     Real endTime() const { return _end_time.value; }
     Real gAccel() const { return _g_accel.value; }
+    int solverIters() const { return _solver_iters.value; }
 
     bool logging() const { return _logging.value; }
     std::string loggingOutputDir() const { return _logging_output_dir.value; }
@@ -141,6 +145,8 @@ class SimulationConfig : public Config_Base
     ConfigParameter<Real> _logging_interval = ConfigParameter<Real>(1e-2);
 
     ConfigParameter<bool> _log_residuals = ConfigParameter<bool>(false);
+
+    ConfigParameter<int> _solver_iters = ConfigParameter<int>(1);
 
 
     XPBDObjectConfigs_Container _object_configs;

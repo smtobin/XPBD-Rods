@@ -11,6 +11,8 @@
 
 #include "collision/helper/BoxBoxCollider.hpp"
 
+#include <random>
+
 namespace Collision
 {
 
@@ -169,6 +171,11 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
             &plane->com(), hsplane, &box->com(), hsbox,
             plane->normal(), code, collisions
         );
+
+        auto rd = std::random_device {}; 
+        auto rng = std::default_random_engine { rd() };
+        std::shuffle(std::begin(collisions), std::end(collisions), rng);
+
         scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
 
         // naively check all the vertices
