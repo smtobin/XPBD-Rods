@@ -421,8 +421,10 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
     const Vec3r& p4 = segment2->particle2()->position;
     auto [beta1, beta2] = Math::findClosestPointsOnLineSegments(p1, p2, p3, p4);
     
-    const Vec3r cp_rod1 = (1-beta1)*p1 + beta1*p2;
-    const Vec3r cp_rod2 = (1-beta2)*p3 + beta2*p4;
+    // const Vec3r cp_rod1 = segment1->pointOnSegment(beta1);
+    // const Vec3r cp_rod2 = segment2->pointOnSegment(beta2);
+    const Vec3r cp_rod1 = p1 + beta1*(p2 - p1);
+    const Vec3r cp_rod2 = p3 + beta2*(p4 - p3);
 
     Vec3r diff = cp_rod2 - cp_rod1;
     Real sq_dist = diff.squaredNorm();
@@ -440,17 +442,20 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
         {
             normal = diff / std::sqrt(sq_dist);
         }
+
+        auto [seg1_p1, seg1_p2, seg1_alpha] = segment1->subsegment(beta1);
+        auto [seg2_p1, seg2_p2, seg2_alpha] = segment2->subsegment(beta2);
         
         Collision::SegmentSegmentCollision new_collision;
-        new_collision.alpha1 = beta1;
-        new_collision.alpha2 = beta2;
+        new_collision.alpha1 = seg1_alpha;
+        new_collision.alpha2 = seg2_alpha;
         new_collision.radius1 = segment1->radius();
         new_collision.radius2 = segment2->radius();
         new_collision.normal = normal;
-        new_collision.segment1_particle1 = segment1->particle1();
-        new_collision.segment1_particle2 = segment1->particle2();
-        new_collision.segment2_particle1 = segment2->particle1();
-        new_collision.segment2_particle2 = segment2->particle2();
+        new_collision.segment1_particle1 = seg1_p1;
+        new_collision.segment1_particle2 = seg1_p2;
+        new_collision.segment2_particle1 = seg2_p1;
+        new_collision.segment2_particle2 = seg2_p2;
         scene->_new_collisions.push_back(std::move(new_collision));
 
     }

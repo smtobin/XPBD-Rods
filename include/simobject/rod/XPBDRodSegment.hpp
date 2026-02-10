@@ -1,47 +1,44 @@
 #pragma once
 
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/AABB.hpp"
 
 namespace SimObject
 {
 
+class XPBDRod;
+
 class XPBDRodSegment
 {
 public:
-    explicit XPBDRodSegment(OrientedParticle* particle1, OrientedParticle* particle2, Real radius)
-        : _particle1(particle1), _particle2(particle2), _radius(radius)
-    {}
+    explicit XPBDRodSegment(XPBDRod* rod, int index1, int index2);
 
-    OrientedParticle* particle1() { return _particle1; }
-    const OrientedParticle* particle1() const { return _particle1; }
+    XPBDRod* rod() { return _rod; }
+    const XPBDRod* rod() const { return _rod; }
 
-    OrientedParticle* particle2() { return _particle2; }
-    const OrientedParticle* particle2() const { return _particle2; }
+    int size() const { return _index2 - _index1; }
 
-    Real radius() const { return _radius; }
+    int index1() const { return _index1; }
+    int index2() const { return _index2; }
 
-    AABB boundingBox() const
-    {
-        const Vec3r& p1_pos = _particle1->position;
-        const Vec3r& p2_pos = _particle2->position; 
-        AABB bbox;
-        bbox.min[0] = std::min(p1_pos[0], p2_pos[0]);
-        bbox.min[1] = std::min(p1_pos[1], p2_pos[1]);
-        bbox.min[2] = std::min(p1_pos[2], p2_pos[2]);
+    std::tuple<OrientedParticle*, OrientedParticle*, Real> subsegment(Real beta); 
+    Vec3r pointOnSegment(Real beta) const;
 
-        bbox.max[0] = std::max(p1_pos[0], p2_pos[0]);
-        bbox.max[1] = std::max(p1_pos[1], p2_pos[1]);
-        bbox.max[2] = std::max(p1_pos[2], p2_pos[2]);
+    OrientedParticle* particle1();
+    const OrientedParticle* particle1() const;
 
-        return bbox;
-    }
+    OrientedParticle* particle2();
+    const OrientedParticle* particle2() const;
+
+    Real radius() const;
+
+    AABB boundingBox() const;
+    
 
 private:
-    OrientedParticle* _particle1;
-    OrientedParticle* _particle2;
-
-    /** TODO: adapt for non-circular cross-sections */
-    Real _radius;
+    XPBDRod* _rod;
+    int _index1;
+    int _index2;
 };
 
 } // namespace SimObject

@@ -81,18 +81,35 @@ class XPBDRod : public XPBDObject_Base
             _nodes[i].Ib = _I_rot;
         }
 
-        _segments.reserve(_num_nodes-1);
-        for (int i = 0; i < _num_nodes-1; i++)
+        // divide the rod up into collision segments that are at least as long as the diameter of the rod
+        // this prevents segments from within the rod fighting with each other in collision detection
+        // and makes collision detection a lot faster if we downsample
+        Real segment_length = _length / (_num_nodes-1);
+        int num_segments_per_dia = static_cast<int>(2*cross_section.radius() / segment_length) + 1;    // round up
+        int remainder = (_num_nodes - 1) % num_segments_per_dia;
+        int num_collision_segments = (_num_nodes - 1) / num_segments_per_dia;
+        _collision_segments.reserve(num_collision_segments);
+
+        int cur_index = 0;
+        for (int i = 0; i < num_collision_segments; i++)
         {
-            _segments.emplace_back(&_nodes[i], &_nodes[i+1], cross_section.radius());
+            int size = num_segments_per_dia;
+            if (remainder > 0)
+            {
+                size++;
+                remainder--;
+            }
+
+            _collision_segments.emplace_back(this, cur_index, cur_index + size);
+            cur_index += size;
         }
     }
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
-    const std::vector<XPBDRodSegment>& segments() const { return _segments; }
-    std::vector<XPBDRodSegment>& segments() { return _segments; }
+    const std::vector<XPBDRodSegment>& collisionSegments() const { return _collision_segments; }
+    std::vector<XPBDRodSegment>& collisionSegments() { return _collision_segments; }
 
     /** Required override of XPBDObject_Base */
     virtual std::vector<const OrientedParticle*> particles() const override;
@@ -270,7 +287,7 @@ class XPBDRod : public XPBDObject_Base
     VecXr _dx;
 
     /** Stores the individual rod segments (useful for collision detection). */
-    std::vector<XPBDRodSegment> _segments;
+    std::vector<XPBDRodSegment> _collision_segments;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

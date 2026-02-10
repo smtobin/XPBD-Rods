@@ -12,8 +12,8 @@ objects:
     name: "rod1"
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    nodes: 20
-    E: 1e7
+    nodes: 15
+    E: 1e6
     diameter: 0.1
     length: 1
     nu: 0.3
@@ -31,7 +31,7 @@ objects:
     name: "rod2"
     initial-position: [-0.5, 1.3, 0.5]
     initial-rotation: [0, 90, 0]
-    nodes: 20
+    nodes: 15
     E: 1e6
     diameter: 0.1
     length: 1
