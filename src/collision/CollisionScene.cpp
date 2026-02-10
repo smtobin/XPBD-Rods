@@ -4,6 +4,7 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDPlane.hpp"
 #include "simobject/rod/XPBDRodSegment.hpp"
+#include "simobject/rod/XPBDRod.hpp"
 
 #include "collision/sdf/SDF.hpp"
 #include "collision/sdf/SphereSDF.hpp"
@@ -431,32 +432,53 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
     Real rads_sq = (segment1->radius() + segment2->radius()) * (segment1->radius() + segment2->radius());
     if (sq_dist < rads_sq)
     {
-        // Collision!
-        Vec3r normal;
-        if (sq_dist < 1e-6)
+
+        if (segment1->size() == 1 && segment2->size() == 1)
         {
-            normal = (p2 - p1).cross(p4 - p3);
-            normal = normal.normalized();
-        }
-        else
-        {
-            normal = diff / std::sqrt(sq_dist);
+            Vec3r normal;
+            if (sq_dist < 1e-6)
+            {
+                normal = (p2 - p1).cross(p4 - p3);
+                normal = normal.normalized();
+            }
+            else
+            {
+                normal = diff / std::sqrt(sq_dist);
+            }
+            
+            Collision::SegmentSegmentCollision new_collision;
+            new_collision.alpha1 = beta1;
+            new_collision.alpha2 = beta2;
+            new_collision.radius1 = segment1->radius();
+            new_collision.radius2 = segment2->radius();
+            new_collision.normal = normal;
+            new_collision.segment1_particle1 = segment1->particle1();
+            new_collision.segment1_particle2 = segment1->particle2();
+            new_collision.segment2_particle1 = segment2->particle1();
+            new_collision.segment2_particle2 = segment2->particle2();
+            scene->_new_collisions.push_back(std::move(new_collision));
         }
 
-        auto [seg1_p1, seg1_p2, seg1_alpha] = segment1->subsegment(beta1);
-        auto [seg2_p1, seg2_p2, seg2_alpha] = segment2->subsegment(beta2);
+        else
+        {
+            // collision between two collision segments
+            // need to add collisions between each of the individual length=1 segments in both segments
+            SimObject::XPBDRod* rod1 = segment1->rod();
+            SimObject::XPBDRod* rod2 = segment2->rod();
+            for (int ind1 = segment1->index1(); ind1 < segment1->index2(); ind1++)
+            {
+                for (int ind2 = segment2->index1(); ind2 < segment2->index2(); ind2++)
+                {
+                    SimObject::XPBDRodSegment subsegment1(rod1, ind1, ind1+1);
+                    SimObject::XPBDRodSegment subsegment2(rod2, ind2, ind2+1);
+                    _checkCollision(scene, &subsegment1, &subsegment2);
+                }
+            }
+        }
+
         
-        Collision::SegmentSegmentCollision new_collision;
-        new_collision.alpha1 = seg1_alpha;
-        new_collision.alpha2 = seg2_alpha;
-        new_collision.radius1 = segment1->radius();
-        new_collision.radius2 = segment2->radius();
-        new_collision.normal = normal;
-        new_collision.segment1_particle1 = seg1_p1;
-        new_collision.segment1_particle2 = seg1_p2;
-        new_collision.segment2_particle1 = seg2_p1;
-        new_collision.segment2_particle2 = seg2_p2;
-        scene->_new_collisions.push_back(std::move(new_collision));
+
+        
 
     }
 

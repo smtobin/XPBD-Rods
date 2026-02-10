@@ -42,7 +42,7 @@ public:
         _separate_constraint_projectors.template clear<Constraint::XPBDSeparateConstraintProjector<ConstraintType>>();
     }
 
-    void solve();
+    void solve(bool initialize=true);
 
     const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
     const XPBDSeparateConstraintProjectors_Container& separateConstraintProjectors() const { return _separate_constraint_projectors; }

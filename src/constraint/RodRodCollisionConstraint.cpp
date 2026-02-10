@@ -10,7 +10,7 @@ RodRodCollisionConstraint::RodRodCollisionConstraint(
     Real beta2, Real r_rod2,
     const Vec3r& n
 )
-    : XPBDConstraint<1, 4>({p1_rod1, p2_rod1, p1_rod2, p2_rod2}, 1.0e-4*AlphaVecType::Ones()),
+    : XPBDConstraint<1, 4>({p1_rod1, p2_rod1, p1_rod2, p2_rod2}, 1e-4*AlphaVecType::Ones()),
      _beta1(beta1), _beta2(beta2), _r_rod1(r_rod1), _r_rod2(r_rod2), _n(n)
 {
 }
@@ -22,8 +22,12 @@ RodRodCollisionConstraint::ConstraintVecType RodRodCollisionConstraint::evaluate
     // contact point on rod 2
     const Vec3r cp_rod2 = (1-_beta2)*_particles[2]->position + _beta2*_particles[3]->position - _n*_r_rod2;
 
+    Real h = 1e-3;
+    Real tau = 1e-2;
+    Real fac = 1;// - (2 - h/tau) / (2 + h/tau);
+
     ConstraintVecType C;
-    C[0] = (cp_rod2 - cp_rod1).dot(_n);
+    C[0] = fac * (cp_rod2 - cp_rod1).dot(_n);
     return C;
 }
 

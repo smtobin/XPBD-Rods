@@ -198,6 +198,7 @@ class Simulation
     std::vector<Vec3r> _p_tilde;
     std::vector<Mat3r> _R_tilde;
 
+    int _solver_iters = 1;
     Solver::GaussSeidelSolver _solver;
 
     std::deque<std::function<void()>> _callback_queue;

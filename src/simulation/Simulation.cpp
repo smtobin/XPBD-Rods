@@ -12,6 +12,7 @@ Simulation::Simulation()
     : _setup(false),
       _time(0), _dt(1e-3), _end_time(10),
       _g_accel(9.81), _viewer_refresh_time_ms(1000.0/30.0),
+      _solver_iters(1),
       _solver(_dt, 1),
       _graphics_scene(),
       _collision_scene()
@@ -23,12 +24,12 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
     _dt(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
     _viewer_refresh_time_ms(1000.0/30.0),
-    _solver(_dt, sim_config.solverIters()),
+    _solver_iters(sim_config.solverIters()),
+    _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
     _collision_scene(),
     _config(sim_config)
 {
-
 }
 
 SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
@@ -708,12 +709,15 @@ void Simulation::_timeStep()
         _R_tilde[index] = particle_ptr->orientation;
     }
 
+    for (int iter = 0; iter < _solver_iters; iter++)
+    {
 
-    _objects.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
-    _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
+        _objects.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
+        _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
 
-    _solver.solve();
-
+        _solver.solve(iter==0);
+    }
+    
     _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
 

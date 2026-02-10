@@ -9,19 +9,22 @@ GaussSeidelSolver::GaussSeidelSolver(Real dt, int num_iter)
 
 }
 
-void GaussSeidelSolver::solve()
+void GaussSeidelSolver::solve(bool initialize)
 {
-    _constraint_projectors.for_each_element([&](auto& projector) {
-        projector.initialize();
-    });
+    if (initialize)
+    {
+        _constraint_projectors.for_each_element([&](auto& projector) {
+            projector.initialize();
+        });
 
-    _separate_constraint_projectors.for_each_element([&](auto& projector) {
-        projector.initialize();
-    });
+        _separate_constraint_projectors.for_each_element([&](auto& projector) {
+            projector.initialize();
+        });
 
-    _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
-        projector.initialize();
-    });
+        _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
+            projector.initialize();
+        });
+    }
 
     for (int gi = 0; gi < _num_iter; gi++)
     {

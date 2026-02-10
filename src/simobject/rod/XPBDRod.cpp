@@ -61,6 +61,8 @@ void XPBDRod::setup()
     _dx.conservativeResize(6*_num_nodes);
 
     _prev_nodes = _nodes;
+
+    _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
     
 }
 
@@ -86,11 +88,11 @@ AABB XPBDRod::boundingBox() const
 
 void XPBDRod::internalConstraintSolve(Real dt)
 {
-    _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
+    // _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
     // _prev_nodes = _nodes;
     // inertialUpdate(dt);
 
-    for (int gi = 0; gi < 3; gi++)
+    for (int gi = 0; gi < 1; gi++)
     {
         // compute gradients (this will update the caches in the constraints so we won't have to recompute them)
         for (auto& c : _elastic_constraints)
@@ -149,7 +151,7 @@ void XPBDRod::internalConstraintSolve(Real dt)
     }
 
 
-    velocityUpdate(dt);
+    // velocityUpdate(dt);
 }
 
 std::vector<ConstraintAndLambda> XPBDRod::internalConstraintsAndLambdas() const
@@ -336,6 +338,8 @@ void XPBDRod::velocityUpdate(Real dt)
     {
         _nodes[i].velocityUpdate(dt, _prev_nodes[i].position, _prev_nodes[i].orientation);
     }
+
+    _internal_lambda = VecXr::Zero(6*(_elastic_constraints.size() + _attachment_constraints.size()));
 }
 
 } // namespace SimObject
