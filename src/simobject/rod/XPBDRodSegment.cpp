@@ -8,7 +8,6 @@ namespace SimObject
 XPBDRodSegment::XPBDRodSegment(XPBDRod* rod, int index1, int index2)
     : _rod(rod), _index1(index1), _index2(index2)
 {
-    std::cout << "Creating rod segment for rod " << rod << " with indices (" << _index1 << ", " << _index2 << ")" << std::endl;
 }
 
 OrientedParticle* XPBDRodSegment::particle1()

@@ -474,7 +474,9 @@ void Simulation::update()
                     using ConstraintType = Constraint::RodRodCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
                     constraint_vec.emplace_back(
+                        collision.rod1,
                         collision.segment1_particle1, collision.segment1_particle2, collision.alpha1, collision.radius1, 
+                        collision.rod2,
                         collision.segment2_particle1, collision.segment2_particle2, collision.alpha2, collision.radius2,
                         collision.normal
                     );

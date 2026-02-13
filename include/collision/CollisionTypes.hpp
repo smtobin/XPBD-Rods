@@ -30,10 +30,12 @@ struct RigidSegmentCollision
 
 struct SegmentSegmentCollision
 {
+    SimObject::XPBDRod* rod1;   // rod with segment 1
     SimObject::OrientedParticle* segment1_particle1; // one endpoint of rod segment 1
     SimObject::OrientedParticle* segment1_particle2; // other endpoint of rod segment 1
     Real alpha1; // interpolation parameter in [0,1] for 1st segment
     Real radius1;  // cross-section radius for 1st segment. TODO: generalize to generic cross-sections
+    SimObject::XPBDRod* rod2;   // rod with segment 2
     SimObject::OrientedParticle* segment2_particle1; // one endpoint of rod segment 2
     SimObject::OrientedParticle* segment2_particle2; // other endpoint of rod segment 2
     Real alpha2; // interpolation parameter in [0,1] 

@@ -14,6 +14,8 @@
 
 #include <random>
 
+#define COLLISION_TOL 1e-4      // if the distance between objects is less than this, register a collision and generate collision constraints
+
 namespace Collision
 {
 
@@ -137,7 +139,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 {
     Vec3r cp_sphere_global = sphere->com().position - sphere->radius() * plane->normal();
     Vec3r diff = cp_sphere_global - plane->com().position;
-    if (diff.dot(plane->normal()) <= 0)
+    if (diff.dot(plane->normal()) <= COLLISION_TOL)
     {
         // Collision!
         RigidRigidCollision new_collision;
@@ -160,7 +162,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
                         hsbox[2] * std::abs(box->com().orientation.col(2).dot(pn));
     Real box_proj = box->com().position.dot(pn);
     Real plane_proj = plane->com().position.dot(pn);
-    if (box_proj - box_radius <= plane_proj)
+    if (box_proj - box_radius <= plane_proj + COLLISION_TOL)
     {
 
         // collision!
@@ -178,38 +180,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
         std::shuffle(std::begin(collisions), std::end(collisions), rng);
 
         scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
-
-        // naively check all the vertices
-        // auto test_vertex = [&](const Vec3r& dirs)
-        // {
-        //     const Vec3r vert = box->com().position + 
-        //         dirs[0] * box->com().orientation.col(0) * hsbox[0] +
-        //         dirs[1] * box->com().orientation.col(1) * hsbox[1] +
-        //         dirs[2] * box->com().orientation.col(2) * hsbox[2];
-            
-        //     Real vert_proj = vert.dot(pn);
-        //     if (vert_proj <= plane_proj)
-        //     {
-        //         RigidRigidCollision new_collision;
-        //         new_collision.normal = plane->normal();
-        //         new_collision.particle1 = &plane->com();
-        //         new_collision.cp_local1 = Vec3r::Zero();
-        //         new_collision.particle2 = &box->com();
-        //         new_collision.cp_local2 = box->com().orientation.transpose() * (vert - box->com().position);
-
-        //         scene->_new_collisions.push_back(std::move(new_collision));
-        //     }
-        // };
-
-        // test_vertex(Vec3r(1,1,1));
-        // test_vertex(Vec3r(1,-1,-1));
-        // test_vertex(Vec3r(1,1,-1));
-        // test_vertex(Vec3r(1,-1,1));
-
-        // test_vertex(Vec3r(-1,-1,-1));
-        // test_vertex(Vec3r(-1, 1, 1));
-        // test_vertex(Vec3r(-1,-1,1));
-        // test_vertex(Vec3r(-1,1,-1));
     }
 
 }
@@ -231,7 +201,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     Vec3r com_diff = (sphere2->com().position - sphere1->com().position);
     Real com_sq_dist = com_diff.squaredNorm();
     Real rad_sq_dist = (sphere1->radius() + sphere2->radius())*(sphere1->radius() + sphere2->radius());
-    if (com_sq_dist < rad_sq_dist)
+    if (com_sq_dist < rad_sq_dist + COLLISION_TOL)
     {
         // collision!
         std::cout << "\n\n\n COLLISION BETWEEN SPHERES!\n\n\n" << std::endl;
@@ -281,7 +251,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     Real sq_dist = diff.squaredNorm();
 
     Vec3r local_collision_normal;
-    if (sq_dist <= sphere->radius() * sphere->radius())
+    if (sq_dist <= sphere->radius() * sphere->radius() + COLLISION_TOL * COLLISION_TOL)
     {
         // collision!
         std::cout << "\n\n\n COLLISION BETWEEN SPHERE AND BOX!\n\n\n" << std::endl;
@@ -357,7 +327,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     Real sq_dist = diff.squaredNorm();
     Real combined_radius = sphere->radius() + segment->radius();
 
-    if (sq_dist < combined_radius*combined_radius)
+    if (sq_dist < combined_radius*combined_radius + COLLISION_TOL*COLLISION_TOL)
     {
         // Collision!
         // special case: sphere center is almost on the line segment between the two rod nodes
@@ -430,7 +400,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
     Vec3r diff = cp_rod2 - cp_rod1;
     Real sq_dist = diff.squaredNorm();
     Real rads_sq = (segment1->radius() + segment2->radius()) * (segment1->radius() + segment2->radius());
-    if (sq_dist < rads_sq)
+    if (sq_dist < rads_sq + COLLISION_TOL*COLLISION_TOL) 
     {
 
         if (segment1->size() == 1 && segment2->size() == 1)
@@ -452,6 +422,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
             new_collision.radius1 = segment1->radius();
             new_collision.radius2 = segment2->radius();
             new_collision.normal = normal;
+            new_collision.rod1 = segment1->rod();
+            new_collision.rod2 = segment2->rod();
             new_collision.segment1_particle1 = segment1->particle1();
             new_collision.segment1_particle2 = segment1->particle2();
             new_collision.segment2_particle1 = segment2->particle1();

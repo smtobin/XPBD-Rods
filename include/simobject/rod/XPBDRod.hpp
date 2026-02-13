@@ -116,6 +116,8 @@ class XPBDRod : public XPBDObject_Base
 
     const CrossSection* crossSection() const { return _cross_section.get(); }
 
+    Real EI() const { return _cross_section->Ix() * _E; }
+
     const std::vector<Constraint::RodElasticConstraint>& rodConstraints() const { return _elastic_constraints; }
 
     /** Performs necessary setup to prepare the rod for simulation. (sets up constraints, computes mass properties, etc.) */
