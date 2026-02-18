@@ -13,7 +13,7 @@ RodRodCollisionConstraint::RodRodCollisionConstraint(
     Real beta2, Real r_rod2,
     const Vec3r& n
 )
-    : XPBDConstraint<1, 4>({p1_rod1, p2_rod1, p1_rod2, p2_rod2}, 1e-6*AlphaVecType::Ones()),
+    : XPBDConstraint<1, 4>({p1_rod1, p2_rod1, p1_rod2, p2_rod2}, 0*AlphaVecType::Ones()),
      _rod1(rod1), _rod2(rod2), _beta1(beta1), _beta2(beta2), _r_rod1(r_rod1), _r_rod2(r_rod2), _n(n)
 {
 }

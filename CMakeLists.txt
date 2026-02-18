@@ -92,6 +92,9 @@ target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint SimObject
 add_executable(TestCollision test/test_collision.cpp)
 target_link_libraries(TestCollision Eigen3::Eigen Collision SimObject Graphics ${VTK_LIBRARIES})
 
+add_executable(TestRod test/test_rod.cpp)
+target_link_libraries(TestRod Eigen3::Eigen SimObject Collision)
+
 
 
 # vtk_module_autoinit is needed
