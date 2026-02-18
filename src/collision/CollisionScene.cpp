@@ -105,6 +105,7 @@ CollisionScene::CollisionScene(Real grid_size, int num_buckets)
 // const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
 const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
 {
+    std::cout << "\n\nCollisionScene::detectCollisions()" << std::endl;
     _new_collisions.clear();
 
     // run broad-phase collision detection using spatial hashing
@@ -186,6 +187,40 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRodSegment* segment)
 {
+    const Vec3r& p1 = segment->particle1()->position;
+    const Vec3r& p2 = segment->particle2()->position;
+    Vec3r cp_p1 = p1 - segment->radius() * plane->normal();
+    Vec3r cp_p2 = p2 - segment->radius() * plane->normal();
+
+    Vec3r diff1 = cp_p1 - plane->com().position;
+    Vec3r diff2 = cp_p2 - plane->com().position;
+
+    if (diff1.dot(plane->normal()) <= COLLISION_TOL || diff2.dot(plane->normal()) <= COLLISION_TOL)
+    {
+        std::cout << "ROD-PLANE COLLISION!!" << diff1.dot(plane->normal()) << std::endl;
+        for (int ind = segment->index1(); ind < segment->index2(); ind++)
+        {
+            std::cout << " Creating collision constraint between rod nodes " << ind << " and " << ind+1 << std::endl;
+            Collision::RigidSegmentCollision new_collision;
+            new_collision.alpha = 0; // always create the constraint at the center of the segment for stability
+            new_collision.radius = segment->radius();
+            new_collision.normal = -plane->normal();
+            new_collision.rb_particle = &plane->com();
+            new_collision.rb_cp_local = Vec3r::Zero();
+            new_collision.segment_particle1 = &segment->rod()->nodes()[ind];
+            new_collision.segment_particle2 = &segment->rod()->nodes()[ind+1];
+
+            if (ind == segment->index2()-1)
+            {
+                Collision::RigidSegmentCollision new_collision2 = new_collision;
+                new_collision.alpha = 1;
+                scene->_new_collisions.push_back(std::move(new_collision2));
+            }
+            scene->_new_collisions.push_back(std::move(new_collision));
+
+            
+        }
+    }
 
 }
 
@@ -196,15 +231,11 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     if (sphere1 == sphere2)
         return;
 
-    std::cout << "Potential collision between two spheres!" << std::endl;
-
     Vec3r com_diff = (sphere2->com().position - sphere1->com().position);
     Real com_sq_dist = com_diff.squaredNorm();
     Real rad_sq_dist = (sphere1->radius() + sphere2->radius())*(sphere1->radius() + sphere2->radius());
     if (com_sq_dist < rad_sq_dist + COLLISION_TOL)
     {
-        // collision!
-        std::cout << "\n\n\n COLLISION BETWEEN SPHERES!\n\n\n" << std::endl;
         // collision normal points from sphere 1 -> sphere 2
         Vec3r collision_normal;
         if (com_sq_dist < CONSTRAINT_EPS)
@@ -236,7 +267,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRigidBox* box)
 {
-    std::cout << "Potential collision between a sphere and a box!" << std::endl;
     // find closest point on box to sphere center
     // first, transform sphere center into box local frame
     const Vec3r sphere_local = box->com().orientation.transpose() * (sphere->com().position - box->com().position);
@@ -310,8 +340,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment)
 {
-    // std::cout << "Potential collision between a sphere and rod segment!" << std::endl;
-
     // project the sphere center onto the line segment, and clamp between [0,1]
     const Vec3r& sphere_center = sphere->com().position;
     const Vec3r& endpoint1 = segment->particle1()->position;
