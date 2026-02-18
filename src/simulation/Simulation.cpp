@@ -650,10 +650,12 @@ void Simulation::_timeStep()
     _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
     _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
     _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
+    _constraints.clear<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
     _constraints.clear<Constraint::RodRodCollisionConstraint>();
     _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
     _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
     _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
+    _solver.clearProjectorsOfType<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
     _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint>();
     const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
     for (const auto& detected_collision : detected_collisions)
@@ -683,12 +685,27 @@ void Simulation::_timeStep()
             }
             if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
             {
-                using ConstraintType = Constraint::RodRigidBodyCollisionConstraint;
-                auto& constraint_vec = _constraints.template get<ConstraintType>();
-                constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
-                    collision.rb_particle, collision.rb_cp_local, collision.normal);
-                ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                _solver.addConstraint(constraint_ref);
+                if (collision.rb_particle->fixed)
+                {
+                    std::cout << "Adding one sided rigid-segment collision" << std::endl;
+                    using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;
+                    auto& constraint_vec = _constraints.template get<ConstraintType>();
+                    Vec3r cp = collision.rb_particle->position + collision.rb_particle->orientation * collision.rb_cp_local;
+                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
+                        cp, collision.normal);
+                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                    _solver.addConstraint(constraint_ref);
+                }
+                else
+                {
+                    using ConstraintType = Constraint::RodRigidBodyCollisionConstraint;
+                    auto& constraint_vec = _constraints.template get<ConstraintType>();
+                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
+                        collision.rb_particle, collision.rb_cp_local, collision.normal);
+                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                    _solver.addConstraint(constraint_ref);
+                }
+                
             }
             if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
             {
