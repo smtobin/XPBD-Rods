@@ -40,8 +40,8 @@ RodRodCollisionConstraint::GradientMatType RodRodCollisionConstraint::gradient(b
     Real bending_compliance1 = _rod1->EI();
     Real bending_compliance2 = _rod2->EI();
     Real total_bending_compliance = bending_compliance1 + bending_compliance2;
-    Real w1 = bending_compliance1 / total_bending_compliance;
-    Real w2 = bending_compliance2 / total_bending_compliance;
+    Real w1 = 1;//bending_compliance1 / total_bending_compliance;
+    Real w2 = 1;//bending_compliance2 / total_bending_compliance;
 
     // gradients w.r.t. positions of rod 1
     Vec3r dC_dp1 = -w1*(1-_beta1)*_n;
