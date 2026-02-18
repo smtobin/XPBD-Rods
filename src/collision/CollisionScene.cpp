@@ -397,6 +397,14 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
     const Vec3r cp_rod1 = p1 + beta1*(p2 - p1);
     const Vec3r cp_rod2 = p3 + beta2*(p4 - p3);
 
+    // std::cout << "\np1: " << p1.transpose() << std::endl;
+    // std::cout << "p2: " << p2.transpose() << std::endl;
+    // std::cout << "p3: " << p3.transpose() << std::endl;
+    // std::cout << "p4: " << p4.transpose() << std::endl;
+    // std::cout << "cp_rod1: " << cp_rod1.transpose() << std::endl;
+    // std::cout << "cp_rod2: " << cp_rod2.transpose() << std::endl;
+    // std::cout << "radius1: " << segment1->radius() << "  radius2: " << segment2->radius() << std::endl;
+
     Vec3r diff = cp_rod2 - cp_rod1;
     Real sq_dist = diff.squaredNorm();
     Real rads_sq = (segment1->radius() + segment2->radius()) * (segment1->radius() + segment2->radius());
@@ -416,6 +424,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
                 normal = diff / std::sqrt(sq_dist);
             }
             
+            // std::cout << "Rod-rod collision!" << std::endl;
+
             Collision::SegmentSegmentCollision new_collision;
             new_collision.alpha1 = beta1;
             new_collision.alpha2 = beta2;

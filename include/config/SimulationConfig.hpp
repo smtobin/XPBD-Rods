@@ -7,6 +7,25 @@
 namespace Config
 {
 
+/** Enum defining the different ways the simulation can be run 
+ * VISUALIZATION: if simulation is running faster than real-time, slow down updates so that sim time = wall time
+ * AFAP: run the simulation As Fast As Possible - i.e. do not slow updates
+ * FRAME_BY_FRAME: allow the user to step the simulation forward, time step by time step, using the keyboard
+*/
+enum class SimulationMode
+{
+    VISUALIZATION=0,
+    AFAP,
+    FRAME_BY_FRAME
+};
+static std::map<std::string, SimulationMode> SIM_MODE_OPTIONS()
+{
+    static std::map<std::string, SimulationMode> sim_mode_options{{"Visualization", SimulationMode::VISUALIZATION},
+                                                                    {"AFAP", SimulationMode::AFAP},
+                                                                    {"Frame-by-frame", SimulationMode::FRAME_BY_FRAME}};
+    return sim_mode_options;
+}
+
 class SimulationConfig : public Config_Base
 {
     public:
@@ -18,6 +37,7 @@ class SimulationConfig : public Config_Base
     explicit SimulationConfig(const YAML::Node& node)
         : Config_Base(node), _render_config(node)
     {
+        _extractParameterWithOptions("sim-mode", node, _sim_mode, SIM_MODE_OPTIONS());
         _extractParameter("time-step", node, _time_step);
         _extractParameter("end-time", node, _end_time);
         _extractParameter("g-accel", node, _g_accel);
@@ -104,10 +124,11 @@ class SimulationConfig : public Config_Base
         }
     }
 
-    explicit SimulationConfig(const std::string& name, Real time_step, Real end_time, Real g_accel, int solver_iters, 
+    explicit SimulationConfig(const std::string& name, SimulationMode sim_mode, Real time_step, Real end_time, Real g_accel, int solver_iters, 
         bool logging, const std::string& logging_output_dir, Real logging_interval, bool log_residuals)
         : Config_Base(name), _render_config()
     {
+        _sim_mode.value = sim_mode;
         _time_step.value = time_step;
         _end_time.value = end_time;
         _g_accel.value = g_accel;
@@ -118,6 +139,8 @@ class SimulationConfig : public Config_Base
         _logging_interval.value = logging_interval;
         _log_residuals.value = log_residuals;
     }
+
+    SimulationMode simMode() const { return _sim_mode.value; }
 
     Real timeStep() const { return _time_step.value; }
     Real endTime() const { return _end_time.value; }
@@ -136,6 +159,8 @@ class SimulationConfig : public Config_Base
     const SimulationRenderConfig& renderConfig() const { return _render_config; }
 
     protected:
+    ConfigParameter<SimulationMode> _sim_mode = ConfigParameter<SimulationMode>(SimulationMode::VISUALIZATION);
+
     ConfigParameter<Real> _time_step = ConfigParameter<Real>(1e-3);
     ConfigParameter<Real> _end_time = ConfigParameter<Real>(60);
     ConfigParameter<Real> _g_accel = ConfigParameter<Real>(9.81);
