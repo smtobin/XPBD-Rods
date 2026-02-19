@@ -1,58 +1,21 @@
 name: "Sphere-Rod Collision"
 # sim-mode: "Frame-by-frame"
+sim-mod: "Visualization"
 time-step: 1e-3
 end-time: 100
-solver-iters: 2
+solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
 
 objects:
-  # - 
-  #   type: "Rod"
-  #   name: "rod1"
-  #   initial-position: [-0.1, 1, 0.0]
-  #   initial-rotation: [0, 0, 0]
-  #   nodes: 20
-  #   E: 1e6
-  #   diameter: 0.1
-  #   length: 1
-  #   nu: 0.3
-  #   base-fixed: True
-  #   tip-fixed: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.2
-  #   roughness: 0.5
-  #   color: [1.0, 1.0, 1.0]
-
-  # - 
-  #   type: "Rod"
-  #   name: "rod1"
-  #   initial-position: [0, 1, 0.0]
-  #   initial-rotation: [0, 0, 0]
-  #   nodes: 20
-  #   E: 1e6
-  #   diameter: 0.1
-  #   length: 1
-  #   nu: 0.3
-  #   base-fixed: True
-  #   tip-fixed: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.2
-  #   roughness: 0.5
-  #   color: [0.0, 0.0, 1.0]
-
   - 
     type: "Rod"
     name: "rod2"
-    initial-position: [-0.5, 0.5, 0.5]
+    initial-position: [-0.5, 1.5, 0.5]
     initial-rotation: [-80, 90, 0]
-    nodes: 20
-    E: 1e5
+    nodes: 50
+    E: 1e6
     diameter: 0.1
     length: 1
     nu: 0.3

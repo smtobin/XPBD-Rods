@@ -14,7 +14,7 @@
 
 #include <random>
 
-#define COLLISION_TOL 1e-4      // if the distance between objects is less than this, register a collision and generate collision constraints
+#define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
 
 namespace Collision
 {
@@ -105,7 +105,7 @@ CollisionScene::CollisionScene(Real grid_size, int num_buckets)
 // const XPBDCollisionConstraints_Container& CollisionScene::detectCollisions()
 const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
 {
-    std::cout << "\n\nCollisionScene::detectCollisions()" << std::endl;
+    // std::cout << "\n\nCollisionScene::detectCollisions()" << std::endl;
     _new_collisions.clear();
 
     // run broad-phase collision detection using spatial hashing
@@ -197,10 +197,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
     if (diff1.dot(plane->normal()) <= COLLISION_TOL || diff2.dot(plane->normal()) <= COLLISION_TOL)
     {
-        std::cout << "ROD-PLANE COLLISION!!" << diff1.dot(plane->normal()) << std::endl;
         for (int ind = segment->index1(); ind < segment->index2(); ind++)
         {
-            std::cout << " Creating collision constraint between rod nodes " << ind << " and " << ind+1 << std::endl;
+            Vec3r seg_p1 = segment->rod()->nodes()[ind].position;
             Collision::RigidSegmentCollision new_collision;
             new_collision.alpha = 0; // always create the constraint at the center of the segment for stability
             new_collision.radius = segment->radius();
@@ -212,6 +211,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
             if (ind == segment->index2()-1)
             {
+                // std::cout << " Creating collision constraint at rod node " << ind+1 << std::endl;
                 Collision::RigidSegmentCollision new_collision2 = new_collision;
                 new_collision.alpha = 1;
                 scene->_new_collisions.push_back(std::move(new_collision2));

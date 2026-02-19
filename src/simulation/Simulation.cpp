@@ -647,6 +647,9 @@ void Simulation::notifyLeftMouseButtonReleased()
 
 void Simulation::_timeStep()
 {
+    _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
+
     _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
     _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
     _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
@@ -687,7 +690,6 @@ void Simulation::_timeStep()
             {
                 if (collision.rb_particle->fixed)
                 {
-                    std::cout << "Adding one sided rigid-segment collision" << std::endl;
                     using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
                     Vec3r cp = collision.rb_particle->position + collision.rb_particle->orientation * collision.rb_cp_local;
@@ -725,8 +727,6 @@ void Simulation::_timeStep()
     }
 
     // std::cout << "t=" << _time << std::endl;
-    _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
-    _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
 
     // store the inertially predicted positions and orientations
     // useful for computing the primary residual
