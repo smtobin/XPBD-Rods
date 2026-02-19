@@ -97,7 +97,7 @@ class ObjectRenderConfig : public Config_Base
     bool drawPoints() const { return _draw_points.value; }
 
     protected:
-    ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PHONG); 
+    ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
 
     // PBR texture filenames
     ConfigParameter<std::optional<std::string>> _orm_texture_filename;

@@ -41,6 +41,8 @@ class SimulationConfig : public Config_Base
         _extractParameter("time-step", node, _time_step);
         _extractParameter("end-time", node, _end_time);
         _extractParameter("g-accel", node, _g_accel);
+        _extractParameter("ground-plane", node, _ground_plane);
+
         _extractParameter("logging", node, _logging);
         _extractParameter("logging-output-folder", node, _logging_output_dir);
         _extractParameter("logging-interval", node, _logging_interval);
@@ -124,7 +126,7 @@ class SimulationConfig : public Config_Base
         }
     }
 
-    explicit SimulationConfig(const std::string& name, SimulationMode sim_mode, Real time_step, Real end_time, Real g_accel, int solver_iters, 
+    explicit SimulationConfig(const std::string& name, SimulationMode sim_mode, Real time_step, Real end_time, Real g_accel, bool ground_plane, int solver_iters, 
         bool logging, const std::string& logging_output_dir, Real logging_interval, bool log_residuals)
         : Config_Base(name), _render_config()
     {
@@ -132,6 +134,7 @@ class SimulationConfig : public Config_Base
         _time_step.value = time_step;
         _end_time.value = end_time;
         _g_accel.value = g_accel;
+        _ground_plane.value = ground_plane;
         _solver_iters.value = solver_iters;
 
         _logging.value = logging;
@@ -145,6 +148,7 @@ class SimulationConfig : public Config_Base
     Real timeStep() const { return _time_step.value; }
     Real endTime() const { return _end_time.value; }
     Real gAccel() const { return _g_accel.value; }
+    bool groundPlane() const { return _ground_plane.value; }
     int solverIters() const { return _solver_iters.value; }
 
     bool logging() const { return _logging.value; }
@@ -161,6 +165,7 @@ class SimulationConfig : public Config_Base
     protected:
     ConfigParameter<SimulationMode> _sim_mode = ConfigParameter<SimulationMode>(SimulationMode::VISUALIZATION);
 
+    ConfigParameter<bool> _ground_plane = ConfigParameter<bool>(true);
     ConfigParameter<Real> _time_step = ConfigParameter<Real>(1e-3);
     ConfigParameter<Real> _end_time = ConfigParameter<Real>(60);
     ConfigParameter<Real> _g_accel = ConfigParameter<Real>(9.81);

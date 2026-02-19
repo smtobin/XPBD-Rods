@@ -1,6 +1,8 @@
 #include "simulation/Simulation.hpp"
 #include "common/math.hpp"
 
+#include "config/XPBDPlaneConfig.hpp"
+
 #include <chrono>
 #include <thread>
 #include <filesystem>
@@ -378,6 +380,19 @@ void Simulation::setup()
     obj_configs.for_each_element([&](const auto& obj_config){
         _addObjectFromConfig(obj_config); 
     });
+
+    // create ground plane, if applicable
+    if (_config.groundPlane())
+    {
+        Config::XPBDPlaneConfig plane_config(
+            "ground-plane",
+            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
+            1, true,
+            1000, 1000,
+            Vec3r(0,1,0)
+        );
+        _addObjectFromConfig(plane_config);
+    }
 
     // create joint constraints
     const XPBDJointConfigs_Container& joint_configs = _config.jointConfigs();
