@@ -51,7 +51,7 @@ public:
             }
             
         }
-        // std::cout << "========\nC: " << C.transpose() << std::endl;
+        
         typename Constraint::GradientMatType delC = _constraint->gradient(true);
         // std::cout << "delC:\n" << delC.transpose() << std::endl;
 

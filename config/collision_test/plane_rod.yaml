@@ -15,7 +15,7 @@ objects:
     initial-position: [-0.5, 1.5, 0.5]
     initial-rotation: [-80, 90, 0]
     nodes: 50
-    E: 1e6
+    E: 5e5
     diameter: 0.1
     length: 1
     nu: 0.3

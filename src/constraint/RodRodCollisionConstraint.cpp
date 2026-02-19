@@ -31,7 +31,7 @@ RodRodCollisionConstraint::ConstraintVecType RodRodCollisionConstraint::evaluate
 
     ConstraintVecType C;
     C[0] = fac * (cp_rod2 - cp_rod1).dot(_n);
-    return C;
+    return 0.1*C;
 }
 
 RodRodCollisionConstraint::GradientMatType RodRodCollisionConstraint::gradient(bool /*update_cache*/) const

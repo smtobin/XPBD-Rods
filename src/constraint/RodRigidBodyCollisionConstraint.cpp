@@ -22,7 +22,7 @@ RodRigidBodyCollisionConstraint::ConstraintVecType RodRigidBodyCollisionConstrai
 
     ConstraintVecType C;
     C[0] = (cp_rb - cp_rod).dot(_n);
-    return C;
+    return 0.1*C;
 }
 
 RodRigidBodyCollisionConstraint::GradientMatType RodRigidBodyCollisionConstraint::gradient(bool /*update_cache*/) const
@@ -72,7 +72,7 @@ OneSidedRodRigidBodyCollisionConstraint::ConstraintVecType OneSidedRodRigidBodyC
 
     ConstraintVecType C;
     C[0] = (_cp - cp_rod).dot(_n);
-    return C;
+    return 0.1*C;
 }
 
 OneSidedRodRigidBodyCollisionConstraint::GradientMatType OneSidedRodRigidBodyCollisionConstraint::gradient(bool /*update_cache*/) const

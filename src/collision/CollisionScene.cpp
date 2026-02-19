@@ -403,7 +403,54 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRodSegment* segment)
 {
-    std::cout << "Potential collision between a box and a rod segment!" << std::endl;
+    const Vec3r& p1 = segment->particle1()->position;
+    const Vec3r& p2 = segment->particle2()->position;
+
+    Real alpha = std::clamp(Math::projectPointOntoLine(box->com().position, p1, p2), Real(0.0), Real(1.0));
+    Vec3r cp_segment = (1-alpha)*p1 + alpha*p2;
+    Vec3r cp_segment_box_local = box->com().orientation.transpose() * (cp_segment - box->com().position);
+    Vec3r cp_box_local = cp_segment_box_local;
+    cp_box_local[0] = std::clamp(cp_box_local[0], -box->size()[0]/2.0, box->size()[0]/2.0);
+    cp_box_local[1] = std::clamp(cp_box_local[1], -box->size()[1]/2.0, box->size()[1]/2.0);
+    cp_box_local[2] = std::clamp(cp_box_local[2], -box->size()[2]/2.0, box->size()[2]/2.0);
+
+    Vec3r diff_box_local = cp_box_local - cp_segment_box_local;
+    Real dist = diff_box_local.norm();
+    if (dist <= segment->radius() + COLLISION_TOL)
+    {
+        // collision!
+        if (segment->size() == 1)
+        {
+            Vec3r normal;
+            if (dist < 1e-12)
+            {
+                normal = Vec3r(1,0,0);
+            }
+            else
+            {
+                normal = box->com().orientation * diff_box_local.normalized();
+            }
+
+            RigidSegmentCollision new_collision;
+            new_collision.alpha = alpha;
+            new_collision.normal = normal;
+            new_collision.radius = segment->radius();
+            new_collision.rb_particle = &box->com();
+            new_collision.rb_cp_local = cp_box_local;
+            new_collision.segment_particle1 = segment->particle1();
+            new_collision.segment_particle2 = segment->particle2();
+            scene->_new_collisions.push_back(std::move(new_collision));
+        }
+        else
+        {
+            for (int ind = segment->index1(); ind < segment->index2(); ind++)
+            {
+                SimObject::XPBDRodSegment subsegment(segment->rod(), ind, ind+1);
+                _checkCollision(scene, box, &subsegment);
+            }
+        }
+        
+    }
 }
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSegment* segment1, SimObject::XPBDRodSegment* segment2)
