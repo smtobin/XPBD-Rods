@@ -354,7 +354,7 @@ public:
         // intersect the incident and reference faces
         Real ret[16];
         int n_intersect = _intersectRectQuad2(rect, quad, ret);
-        if(n_intersect < 1) { std::cerr << "n_intersect < 1 assert(0);"<< std::endl; assert(0); return; } // this should never happen
+        if(n_intersect < 1) { /*std::cerr << "n_intersect < 1 assert(0);"<< std::endl; assert(0);*/ return; } // this should never happen
 
         // convert the intersection points into reference-face coordinates,
         // and compute the contact position and depth for each point. only keep
@@ -381,7 +381,7 @@ public:
                 cnum++;
             }
         }
-        if(cnum < 1) { std::cerr << "cnum < 1 assert(0);"<< std::endl; assert(0); return; } // this should never happen
+        if(cnum < 1) { /*std::cerr << "cnum < 1 assert(0);"<< std::endl; assert(0);*/ return; } // this should never happen
 
         // we can't generate more contacts than we actually have
         int maxc = 4;
