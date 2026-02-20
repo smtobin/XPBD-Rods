@@ -11,10 +11,10 @@ objects:
   - 
     type: "RigidBox"
     name: "box1"
-    initial-position: [0, 0.35, 0.0]
+    initial-position: [0, 0.45, 0.0]
     initial-rotation: [0, 0, 0]
     initial-velocity: [0, 0, 2]
-    size: [0.5,0.5,0.5]
+    size: [0.5, 0.5, 0.5]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
@@ -25,10 +25,10 @@ objects:
   - 
     type: "RigidBox"
     name: "box2"
-    initial-position: [0, 0.05, 0.0]
+    initial-position: [0, 0.1, 0.0]
     initial-rotation: [0, 0, 0]
-    initial-velocity: [0, 0, 3]
-    size: [1,0.1,1]
+    initial-velocity: [0, 0, 0]
+    size: [1, 0.2, 1]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

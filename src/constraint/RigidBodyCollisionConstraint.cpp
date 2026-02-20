@@ -51,6 +51,8 @@ RigidBodyCollisionConstraint::SingleParticleGradientMatType RigidBodyCollisionCo
 
 void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
 {
+    std::cout << "\nTwoSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
+
     // contact point on rigid body 1
     const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
     // contact point on rigid body 2
@@ -71,7 +73,7 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
 
     // compute lambda as if we are undoing the entire movement in the tangent direction
     Vec3r tan_dir = dp_tan.normalized();
-    Real C = (cp1 - cp2).dot(tan_dir);
+    Real C = dp_tan.norm();//(cp1 - cp2).dot(tan_dir);
     Vec3r dC_dp1 = tan_dir;
     Vec3r dC_dp2 = -tan_dir;
     Vec3r dC_dR1 = -tan_dir.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
@@ -81,6 +83,10 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
     delC.block<1,3>(0,3) = dC_dR1;
     delC.block<1,3>(0,6) = dC_dp2;
     delC.block<1,3>(0,9) = dC_dR2;
+
+    std::cout << "  dp_tan: " << dp_tan.transpose() << std::endl;
+    std::cout << "  ||dp_tan||: " << dp_tan.norm() << std::endl;
+    std::cout << "  Tangential dir: " << tan_dir.transpose() << std::endl;
     
 
     Eigen::Vector<Real, StateDim> inertia_inverse;
@@ -93,6 +99,8 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
 
     Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
     Real dlam_tan = -C / LHS;
+
+    std::cout << "  Nominal dlam_tan: " << dlam_tan << std::endl;
 
     
 
@@ -110,6 +118,8 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
         // so clamp the tangent lambda to correspond to the dynamic force
         if (dlam_tan >= mu_s*lambda_n)
             dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        else
+            std::cout << "STATIC FRICTION" << std::endl;
     }
     // bodies were moving relative to each other last step, so dynamic friction should be applied
     else
@@ -118,11 +128,14 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
         dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
     }
 
+    std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
+
     // update nodes
     for (int i = 0; i < NumParticles; i++)
     {
         SingleParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
         const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam_tan;
+        std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
         _particles[i]->positionUpdate(position_update);
     }
 
@@ -179,7 +192,7 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_
     if (lambda_n < 0)
         return;
 
-    std::cout << "Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
+    std::cout << "\nOneSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
     // contact point on rigid body 1
     const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
 
@@ -205,7 +218,6 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_
 
     std::cout << "  dp_tan: " << dp_tan.transpose() << std::endl;
     std::cout << "  ||dp_tan||: " << dp_tan.norm() << std::endl;
-    std::cout << "  C: " << C << std::endl;
     std::cout << "  Tangential dir: " << tan_dir.transpose() << std::endl;
     
 
