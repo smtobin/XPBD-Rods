@@ -37,10 +37,15 @@ void OrientedParticle::positionUpdate(const Vec6r& dp)
     positionUpdate(dp.head<3>(), dp.tail<3>());
 }
 
-void OrientedParticle::velocityUpdate(Real dt, const Vec3r& prev_pos, const Mat3r& prev_or)
+void OrientedParticle::velocityUpdate(Real dt)
 {
-    lin_velocity = (position - prev_pos)/dt;
-    ang_velocity = Math::Minus_SO3(orientation, prev_or)/dt;
+    lin_velocity = (position - prev_position)/dt;
+    ang_velocity = Math::Minus_SO3(orientation, prev_orientation)/dt;
+
+    prev_position = position;
+    prev_orientation = orientation;
+
+    std::cout << "New linear velocity: " << lin_velocity.transpose() << std::endl;
 }
 
 } // namespace SimObject

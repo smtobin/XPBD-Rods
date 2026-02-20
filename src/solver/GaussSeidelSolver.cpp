@@ -42,4 +42,23 @@ void GaussSeidelSolver::solve(bool initialize)
     }
 }
 
+template <typename ConstraintList>
+struct XPBDConstraintProjectorsTypeListFromConstraintTypeList;
+
+template <typename ...Constraints>
+struct XPBDConstraintProjectorsTypeListFromConstraintTypeList<TypeList<Constraints...>>
+{
+    using type_list = TypeList<Constraint::XPBDConstraintProjector<Constraints>...>;
+};
+
+void GaussSeidelSolver::applyFriction()
+{
+    using CollisionProjectorsTypeList = XPBDConstraintProjectorsTypeListFromConstraintTypeList<XPBDCollisionConstraints_TypeList>::type_list;
+    _constraint_projectors.for_each_element(CollisionProjectorsTypeList{}, [&](auto& projector)
+    {
+        Real lambda = projector.lambda()[0];   // collision constraints should only have 1 constraint (and 1 lambda)
+        projector.constraint()->applyFriction(lambda, 0.5, 0.2);
+    });
+}
+
 } // namespace Solver

@@ -44,6 +44,9 @@ public:
 
     void solve(bool initialize=true);
 
+    /** Applies friction for collision constraints. */
+    void applyFriction();
+
     const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
     const XPBDSeparateConstraintProjectors_Container& separateConstraintProjectors() const { return _separate_constraint_projectors; }
     const Muller2020ConstraintProjectors_Container& muller2020ConstraintProjectors() const { return _muller2020_constraint_projectors; }

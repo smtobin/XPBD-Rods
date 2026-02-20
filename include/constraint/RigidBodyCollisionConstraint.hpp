@@ -21,6 +21,8 @@ public:
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
+    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const;
+
 private:
     /** Local offset to contact point in body 1 frame */
     Vec3r _r1;
@@ -54,6 +56,8 @@ public:
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+
+    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const;
 
 private:
     /** Local offset to contact point in body 1 frame */

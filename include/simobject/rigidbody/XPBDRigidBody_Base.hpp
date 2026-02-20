@@ -44,20 +44,13 @@ public:
     /** Updates the rigid body's velocity. */
     virtual void velocityUpdate(Real dt) override
     {
-        _com.velocityUpdate(dt, _prev_position, _prev_orientation);
-
-        _prev_position = _com.position;
-        _prev_orientation = _com.orientation;
+        _com.velocityUpdate(dt);
     }
 
 protected:
 
     /** The oriented particle that represents this rigid body - corresponds to a frame at the center of mass */
     OrientedParticle _com;
-
-    /** Keep track of the previous state of the rigid body */
-    Vec3r _prev_position;
-    Mat3r _prev_orientation;
 
 };
 

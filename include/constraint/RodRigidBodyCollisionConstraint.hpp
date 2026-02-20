@@ -22,6 +22,8 @@ public:
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
+    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const {}
+
 private:
     /** Interpolation parameter for the rod segment in [0,1] */
     Real _beta;
@@ -59,6 +61,8 @@ public:
     virtual GradientMatType gradient(bool update_cache=true) const override;
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+
+    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const {}
 
 private:
     /** Interpolation parameter for the rod segment in [0,1] */

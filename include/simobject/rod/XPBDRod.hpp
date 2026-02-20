@@ -79,6 +79,8 @@ class XPBDRod : public XPBDObject_Base
             _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
             _nodes[i].mass = _m_node;
             _nodes[i].Ib = _I_rot;
+            _nodes[i].prev_position = _nodes[i].position;
+            _nodes[i].prev_orientation = _nodes[i].orientation;
         }
 
         // divide the rod up into collision segments that are at least as long as the diameter of the rod

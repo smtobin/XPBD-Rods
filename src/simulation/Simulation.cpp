@@ -759,6 +759,8 @@ void Simulation::_timeStep()
 
         _solver.solve(iter==0);
     }
+
+    _solver.applyFriction();
     
     _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });

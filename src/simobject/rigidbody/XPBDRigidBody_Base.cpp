@@ -12,8 +12,8 @@ XPBDRigidBody_Base::XPBDRigidBody_Base(const Config::XPBDRigidBodyConfig& config
 
     _com.fixed = config.fixed();
 
-    _prev_position = _com.position;
-    _prev_orientation = _com.orientation;
+    _com.prev_position = _com.position;
+    _com.prev_orientation = _com.orientation;
 
     // Derived classes are responsible for setting the mass and rotational inertia
     _com.mass = -1;

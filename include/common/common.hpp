@@ -226,7 +226,6 @@ using XPBDSeparateConstraintProjectors_Container = XPBDSeparateConstraintProject
 using Muller2020ConstraintProjectors_Container = Muller2020ConstraintProjectorContainerFromConstraintTypeList<XPBDConstraints_TypeList>::type;
 
 
-
 /** Config types */ 
 namespace Config
 {

@@ -20,6 +20,8 @@ struct OrientedParticle
     Vec3r ang_velocity;     // body angular velocity of the particle
     Real mass;              // mass of the particle
     Vec3r Ib;               // body rotational inertia of the particle (diagonal, so represented by a 3-vector)
+    Vec3r prev_position;    // previous position (at the end of the last time step) of the particle
+    Mat3r prev_orientation; // previous orientation (at the end of the last time step) of the particle
     bool fixed=false;             // if true, the particle is "fixed" and should not move
 
     /** Updates the particle based on its current velocity (in the absence of constraints) and applied external wrench.
@@ -50,7 +52,7 @@ struct OrientedParticle
      * @param prev_pos - the previous position of the particle (at the end of the last time step)
      * @param prev_or - the previous orientation of the particle (at the end of the last time step)
      */
-    void velocityUpdate(Real dt, const Vec3r& prev_pos, const Mat3r& prev_or);
+    void velocityUpdate(Real dt);
 };
 
 } // namespace SimObject
