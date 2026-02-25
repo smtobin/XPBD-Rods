@@ -9,12 +9,10 @@ class RodRodCollisionConstraint : public XPBDConstraint<1, 4>
 {
 public:
     RodRodCollisionConstraint(
-        SimObject::XPBDRod* rod1,
-        SimObject::OrientedParticle* p1_rod1, SimObject::OrientedParticle* p2_rod1,
-        Real beta1, Real r_rod1,
-        SimObject::XPBDRod* rod2,
-        SimObject::OrientedParticle* p1_rod2, SimObject::OrientedParticle* p2_rod2,
-        Real beta2, Real r_rod2,
+        SimObject::XPBDRodSegment* segment1,
+        Real beta1, Vec3r cp_local1,
+        SimObject::XPBDRodSegment* segment2,
+        Real beta2, Vec3r cp_local2,
         const Vec3r& n
     );
 
@@ -29,16 +27,16 @@ public:
 
 private:
     /** Pointers to rods in collision */
-    SimObject::XPBDRod* _rod1;
-    SimObject::XPBDRod* _rod2;
+    SimObject::XPBDRodSegment* _segment1;
+    SimObject::XPBDRodSegment* _segment2;
 
     /** Interpolation parameter for the rod segments in [0,1] */
     Real _beta1;
     Real _beta2;
 
-    /** Radius of rods (assuming circular cross-section for now) */
-    Real _r_rod1;
-    Real _r_rod2;
+    /** Contact points (expressed in local interpolated frame) for each rod segment */
+    Vec3r _cp_local1;
+    Vec3r _cp_local2;
 
 
     /** Collision normal.

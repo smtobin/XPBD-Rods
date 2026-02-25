@@ -71,6 +71,8 @@ class XPBDRod : public XPBDObject_Base
         _nodes[0].ang_velocity = config.initialAngularVelocity();
         _nodes[0].mass = _m_node;
         _nodes[0].Ib = _I_rot;
+        _nodes[0].prev_position = _nodes[0].position;
+        _nodes[0].prev_orientation = _nodes[0].orientation;
         for (int i = 1; i < _num_nodes; i++)
         {
             _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));

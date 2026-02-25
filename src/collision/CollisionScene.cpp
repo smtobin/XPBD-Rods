@@ -500,19 +500,32 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
             }
             
             // std::cout << "Rod-rod collision!" << std::endl;
+            const Vec3r cp_rod_surface1 = cp_rod1 + normal*segment1->radius();
+            const Vec3r cp_rod_surface2 = cp_rod2 - normal*segment2->radius();
+
+            const Vec3r frame1_o = cp_rod1;
+            const Mat3r frame1_R = Math::Plus_SO3(segment1->particle1()->orientation, beta1*Math::Minus_SO3(segment1->particle2()->orientation, segment1->particle1()->orientation));
+
+            const Vec3r frame2_o = cp_rod2;
+            const Mat3r frame2_R = Math::Plus_SO3(segment2->particle1()->orientation, beta2*Math::Minus_SO3(segment2->particle2()->orientation, segment2->particle1()->orientation));
+
+            const Vec3r cp_local1 = frame1_R.transpose() * (cp_rod_surface1 - frame1_o);
+            const Vec3r cp_local2 = frame2_R.transpose() * (cp_rod_surface2 - frame2_o);
+
+            std::cout << "normal: " << normal.transpose() << std::endl;
+            std::cout << "cp_rod_surface1: " << cp_rod_surface1.transpose() << std::endl;
+            std::cout << "cp_rod_surface2: " << cp_rod_surface2.transpose() << std::endl;
+            std::cout << "cp_local1: " << cp_local1.transpose() << std::endl;
+            std::cout << "cp_local2: " << cp_local2.transpose() << std::endl;
 
             Collision::SegmentSegmentCollision new_collision;
             new_collision.alpha1 = beta1;
             new_collision.alpha2 = beta2;
-            new_collision.radius1 = segment1->radius();
-            new_collision.radius2 = segment2->radius();
             new_collision.normal = normal;
-            new_collision.rod1 = segment1->rod();
-            new_collision.rod2 = segment2->rod();
-            new_collision.segment1_particle1 = segment1->particle1();
-            new_collision.segment1_particle2 = segment1->particle2();
-            new_collision.segment2_particle1 = segment2->particle1();
-            new_collision.segment2_particle2 = segment2->particle2();
+            new_collision.segment1 = segment1;
+            new_collision.segment2 = segment2;
+            new_collision.cp_local1 = cp_local1;
+            new_collision.cp_local2 = cp_local2;
             scene->_new_collisions.push_back(std::move(new_collision));
         }
 

@@ -209,15 +209,13 @@ int main()
             if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
             {
                 std::cout << "segment-segment collision!" << std::endl;
-                std::cout << "  rod1: " << collision.segment1_particle1->position.transpose() << ", " << collision.segment1_particle2->position.transpose() << std::endl;
-                std::cout << "  rod2: " << collision.segment2_particle1->position.transpose() << ", " << collision.segment2_particle2->position.transpose() << std::endl;
+                std::cout << "  rod1: " << collision.segment1->particle1()->position.transpose() << ", " << collision.segment1->particle2()->position.transpose() << std::endl;
+                std::cout << "  rod2: " << collision.segment2->particle1()->position.transpose() << ", " << collision.segment2->particle2()->position.transpose() << std::endl;
                 // using ConstraintType = Constraint::RodRodCollisionConstraint;
                 // auto& constraint_vec = _constraints.template get<ConstraintType>();
                 collision_constraints.emplace_back(
-                    collision.rod1,
-                    collision.segment1_particle1, collision.segment1_particle2, collision.alpha1, collision.radius1, 
-                    collision.rod2,
-                    collision.segment2_particle1, collision.segment2_particle2, collision.alpha2, collision.radius2,
+                    collision.segment1, collision.alpha1, collision.cp_local1, 
+                    collision.segment2, collision.alpha2, collision.cp_local2,
                     collision.normal
                 );
                 // ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
