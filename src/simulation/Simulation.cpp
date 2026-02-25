@@ -729,8 +729,8 @@ void Simulation::_timeStep()
                 using ConstraintType = Constraint::RodRodCollisionConstraint;
                 auto& constraint_vec = _constraints.template get<ConstraintType>();
                 constraint_vec.emplace_back(
-                    collision.segment1, collision.alpha1, collision.cp_local1, 
-                    collision.segment2, collision.alpha2, collision.cp_local2,
+                    std::move(collision.segment1), collision.alpha1, collision.cp_local1, 
+                    std::move(collision.segment2), collision.alpha2, collision.cp_local2,
                     collision.normal
                 );
                 ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);

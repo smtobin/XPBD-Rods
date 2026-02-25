@@ -42,8 +42,6 @@ void OrientedParticle::velocityUpdate(Real dt)
     lin_velocity = (position - prev_position)/dt;
     ang_velocity = Math::Minus_SO3(orientation, prev_orientation)/dt;
     
-    std::cout << "Position: " << position.transpose() << "  Prev position: " << prev_position.transpose() << std::endl;
-
     prev_position = position;
     prev_orientation = orientation;
 }

@@ -482,8 +482,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
 
     Vec3r diff = cp_rod2 - cp_rod1;
     Real sq_dist = diff.squaredNorm();
-    Real rads_sq = (segment1->radius() + segment2->radius()) * (segment1->radius() + segment2->radius());
-    if (sq_dist < rads_sq + COLLISION_TOL*COLLISION_TOL) 
+    Real rads_sq = (segment1->radius() + segment2->radius() + COLLISION_TOL) * (segment1->radius() + segment2->radius() + COLLISION_TOL);
+    if (sq_dist < rads_sq) 
     {
 
         if (segment1->size() == 1 && segment2->size() == 1)
@@ -512,18 +512,20 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
             const Vec3r cp_local1 = frame1_R.transpose() * (cp_rod_surface1 - frame1_o);
             const Vec3r cp_local2 = frame2_R.transpose() * (cp_rod_surface2 - frame2_o);
 
-            std::cout << "normal: " << normal.transpose() << std::endl;
-            std::cout << "cp_rod_surface1: " << cp_rod_surface1.transpose() << std::endl;
-            std::cout << "cp_rod_surface2: " << cp_rod_surface2.transpose() << std::endl;
-            std::cout << "cp_local1: " << cp_local1.transpose() << std::endl;
-            std::cout << "cp_local2: " << cp_local2.transpose() << std::endl;
+            // std::cout << "normal: " << normal.transpose() << std::endl;
+            // std::cout << "cp_rod1: " << cp_rod1.transpose() << std::endl;
+            // std::cout << "cp_rod2: " << cp_rod2.transpose() << std::endl;
+            // std::cout << "cp_rod_surface1: " << cp_rod_surface1.transpose() << std::endl;
+            // std::cout << "cp_rod_surface2: " << cp_rod_surface2.transpose() << std::endl;
+            // std::cout << "cp_local1: " << cp_local1.transpose() << std::endl;
+            // std::cout << "cp_local2: " << cp_local2.transpose() << std::endl;
 
             Collision::SegmentSegmentCollision new_collision;
             new_collision.alpha1 = beta1;
             new_collision.alpha2 = beta2;
             new_collision.normal = normal;
-            new_collision.segment1 = segment1;
-            new_collision.segment2 = segment2;
+            new_collision.segment1 = *segment1;
+            new_collision.segment2 = *segment2;
             new_collision.cp_local1 = cp_local1;
             new_collision.cp_local2 = cp_local2;
             scene->_new_collisions.push_back(std::move(new_collision));

@@ -11,6 +11,7 @@ class XPBDRod;
 class XPBDRodSegment
 {
 public:
+    XPBDRodSegment() = default;
     explicit XPBDRodSegment(XPBDRod* rod, int index1, int index2);
 
     XPBDRod* rod() { return _rod; }

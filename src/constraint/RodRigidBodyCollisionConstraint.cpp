@@ -52,6 +52,14 @@ RodRigidBodyCollisionConstraint::SingleParticleGradientMatType RodRigidBodyColli
     return SingleParticleGradientMatType::Zero();
 }
 
+void RodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+{
+    // contact point on rod
+    const Vec3r cp_rod = (1-_beta)*_particles[0]->position + _beta*_particles[1]->position + _n*_r_rod;
+    // contact point on rigid body
+    const Vec3r cp_rb = _particles[2]->position + _particles[2]->orientation * _r_rb;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -5,13 +5,13 @@ namespace Constraint
 {
 
 RodRodCollisionConstraint::RodRodCollisionConstraint(
-    SimObject::XPBDRodSegment* segment1,
+        SimObject::XPBDRodSegment segment1,
         Real beta1, Vec3r cp_local1,
-        SimObject::XPBDRodSegment* segment2,
+        SimObject::XPBDRodSegment segment2,
         Real beta2, Vec3r cp_local2,
         const Vec3r& n
 )
-    : XPBDConstraint<1, 4>({segment1->particle1(), segment1->particle2(), segment2->particle1(), segment2->particle2()},
+    : XPBDConstraint<1, 4>({segment1.particle1(), segment1.particle2(), segment2.particle1(), segment2.particle2()},
      1e-10*AlphaVecType::Ones()),
      _segment1(segment1), _segment2(segment2), _beta1(beta1), _beta2(beta2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n)
@@ -32,15 +32,15 @@ RodRodCollisionConstraint::ConstraintVecType RodRodCollisionConstraint::evaluate
 
     ConstraintVecType C;
     C[0] = (cp_rod2 - cp_rod1).dot(_n);
-    std::cout << "Nominal C: " << C[0] << std::endl;
+    // std::cout << "Nominal C: " << C[0] << std::endl;
     return 0.1*C;
 }
 
 RodRodCollisionConstraint::GradientMatType RodRodCollisionConstraint::gradient(bool /*update_cache*/) const
 {
     // gradients w.r.t. positions of rod 1
-    Vec3r dC_dp1 = (1-_beta1)*_n;
-    Vec3r dC_dp2 = _beta1*_n;
+    Vec3r dC_dp1 = -(1-_beta1)*_n;
+    Vec3r dC_dp2 = -_beta1*_n;
 
     // gradients w.r.t. orientations of rod 1
     const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);

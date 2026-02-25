@@ -1,5 +1,5 @@
 name: "Rod-Rod Collision"
-sim-mode: "Frame-by-frame"
+# sim-mode: "Frame-by-frame"
 time-step: 1e-3
 end-time: 100
 solver-iters: 1
@@ -52,7 +52,7 @@ objects:
     initial-position: [-0.5, 1.4, 0.5]
     initial-rotation: [0, 90, 0]
     nodes: 50
-    E: 1e6
+    E: 1e5
     diameter: 0.1
     length: 1
     nu: 0.3

@@ -209,8 +209,8 @@ int main()
             if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
             {
                 std::cout << "segment-segment collision!" << std::endl;
-                std::cout << "  rod1: " << collision.segment1->particle1()->position.transpose() << ", " << collision.segment1->particle2()->position.transpose() << std::endl;
-                std::cout << "  rod2: " << collision.segment2->particle1()->position.transpose() << ", " << collision.segment2->particle2()->position.transpose() << std::endl;
+                std::cout << "  rod1: " << collision.segment1.particle1()->position.transpose() << ", " << collision.segment1.particle2()->position.transpose() << std::endl;
+                std::cout << "  rod2: " << collision.segment2.particle1()->position.transpose() << ", " << collision.segment2.particle2()->position.transpose() << std::endl;
                 // using ConstraintType = Constraint::RodRodCollisionConstraint;
                 // auto& constraint_vec = _constraints.template get<ConstraintType>();
                 collision_constraints.emplace_back(

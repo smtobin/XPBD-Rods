@@ -2,6 +2,7 @@
 
 #include "common/common.hpp"
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/rod/XPBDRodSegment.hpp"
 
 #include <variant>
 
@@ -30,10 +31,10 @@ struct RigidSegmentCollision
 
 struct SegmentSegmentCollision
 {
-    SimObject::XPBDRodSegment* segment1; // 1st segment in collision
+    SimObject::XPBDRodSegment segment1; // 1st segment in collision
     Real alpha1; // interpolation parameter in [0,1] for 1st segment
     Vec3r cp_local1; // contact point in the interpolated coordinate frame
-    SimObject::XPBDRodSegment* segment2; // 2nd segment in collision
+    SimObject::XPBDRodSegment segment2; // 2nd segment in collision
     Real alpha2; // interpolation parameter in [0,1] 
     Vec3r cp_local2; // contact point in the interpolated coordinate frame
     Vec3r normal;   //collision normal (points outward from segment)

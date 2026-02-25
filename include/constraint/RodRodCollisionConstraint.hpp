@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constraint/Constraint.hpp"
+#include "simobject/rod/XPBDRodSegment.hpp"
 
 namespace Constraint
 {
@@ -9,9 +10,9 @@ class RodRodCollisionConstraint : public XPBDConstraint<1, 4>
 {
 public:
     RodRodCollisionConstraint(
-        SimObject::XPBDRodSegment* segment1,
+        SimObject::XPBDRodSegment segment1,     // copy segment by value, it is lightweight
         Real beta1, Vec3r cp_local1,
-        SimObject::XPBDRodSegment* segment2,
+        SimObject::XPBDRodSegment segment2,
         Real beta2, Vec3r cp_local2,
         const Vec3r& n
     );
@@ -27,8 +28,8 @@ public:
 
 private:
     /** Pointers to rods in collision */
-    SimObject::XPBDRodSegment* _segment1;
-    SimObject::XPBDRodSegment* _segment2;
+    SimObject::XPBDRodSegment _segment1;
+    SimObject::XPBDRodSegment _segment2;
 
     /** Interpolation parameter for the rod segments in [0,1] */
     Real _beta1;
