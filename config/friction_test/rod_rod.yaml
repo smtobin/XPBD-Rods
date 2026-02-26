@@ -11,12 +11,12 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
-    initial-position: [-0.2, 1, 0.0]
+    initial-position: [-0.2, 0.2, 0.0]
     initial-rotation: [0, 0, 0]
     nodes: 20
-    E: 1e6
+    E: 1e7
     diameter: 0.1
-    length: 1
+    length: 5
     nu: 0.3
     base-fixed: True
     tip-fixed: True
@@ -30,12 +30,12 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
-    initial-position: [0.2, 1, 0.0]
+    initial-position: [0.2, 0.2, 0.0]
     initial-rotation: [0, 0, 0]
     nodes: 20
-    E: 1e6
+    E: 1e7
     diameter: 0.1
-    length: 1
+    length: 5
     nu: 0.3
     base-fixed: True
     tip-fixed: True
@@ -49,10 +49,11 @@ objects:
   - 
     type: "Rod"
     name: "rod2"
-    initial-position: [-0.5, 1.1, 0.5]
+    initial-position: [-0.5, 0.3, 0.5]
     initial-rotation: [0, 90, 0]
-    nodes: 50
-    E: 1e6
+    initial-velocity: [0, 0, 0.1]
+    nodes: 20
+    E: 1e7
     diameter: 0.1
     length: 1
     nu: 0.3

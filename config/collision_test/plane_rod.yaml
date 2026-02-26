@@ -12,9 +12,10 @@ objects:
   - 
     type: "Rod"
     name: "rod2"
-    initial-position: [-0.5, 1.5, 0.5]
-    initial-rotation: [-80, 90, 0]
-    nodes: 10
+    initial-position: [0, 0.1, 0]
+    initial-velocity: [1, 0, 0]
+    # initial-rotation: [-80, 90, 0]
+    nodes: 5
     E: 5e5
     diameter: 0.1
     length: 1
