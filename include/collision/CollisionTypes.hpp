@@ -21,21 +21,23 @@ struct RigidRigidCollision
 struct RigidSegmentCollision
 {
     SimObject::OrientedParticle* rb_particle;   // rigid body particle (COM)
-    Vec3r rb_cp_local;  // contact point in local rigid body frame
+    Vec3r cp_local_rb;  // contact point in local rigid body frame
     SimObject::OrientedParticle* segment_particle1; // one endpoint of rod segment
     SimObject::OrientedParticle* segment_particle2; // other endpoint of rod segment
-    Real alpha; // interpolation parameter in [0,1] 
-    Real radius;  // cross-section radius. TODO: generalize to generic cross-sections
+    Real beta; // interpolation parameter in [0,1] 
+    Vec3r cp_local_rod;  // contact point in local interpolated rod frame
     Vec3r normal;   //collision normal (points outward from segment)
 };
 
 struct SegmentSegmentCollision
 {
-    SimObject::XPBDRodSegment segment1; // 1st segment in collision
-    Real alpha1; // interpolation parameter in [0,1] for 1st segment
+    SimObject::OrientedParticle* segment1_particle1; // one endpoint of rod segment 1
+    SimObject::OrientedParticle* segment1_particle2; // other endpoint of rod segment 1
+    Real beta1; // interpolation parameter in [0,1] for 1st segment
     Vec3r cp_local1; // contact point in the interpolated coordinate frame
-    SimObject::XPBDRodSegment segment2; // 2nd segment in collision
-    Real alpha2; // interpolation parameter in [0,1] 
+    SimObject::OrientedParticle* segment2_particle1; // one endpoint of rod segment 2
+    SimObject::OrientedParticle* segment2_particle2; // other endpoint of rod segment 2
+    Real beta2; // interpolation parameter in [0,1] 
     Vec3r cp_local2; // contact point in the interpolated coordinate frame
     Vec3r normal;   //collision normal (points outward from segment)
 };

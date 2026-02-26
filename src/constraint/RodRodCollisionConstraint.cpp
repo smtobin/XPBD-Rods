@@ -5,15 +5,15 @@ namespace Constraint
 {
 
 RodRodCollisionConstraint::RodRodCollisionConstraint(
-        SimObject::XPBDRodSegment segment1,
-        Real beta1, Vec3r cp_local1,
-        SimObject::XPBDRodSegment segment2,
-        Real beta2, Vec3r cp_local2,
-        const Vec3r& n
+    SimObject::OrientedParticle* segment1_particle1, SimObject::OrientedParticle* segment1_particle2,
+    Real beta1, Vec3r cp_local1,
+    SimObject::OrientedParticle* segment2_particle1, SimObject::OrientedParticle* segment2_particle2,
+    Real beta2, Vec3r cp_local2,
+    const Vec3r& n
 )
-    : XPBDConstraint<1, 4>({segment1.particle1(), segment1.particle2(), segment2.particle1(), segment2.particle2()},
+    : XPBDConstraint<1, 4>({segment1_particle1, segment1_particle2, segment2_particle1, segment2_particle2},
      1e-10*AlphaVecType::Ones()),
-     _segment1(segment1), _segment2(segment2), _beta1(beta1), _beta2(beta2),
+    _beta1(beta1), _beta2(beta2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n)
 {
 }

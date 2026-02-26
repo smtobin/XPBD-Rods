@@ -10,8 +10,8 @@ class RodRigidBodyCollisionConstraint : public XPBDConstraint<1, 3>
 public:
     RodRigidBodyCollisionConstraint(
         SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
-        Real beta, Real r_rod,
-        SimObject::OrientedParticle* com_rb, const Vec3r& r_rb,
+        Real beta, const Vec3r& cp_local_rod,
+        SimObject::OrientedParticle* com_rb, const Vec3r& cp_local_rb,
         const Vec3r& n
     );
 
@@ -28,11 +28,11 @@ private:
     /** Interpolation parameter for the rod segment in [0,1] */
     Real _beta;
 
-    /** Radius of rod (assuming circular cross-section for now) */
-    Real _r_rod;
+    /** Local offset to contact point in interpolated rod frame */
+    Vec3r _cp_local_rod;
 
     /** Local offset to contact point in rigid body local frame */
-    Vec3r _r_rb;
+    Vec3r _cp_local_rb;
 
     /** Collision normal.
      * Points outward from the rod towards the rigid body.
@@ -50,7 +50,7 @@ class OneSidedRodRigidBodyCollisionConstraint : public XPBDConstraint<1, 2>
 public:
     OneSidedRodRigidBodyCollisionConstraint(
         SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
-        Real beta, Real r_rod,
+        Real beta, const Vec3r& cp_local_rod,
         const Vec3r& rb_cp,
         const Vec3r& n
     );
@@ -68,8 +68,8 @@ private:
     /** Interpolation parameter for the rod segment in [0,1] */
     Real _beta;
 
-    /** Radius of rod (assuming circular cross-section for now) */
-    Real _r_rod;
+    /** Local offset to contact point in interpolated rod frame */
+    Vec3r _cp_local_rod;
 
     /** Contact point (global frame) */
     Vec3r _cp;

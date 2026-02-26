@@ -707,8 +707,8 @@ void Simulation::_timeStep()
                 {
                     using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.rb_particle->position + collision.rb_particle->orientation * collision.rb_cp_local;
-                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
+                    Vec3r cp = collision.rb_particle->position + collision.rb_particle->orientation * collision.cp_local_rb;
+                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
                         cp, collision.normal);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
@@ -717,8 +717,8 @@ void Simulation::_timeStep()
                 {
                     using ConstraintType = Constraint::RodRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.alpha, collision.radius, 
-                        collision.rb_particle, collision.rb_cp_local, collision.normal);
+                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
+                        collision.rb_particle, collision.cp_local_rb, collision.normal);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }
@@ -729,8 +729,8 @@ void Simulation::_timeStep()
                 using ConstraintType = Constraint::RodRodCollisionConstraint;
                 auto& constraint_vec = _constraints.template get<ConstraintType>();
                 constraint_vec.emplace_back(
-                    std::move(collision.segment1), collision.alpha1, collision.cp_local1, 
-                    std::move(collision.segment2), collision.alpha2, collision.cp_local2,
+                    collision.segment1_particle1, collision.segment1_particle2, collision.beta1, collision.cp_local1, 
+                    collision.segment2_particle1, collision.segment2_particle2, collision.beta2, collision.cp_local2,
                     collision.normal
                 );
                 ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
