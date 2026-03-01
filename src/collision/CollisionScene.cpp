@@ -145,9 +145,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
         // Collision!
         RigidRigidCollision new_collision;
         new_collision.normal = plane->normal();
-        new_collision.particle1 = &plane->com();
+        new_collision.rb1 = plane;
         new_collision.cp_local1 = Vec3r::Zero();
-        new_collision.particle2 = &sphere->com();
+        new_collision.rb2 = sphere;
         new_collision.cp_local2 = sphere->com().orientation.transpose() * (cp_sphere_global - sphere->com().position);
 
         scene->_new_collisions.push_back(std::move(new_collision));
@@ -172,13 +172,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
         std::vector<DetectedCollision> collisions;
         BoxBoxCollider::generateContactsForFaceSomethingCollision(
-            &plane->com(), hsplane, &box->com(), hsbox,
+            plane, hsplane, box, hsbox,
             plane->normal(), code, collisions
         );
-
-        auto rd = std::random_device {}; 
-        auto rng = std::default_random_engine { rd() };
-        std::shuffle(std::begin(collisions), std::end(collisions), rng);
 
         scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
     }
@@ -203,8 +199,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
             new_collision.beta = 0; // always create the constraint at the center of the segment for stability
             new_collision.cp_local_rod = segment->particle1()->orientation.transpose() * (cp_p1 - segment->particle1()->position);
             new_collision.normal = -plane->normal();
-            new_collision.rb_particle = &plane->com();
+            new_collision.rb = plane;
             new_collision.cp_local_rb = Vec3r::Zero();
+            new_collision.rod = segment->rod();
             new_collision.segment_particle1 = &segment->rod()->nodes()[ind];
             new_collision.segment_particle2 = &segment->rod()->nodes()[ind+1];
 
@@ -255,8 +252,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         //     collision_normal
         // );
         RigidRigidCollision new_collision;
-        new_collision.particle1 = &sphere1->com();
-        new_collision.particle2 = &sphere2->com();
+        new_collision.rb1 = sphere1;
+        new_collision.rb2 = sphere2;
         new_collision.cp_local1 = r1;
         new_collision.cp_local2 = r2;
         new_collision.normal = collision_normal;
@@ -329,8 +326,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         //     collision_normal
         // );
         RigidRigidCollision new_collision;
-        new_collision.particle1 = &box->com();
-        new_collision.particle2 = &sphere->com();
+        new_collision.rb1 = box;
+        new_collision.rb2 = sphere;
         new_collision.cp_local1 = box_closest_point;
         new_collision.cp_local2 = cp_sphere_local;
         new_collision.normal = collision_normal;
@@ -388,9 +385,10 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
         new_collision.beta = t;
         new_collision.normal = normal;
         new_collision.cp_local_rod = cp_local_rod;
+        new_collision.rod = segment->rod();
         new_collision.segment_particle1 = segment->particle1();
         new_collision.segment_particle2 = segment->particle2();
-        new_collision.rb_particle = &sphere->com();
+        new_collision.rb = sphere;
         new_collision.cp_local_rb = sphere_cp_local;
         scene->_new_collisions.push_back(std::move(new_collision));    
     }
@@ -403,7 +401,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     if (box1 == box2)
         return;
 
-    std::vector<DetectedCollision> collisions = BoxBoxCollider::collideBoxes(&box1->com(), box1->size(), &box2->com(), box2->size());
+    std::vector<DetectedCollision> collisions = BoxBoxCollider::collideBoxes(box1, box1->size(), box2, box2->size());
     scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
 }
 
@@ -447,8 +445,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
             RigidSegmentCollision new_collision;
             new_collision.normal = normal;
-            new_collision.rb_particle = &box->com();
+            new_collision.rb = box;
             new_collision.cp_local_rb = cp_box_local;
+            new_collision.rod = segment->rod();
             new_collision.segment_particle1 = segment->particle1();
             new_collision.segment_particle2 = segment->particle2();
             new_collision.beta = beta;
@@ -538,8 +537,10 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
             new_collision.beta1 = beta1;
             new_collision.beta2 = beta2;
             new_collision.normal = normal;
+            new_collision.rod1 = segment1->rod();
             new_collision.segment1_particle1 = segment1->particle1();
             new_collision.segment1_particle2 = segment1->particle2();
+            new_collision.rod2 = segment2->rod();
             new_collision.segment2_particle1 = segment2->particle1();
             new_collision.segment2_particle2 = segment2->particle2();
             new_collision.cp_local1 = cp_local1;

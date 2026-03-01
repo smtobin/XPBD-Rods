@@ -51,10 +51,13 @@ class BoxBoxCollider
 
 public:
     static std::vector<DetectedCollision> collideBoxes(
-        SimObject::OrientedParticle* box1_com, const Vec3r& sbox1,
-        SimObject::OrientedParticle* box2_com, const Vec3r& sbox2
+        SimObject::XPBDRigidBody_Base* box1, const Vec3r& sbox1,
+        SimObject::XPBDRigidBody_Base* box2, const Vec3r& sbox2
     )
     {
+        const SimObject::OrientedParticle* box1_com = &box1->com();
+        const SimObject::OrientedParticle* box2_com = &box2->com();
+
         // extract position and orientation from COM
         const Vec3r& pbox1 = box1_com->position;
         const Vec3r& pbox2 = box2_com->position;
@@ -183,8 +186,8 @@ public:
             new_collision.cp_local1 = p1_local;
             new_collision.cp_local2 = p2_local;
             new_collision.normal = normal;
-            new_collision.particle1 = box1_com;
-            new_collision.particle2 = box2_com;
+            new_collision.rb1 = box1;
+            new_collision.rb2 = box2;
             collisions.push_back(std::move(new_collision));
 
             return collisions;
@@ -192,38 +195,28 @@ public:
 
 
         // Face-something contact (non-edge-edge contact)
-        Mat3r R1, R2;
-        Vec3r p1, p2;
         Vec3r halfsize1, halfsize2;
 
-        SimObject::OrientedParticle* com1;
-        SimObject::OrientedParticle* com2;
+        SimObject::XPBDRigidBody_Base* rb1;
+        SimObject::XPBDRigidBody_Base* rb2;
 
         // normal corresponds to a face on box 1
         if (code <= 3)
         {
-            R1 = Rbox1;
-            R2 = Rbox2;
-            p1 = pbox1;
-            p2 = pbox2;
             halfsize1 = hsbox1;
             halfsize2 = hsbox2;
 
-            com1 = box1_com;
-            com2 = box2_com;
+            rb1 = box1;
+            rb2 = box2;
         }
         // normal corresponds to a face on box 2
         else
         {
-            R1 = Rbox2;
-            R2 = Rbox1;
-            p1 = pbox2;
-            p2 = pbox1;
             halfsize1 = hsbox2;
             halfsize2 = hsbox1;
 
-            com1 = box2_com;
-            com2 = box1_com;
+            rb1 = box2;
+            rb2 = box1;
         }
 
         // normal vector of the reference face
@@ -232,18 +225,21 @@ public:
             // needs to be flipped if the reference face is on box 2
             normal2 = -normal;
 
-        generateContactsForFaceSomethingCollision(com1, halfsize1, com2, halfsize2, normal2, code, collisions);
+        generateContactsForFaceSomethingCollision(rb1, halfsize1, rb2, halfsize2, normal2, code, collisions);
 
         return collisions;
     }
 
     static void generateContactsForFaceSomethingCollision(
-        SimObject::OrientedParticle* com1, const Vec3r& halfsize1,
-        SimObject::OrientedParticle* com2, const Vec3r& halfsize2,
+        SimObject::XPBDRigidBody_Base* rb1, const Vec3r& halfsize1,
+        SimObject::XPBDRigidBody_Base* rb2, const Vec3r& halfsize2,
         const Vec3r& normal2, int code,
         std::vector<DetectedCollision>& collisions
     )
     {
+        const SimObject::OrientedParticle* com1 = &rb1->com();
+        const SimObject::OrientedParticle* com2 = &rb2->com();
+
         const Mat3r& R1 = com1->orientation;
         const Mat3r& R2 = com2->orientation;
         const Vec3r& p1 = com1->position;
@@ -427,8 +423,8 @@ public:
             new_collision.cp_local1 = cp1_local;
             new_collision.cp_local2 = cp2_local;
             new_collision.normal = normal2;
-            new_collision.particle1 = com1;
-            new_collision.particle2 = com2;
+            new_collision.rb1 = rb1;
+            new_collision.rb2 = rb2;
             collisions.push_back(std::move(new_collision));
         }
     }

@@ -13,7 +13,8 @@ public:
         Real beta1, Vec3r cp_local1,
         SimObject::OrientedParticle* segment2_particle1, SimObject::OrientedParticle* segment2_particle2,
         Real beta2, Vec3r cp_local2,
-        const Vec3r& n
+        const Vec3r& n,
+        Real mu_s, Real mu_d
     );
 
     virtual bool isInequality() const override { return true; }
@@ -23,7 +24,7 @@ public:
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
-    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const;
+    void applyFriction(Real lambda_n) const;
 
 private:
     /** Interpolation parameter for the rod segments in [0,1] */
@@ -39,6 +40,10 @@ private:
      * Points outward from rod 1 towards the rod 2.
      */
     Vec3r _n;
+
+    /** Friction coefficients for the collision */
+    Real _mu_s;
+    Real _mu_d;
 };
 
 } // namespace Constraint

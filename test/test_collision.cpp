@@ -132,18 +132,18 @@ ReturnTuple testCollision(Vec3r pos1, Vec3r rot1, Vec3r size1, Vec3r pos2, Vec3r
     for (const auto& detected_collision : detected_collisions)
     {
         Collision::RigidRigidCollision collision = std::get<Collision::RigidRigidCollision>(detected_collision);
-        std::cout << "\n=== Collision between " << collision.particle1 << " and " << collision.particle2 << " ===" << std::endl;
-        std::cout << "Position1: " << collision.particle1->position.transpose() << std::endl;
-        std::cout << "Position2: " << collision.particle2->position.transpose() << std::endl;
+        std::cout << "\n=== Collision between " << collision.rb1 << " and " << collision.rb2 << " ===" << std::endl;
+        std::cout << "Position1: " << collision.rb1->com().position.transpose() << std::endl;
+        std::cout << "Position2: " << collision.rb2->com().position.transpose() << std::endl;
         std::cout << "Contact point 1 (local): " << collision.cp_local1.transpose() << std::endl;
         std::cout << "Contact point 2 (local): " << collision.cp_local2.transpose() << std::endl;
-        Vec3r cp1_global = (collision.particle1->orientation * collision.cp_local1 + collision.particle1->position);
-        Vec3r cp2_global = (collision.particle2->orientation * collision.cp_local2 + collision.particle2->position);
+        Vec3r cp1_global = (collision.rb1->com().orientation * collision.cp_local1 + collision.rb1->com().position);
+        Vec3r cp2_global = (collision.rb2->com().orientation * collision.cp_local2 + collision.rb2->com().position);
         std::cout << "Contact point 1 (global): " << cp1_global.transpose() << std::endl;
         std::cout << "Contact point 2 (global): " << cp2_global.transpose() << std::endl;
         std::cout << "Collision normal: " << collision.normal.transpose() << std::endl;
 
-        if (collision.particle1 == &box1.com())
+        if (collision.rb1 == (SimObject::XPBDRigidBody_Base*)&box1)
         {
             box1_collision_points.push_back(cp1_global);
             box2_collision_points.push_back(cp2_global);

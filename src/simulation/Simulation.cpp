@@ -682,12 +682,23 @@ void Simulation::_timeStep()
             using T = std::decay_t<decltype(collision)>;
             if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
             {
-                if (collision.particle1->fixed)
+                Real mu_s = 0.5*(collision.rb1->staticFrictionCoeff() + collision.rb2->staticFrictionCoeff());
+                Real mu_d = 0.5*(collision.rb1->dynamicFrictionCoeff() + collision.rb2->dynamicFrictionCoeff());
+                if (collision.rb1->com().fixed)
                 {
                     using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.particle1->position + collision.particle1->orientation * collision.cp_local1;
-                    constraint_vec.emplace_back(cp, collision.particle2, collision.cp_local2, collision.normal);
+                    Vec3r cp = collision.rb1->com().position + collision.rb1->com().orientation * collision.cp_local1;
+                    constraint_vec.emplace_back(cp, &collision.rb2->com(), collision.cp_local2, collision.normal, mu_s, mu_d);
+                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+                    _solver.addConstraint(constraint_ref);
+                }
+                else if (collision.rb2->com().fixed)
+                {
+                    using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
+                    auto& constraint_vec = _constraints.template get<ConstraintType>();
+                    Vec3r cp = collision.rb2->com().position + collision.rb2->com().orientation * collision.cp_local2;
+                    constraint_vec.emplace_back(cp, &collision.rb1->com(), collision.cp_local1, -collision.normal, mu_s, mu_d);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }
@@ -695,7 +706,8 @@ void Simulation::_timeStep()
                 {
                     using ConstraintType = Constraint::RigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    constraint_vec.emplace_back(collision.particle1, collision.cp_local1, collision.particle2, collision.cp_local2, collision.normal);
+                    constraint_vec.emplace_back(&collision.rb1->com(), collision.cp_local1, &collision.rb2->com(), collision.cp_local2, collision.normal,
+                        mu_s, mu_d);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }
@@ -703,13 +715,15 @@ void Simulation::_timeStep()
             }
             if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
             {
-                if (collision.rb_particle->fixed)
+                Real mu_s = 0.5*(collision.rb->staticFrictionCoeff() + collision.rod->staticFrictionCoeff());
+                Real mu_d = 0.5*(collision.rb->dynamicFrictionCoeff() + collision.rod->dynamicFrictionCoeff());
+                if (collision.rb->com().fixed)
                 {
                     using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.rb_particle->position + collision.rb_particle->orientation * collision.cp_local_rb;
+                    Vec3r cp = collision.rb->com().position + collision.rb->com().orientation * collision.cp_local_rb;
                     constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
-                        cp, collision.normal);
+                        cp, collision.normal, mu_s, mu_d);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }
@@ -718,7 +732,7 @@ void Simulation::_timeStep()
                     using ConstraintType = Constraint::RodRigidBodyCollisionConstraint;
                     auto& constraint_vec = _constraints.template get<ConstraintType>();
                     constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
-                        collision.rb_particle, collision.cp_local_rb, collision.normal);
+                        &collision.rb->com(), collision.cp_local_rb, collision.normal, mu_s, mu_d);
                     ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                     _solver.addConstraint(constraint_ref);
                 }
@@ -726,12 +740,14 @@ void Simulation::_timeStep()
             }
             if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
             {
+                Real mu_s = 0.5*(collision.rod1->staticFrictionCoeff() + collision.rod2->staticFrictionCoeff());
+                Real mu_d = 0.5*(collision.rod1->dynamicFrictionCoeff() + collision.rod2->dynamicFrictionCoeff());
                 using ConstraintType = Constraint::RodRodCollisionConstraint;
                 auto& constraint_vec = _constraints.template get<ConstraintType>();
                 constraint_vec.emplace_back(
                     collision.segment1_particle1, collision.segment1_particle2, collision.beta1, collision.cp_local1, 
                     collision.segment2_particle1, collision.segment2_particle2, collision.beta2, collision.cp_local2,
-                    collision.normal
+                    collision.normal, mu_s, mu_d
                 );
                 ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                 _solver.addConstraint(constraint_ref);

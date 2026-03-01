@@ -7,9 +7,10 @@ RodRigidBodyCollisionConstraint::RodRigidBodyCollisionConstraint(
     SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
     Real beta, const Vec3r& cp_local_rod,
     SimObject::OrientedParticle* com_rb, const Vec3r& cp_local_rb,
-    const Vec3r& n
+    const Vec3r& n, Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 3>({p1, p2, com_rb}, 1.0e-10*AlphaVecType::Ones()), _beta(beta), _cp_local_rod(cp_local_rod),  _cp_local_rb(cp_local_rb), _n(n)
+    : XPBDConstraint<1, 3>({p1, p2, com_rb}, 1.0e-10*AlphaVecType::Ones()), 
+    _beta(beta), _cp_local_rod(cp_local_rod),  _cp_local_rb(cp_local_rb), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
@@ -66,7 +67,7 @@ RodRigidBodyCollisionConstraint::SingleParticleGradientMatType RodRigidBodyColli
     return SingleParticleGradientMatType::Zero();
 }
 
-void RodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+void RodRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
     // contact point on rod
     const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
@@ -155,8 +156,8 @@ void RodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Re
     {
         // if nominal tangent lambda >= coeff of static friction * normal lambda, then dynamic friction should be applied
         // so clamp the tangent lambda to correspond to the dynamic force
-        if (dlam_tan >= mu_s*lambda_n)
-            dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        if (dlam_tan >= _mu_s*lambda_n)
+            dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
         // else
         //     std::cout << "STATIC FRICTION" << std::endl;
     }
@@ -164,7 +165,7 @@ void RodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Re
     else
     {
         // clamp the tangent lambda to correspond to the dynamic force
-        dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
     }
 
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
@@ -186,9 +187,11 @@ OneSidedRodRigidBodyCollisionConstraint::OneSidedRodRigidBodyCollisionConstraint
     SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
     Real beta, const Vec3r& cp_local_rod,
     const Vec3r& rb_cp,
-    const Vec3r& n
+    const Vec3r& n,
+    Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 2>({p1, p2}, 1.0e-10*AlphaVecType::Ones()), _beta(beta), _cp_local_rod(cp_local_rod), _cp(rb_cp), _n(n)
+    : XPBDConstraint<1, 2>({p1, p2}, 1.0e-10*AlphaVecType::Ones()),
+     _beta(beta), _cp_local_rod(cp_local_rod), _cp(rb_cp), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
@@ -236,7 +239,7 @@ OneSidedRodRigidBodyCollisionConstraint::SingleParticleGradientMatType OneSidedR
     return SingleParticleGradientMatType::Zero();
 }
 
-void OneSidedRodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+void OneSidedRodRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
     // contact point on rod 1
     const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
@@ -315,8 +318,8 @@ void OneSidedRodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real 
     {
         // if nominal tangent lambda >= coeff of static friction * normal lambda, then dynamic friction should be applied
         // so clamp the tangent lambda to correspond to the dynamic force
-        if (dlam_tan >= mu_s*lambda_n)
-            dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        if (dlam_tan >= _mu_s*lambda_n)
+            dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
         // else
             // std::cout << "STATIC FRICTION" << std::endl;
     }
@@ -324,7 +327,7 @@ void OneSidedRodRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real 
     else
     {
         // clamp the tangent lambda to correspond to the dynamic force
-        dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
     }
 
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;

@@ -5,9 +5,8 @@ namespace SimObject
 {
 
 XPBDObject_Base::XPBDObject_Base(const Config::XPBDObjectConfig& config)
-    : _name(config.name())
+    : _name(config.name()), _mu_s(config.staticFrictionCoeff()), _mu_d(config.dynamicFrictionCoeff())
 {
-
 }
 
 } // namespace SimObject

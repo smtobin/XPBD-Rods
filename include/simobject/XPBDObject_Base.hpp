@@ -30,6 +30,9 @@ public:
     
     const std::string& name() const { return _name; }
 
+    Real staticFrictionCoeff() const { return _mu_s; }
+    Real dynamicFrictionCoeff() const { return _mu_d; }
+
     /** Performs necessary setup to prepare the object for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup() = 0;
 
@@ -54,6 +57,10 @@ public:
 
 protected:
     std::string _name;
+
+    /** Friction coefficients */
+    Real _mu_s;
+    Real _mu_d;
 
     /** Stores the "internal" constraints for this object.
      * The internal constraints are constraints that are intentionally hidden from the Gauss-Seidel solver so that they can be solved for in a special way.

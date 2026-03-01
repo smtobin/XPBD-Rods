@@ -49,7 +49,7 @@ objects:
   - 
     type: "Rod"
     name: "rod2"
-    initial-position: [-0.5, 1.1, 0.5]
+    initial-position: [-0.5, 1.3, 0.5]
     initial-rotation: [0, 90, 0]
     nodes: 50
     E: 1e6

@@ -11,7 +11,8 @@ public:
     RigidBodyCollisionConstraint(
         SimObject::OrientedParticle* com1, const Vec3r& r1,
         SimObject::OrientedParticle* com2, const Vec3r& r2,
-        const Vec3r& n
+        const Vec3r& n,
+        Real mu_s, Real mu_d
     );
 
     virtual bool isInequality() const override { return true; }
@@ -21,7 +22,7 @@ public:
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
-    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const;
+    void applyFriction(Real lambda_n) const;
 
 private:
     /** Local offset to contact point in body 1 frame */
@@ -34,6 +35,10 @@ private:
      * Points outward from body 1
      */
     Vec3r _n;
+
+    /** Friction coefficients for the collision */
+    Real _mu_s;
+    Real _mu_d;
 };
 
 
@@ -47,7 +52,8 @@ public:
     OneSidedRigidBodyCollisionConstraint(
         const Vec3r& cp,
         SimObject::OrientedParticle* com1, const Vec3r& r1,
-        const Vec3r& n
+        const Vec3r& n,
+        Real mu_s, Real mu_d
     );
 
     virtual bool isInequality() const override { return true; }
@@ -57,7 +63,7 @@ public:
 
     virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
 
-    void applyFriction(Real lambda_n, Real mu_s, Real mu_d) const;
+    void applyFriction(Real lambda_n) const;
 
 private:
     /** Local offset to contact point in body 1 frame */
@@ -70,6 +76,9 @@ private:
      * Points outward from fixed body
      */
     Vec3r _n;
+    /** Frtiction coefficients for the collision */
+    Real _mu_s;
+    Real _mu_d;
 };
 
 } // namespace Constraint

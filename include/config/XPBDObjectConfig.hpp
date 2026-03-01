@@ -42,6 +42,9 @@ public:
         _extractParameterWithOptions("projector-type", node, _projector_type, PROJECTOR_TYPE_MAP());
 
         _extractParameter("log-particles", node, _log_particles);
+
+        _extractParameter("static-friction-coeff", node, _static_friction_coeff);
+        _extractParameter("dynamic-friction-coeff", node, _dynamic_friction_coeff);
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
@@ -62,6 +65,9 @@ public:
     const Vec3r& initialVelocity() const { return _initial_velocity.value; }
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 
+    Real staticFrictionCoeff() const { return _static_friction_coeff.value; }
+    Real dynamicFrictionCoeff() const { return _dynamic_friction_coeff.value; }
+
     ProjectorType projectorType() const { return _projector_type.value; }
 
     bool logParticles() const { return _log_particles.value; }
@@ -73,6 +79,9 @@ protected:
     ConfigParameter<Vec3r> _initial_rotation = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
     ConfigParameter<Vec3r> _initial_angular_velocity = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
+
+    ConfigParameter<Real> _static_friction_coeff = ConfigParameter<Real>(0.5);
+    ConfigParameter<Real> _dynamic_friction_coeff = ConfigParameter<Real>(0.2);
 
     ConfigParameter<ProjectorType> _projector_type = ConfigParameter<ProjectorType>(ProjectorType::BLOCK);
 

@@ -15,6 +15,8 @@ objects:
     initial-rotation: [0, 0, 0]
     initial-velocity: [0, 0, 2]
     size: [0.5, 0.5, 0.5]
+    static-friction-coeff: 1
+    dynamic-friction-coeff: 0.6
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

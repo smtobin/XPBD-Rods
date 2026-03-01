@@ -216,7 +216,7 @@ int main()
                 collision_constraints.emplace_back(
                     collision.segment1_particle1, collision.segment1_particle2, collision.beta1, collision.cp_local1, 
                     collision.segment2_particle1, collision.segment2_particle2, collision.beta2, collision.cp_local2,
-                    collision.normal
+                    collision.normal, collision.rod1->staticFrictionCoeff(), collision.rod1->dynamicFrictionCoeff()
                 );
                 // ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                 // _solver.addConstraint(constraint_ref);

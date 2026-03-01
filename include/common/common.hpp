@@ -62,6 +62,7 @@ struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
 namespace SimObject
 {
     class XPBDObject_Base;
+    class XPBDRigidBody_Base;
     class XPBDRod;
     class XPBDRodSegment;
     class XPBDRigidSphere;

@@ -6,9 +6,10 @@ namespace Constraint
 RigidBodyCollisionConstraint::RigidBodyCollisionConstraint(
     SimObject::OrientedParticle* com1, const Vec3r& r1,
     SimObject::OrientedParticle* com2, const Vec3r& r2,
-    const Vec3r& n
+    const Vec3r& n,
+    Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 2>({com1, com2}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _r2(r2), _n(n)
+    : XPBDConstraint<1, 2>({com1, com2}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _r2(r2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
@@ -49,7 +50,7 @@ RigidBodyCollisionConstraint::SingleParticleGradientMatType RigidBodyCollisionCo
     return SingleParticleGradientMatType::Zero();
 }
 
-void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
     // std::cout << "\nTwoSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
 
@@ -116,8 +117,8 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
     {
         // if nominal tangent lambda >= coeff of static friction * normal lambda, then dynamic friction should be applied
         // so clamp the tangent lambda to correspond to the dynamic force
-        if (dlam_tan >= mu_s*lambda_n)
-            dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        if (dlam_tan >= _mu_s*lambda_n)
+            dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
         // else
         //     std::cout << "STATIC FRICTION" << std::endl;
     }
@@ -125,7 +126,7 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
     else
     {
         // clamp the tangent lambda to correspond to the dynamic force
-        dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
     }
 
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
@@ -149,9 +150,10 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real 
 OneSidedRigidBodyCollisionConstraint::OneSidedRigidBodyCollisionConstraint(
     const Vec3r& cp,
     SimObject::OrientedParticle* com1, const Vec3r& r1,
-    const Vec3r& n
+    const Vec3r& n,
+    Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 1>({com1}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _cp(cp), _n(n)
+    : XPBDConstraint<1, 1>({com1}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _cp(cp), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
@@ -187,7 +189,7 @@ OneSidedRigidBodyCollisionConstraint::SingleParticleGradientMatType OneSidedRigi
     return SingleParticleGradientMatType::Zero();
 }
 
-void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
     if (lambda_n < 0)
         return;
@@ -245,8 +247,8 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_
     {
         // if nominal tangent lambda >= coeff of static friction * normal lambda, then dynamic friction should be applied
         // so clamp the tangent lambda to correspond to the dynamic force
-        if (dlam_tan >= mu_s*lambda_n)
-            dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        if (dlam_tan >= _mu_s*lambda_n)
+            dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
         // else
         //     std::cout << "STATIC FRICTION!" << std::endl;
     }
@@ -254,7 +256,7 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n, Real mu_
     else
     {
         // clamp the tangent lambda to correspond to the dynamic force
-        dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
     }
 
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;

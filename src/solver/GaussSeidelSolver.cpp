@@ -57,7 +57,7 @@ void GaussSeidelSolver::applyFriction()
     _constraint_projectors.for_each_element(CollisionProjectorsTypeList{}, [&](auto& projector)
     {
         Real lambda = projector.lambda()[0];   // collision constraints should only have 1 constraint (and 1 lambda)
-        projector.constraint()->applyFriction(lambda, 0.5, 0.2);
+        projector.constraint()->applyFriction(lambda);
     });
 }
 

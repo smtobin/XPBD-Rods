@@ -9,12 +9,12 @@ RodRodCollisionConstraint::RodRodCollisionConstraint(
     Real beta1, Vec3r cp_local1,
     SimObject::OrientedParticle* segment2_particle1, SimObject::OrientedParticle* segment2_particle2,
     Real beta2, Vec3r cp_local2,
-    const Vec3r& n
+    const Vec3r& n, Real mu_s, Real mu_d
 )
     : XPBDConstraint<1, 4>({segment1_particle1, segment1_particle2, segment2_particle1, segment2_particle2},
      1e-10*AlphaVecType::Ones()),
     _beta1(beta1), _beta2(beta2),
-     _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n)
+     _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
@@ -87,7 +87,7 @@ RodRodCollisionConstraint::SingleParticleGradientMatType RodRodCollisionConstrai
     return SingleParticleGradientMatType::Zero();
 }
 
-void RodRodCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_d) const
+void RodRodCollisionConstraint::applyFriction(Real lambda_n) const
 {
     // return;
     // contact point on rod 1
@@ -206,16 +206,16 @@ void RodRodCollisionConstraint::applyFriction(Real lambda_n, Real mu_s, Real mu_
     {
         // if nominal tangent lambda >= coeff of static friction * normal lambda, then dynamic friction should be applied
         // so clamp the tangent lambda to correspond to the dynamic force
-        if (dlam_tan >= mu_s*lambda_n)
-            dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        if (dlam_tan >= _mu_s*lambda_n)
+            dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
         // else
             // std::cout << "STATIC FRICTION" << std::endl;
     }
     // bodies were moving relative to each other last step, so dynamic friction should be applied
     else
     {
-        // clamp the tangent lambda to correspond to the dynamic force
-        dlam_tan = std::clamp(dlam_tan, -mu_d*lambda_n, mu_d*lambda_n);
+        // clamp the tangent lambda to correspond to the dynamic friction force
+        dlam_tan = std::clamp(dlam_tan, -_mu_d*lambda_n, _mu_d*lambda_n);
     }
 
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
