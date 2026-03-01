@@ -2,6 +2,8 @@ name: "RodSim"
 time-step: 1e-3
 end-time: 1000000e-3
 
+ground-plane: False
+
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
 

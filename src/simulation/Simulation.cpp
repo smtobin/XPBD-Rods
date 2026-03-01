@@ -88,6 +88,8 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
+        _collision_scene.addJoint(&body1->com(), &body2->com());
+
         using ConstraintType = Constraint::FixedJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
@@ -146,6 +148,8 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
         {
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
+
+        _collision_scene.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::RevoluteJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
@@ -230,6 +234,8 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
+        _collision_scene.addJoint(&body1->com(), &body2->com());
+
         using ConstraintType = Constraint::SphericalJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
         constraint_vec.emplace_back(
@@ -310,6 +316,8 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
         {
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
+
+        _collision_scene.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::PrismaticJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();

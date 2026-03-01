@@ -7,8 +7,29 @@
 
 #include "collision/CollisionTypes.hpp"
 
+#include <unordered_set>
+
 namespace Collision
 {
+struct ParticlePairHash
+{
+    std::size_t operator()(
+        const std::pair<
+            const SimObject::OrientedParticle*,
+            const SimObject::OrientedParticle*
+        >& p
+    ) const noexcept
+    {
+        std::size_t h1 =
+            std::hash<const SimObject::OrientedParticle*>{}(p.first);
+
+        std::size_t h2 =
+            std::hash<const SimObject::OrientedParticle*>{}(p.second);
+
+        // Standard hash combine (boost-style)
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+    }
+};
 
 class CollisionScene
 {
@@ -29,10 +50,19 @@ public:
         _planes.push_back(plane);
     }
 
+    void addJoint(const SimObject::OrientedParticle* p1, const SimObject::OrientedParticle* p2)
+    {
+        const SimObject::OrientedParticle* pmin = std::min(p1, p2, std::less<const SimObject::OrientedParticle*>{});
+        const SimObject::OrientedParticle* pmax = std::max(p1, p2, std::less<const SimObject::OrientedParticle*>{});
+        _joint_pairs.emplace(pmin, pmax);
+    }
+
     // const XPBDCollisionConstraints_Container& detectCollisions();
     const std::vector<DetectedCollision>& detectCollisions();
 
 private:
+    bool _checkJoint(const SimObject::OrientedParticle* p1, const SimObject::OrientedParticle* p2) const;
+
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane1, SimObject::XPBDPlane* plane2);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box);
@@ -62,6 +92,12 @@ private:
 
     /** Store planes (i.e. the ground plane) separately. No need to do spatial hashing, would be a tremendous waste of time. */
     std::vector<SimObject::XPBDPlane*> _planes;
+
+    /** Keep track of particles that have joints defined between them.
+     * We want to skip collisions between these pairs of particles.
+     * Pairs are stored in increasing address value.
+     */
+    std::unordered_set<std::pair<const SimObject::OrientedParticle*, const SimObject::OrientedParticle*>, ParticlePairHash> _joint_pairs;
 
     /** Static dispatch table for colliding pairs of objects during narrow-phase collision detection */
     using CollisionFunc = void(*)(CollisionScene* scene, void*, void*);

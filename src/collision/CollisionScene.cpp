@@ -132,12 +132,24 @@ const std::vector<DetectedCollision>& CollisionScene::detectCollisions()
     return _new_collisions;
 }
 
-void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane1, SimObject::XPBDPlane* plane2)
+bool CollisionScene::_checkJoint(const SimObject::OrientedParticle* p1, const SimObject::OrientedParticle* p2) const
+{
+    const SimObject::OrientedParticle* pmin = std::min(p1, p2, std::less<const SimObject::OrientedParticle*>{});
+    const SimObject::OrientedParticle* pmax = std::max(p1, p2, std::less<const SimObject::OrientedParticle*>{});
+
+    return _joint_pairs.count(std::make_pair(pmin, pmax)) > 0;
+}
+ 
+
+void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPBDPlane* /* plane1 */, SimObject::XPBDPlane* /* plane2 */)
 {
     return;
 }
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere)
 {
+    if (scene->_checkJoint(&plane->com(), &sphere->com()))
+        return;
+
     Vec3r cp_sphere_global = sphere->com().position - sphere->radius() * plane->normal();
     Vec3r diff = cp_sphere_global - plane->com().position;
     if (diff.dot(plane->normal()) <= COLLISION_TOL)
@@ -156,6 +168,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box)
 {
+    if (scene->_checkJoint(&plane->com(), &box->com()))
+        return;
+
     Vec3r hsbox = box->size()/2;
     const Vec3r& pn = plane->normal();
     Real box_radius =   hsbox[0] * std::abs(box->com().orientation.col(0).dot(pn)) +
@@ -183,6 +198,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRodSegment* segment)
 {
+    if (scene->_checkJoint(&plane->com(), segment->particle1()) || scene->_checkJoint(&plane->com(), segment->particle2()))
+        return;
+
     const Vec3r& p1 = segment->particle1()->position;
     const Vec3r& p2 = segment->particle2()->position;
     Vec3r cp_p1 = p1 - segment->radius() * plane->normal();
@@ -228,6 +246,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     if (sphere1 == sphere2)
         return;
 
+    if (scene->_checkJoint(&sphere1->com(), &sphere2->com()))
+        return;
+
     Vec3r com_diff = (sphere2->com().position - sphere1->com().position);
     Real com_sq_dist = com_diff.squaredNorm();
     Real rad_sq_dist = (sphere1->radius() + sphere2->radius())*(sphere1->radius() + sphere2->radius());
@@ -264,6 +285,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRigidBox* box)
 {
+    if (scene->_checkJoint(&sphere->com(), &box->com()))
+        return;
+
     // find closest point on box to sphere center
     // first, transform sphere center into box local frame
     const Vec3r sphere_local = box->com().orientation.transpose() * (sphere->com().position - box->com().position);
@@ -337,6 +361,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment)
 {
+    if (scene->_checkJoint(&sphere->com(), segment->particle1()) || scene->_checkJoint(&sphere->com(), segment->particle2()))
+        return;
+
     // project the sphere center onto the line segment, and clamp between [0,1]
     const Vec3r& sphere_center = sphere->com().position;
     const Vec3r& endpoint1 = segment->particle1()->position;
@@ -401,6 +428,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     if (box1 == box2)
         return;
 
+    if (scene->_checkJoint(&box1->com(), &box2->com()))
+        return;
+
     std::vector<DetectedCollision> collisions = BoxBoxCollider::collideBoxes(box1, box1->size(), box2, box2->size());
     scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
 }
@@ -408,6 +438,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRodSegment* segment)
 {
+    if (scene->_checkJoint(&box->com(), segment->particle1()) || scene->_checkJoint(&box->com(), segment->particle2()))
+        return;
+
     const Vec3r& p1 = segment->particle1()->position;
     const Vec3r& p2 = segment->particle2()->position;
 
@@ -472,6 +505,10 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSe
         return;
 
     if (segment1->particle1() == segment2->particle2() || segment1->particle2() == segment2->particle1())
+        return;
+
+    if (scene->_checkJoint(segment1->particle1(), segment2->particle1()) || scene->_checkJoint(segment1->particle2(), segment2->particle1()) ||
+        scene->_checkJoint(segment1->particle1(), segment2->particle2()) || scene->_checkJoint(segment1->particle2(), segment2->particle2()))
         return;
 
     const Vec3r& p1 = segment1->particle1()->position;
