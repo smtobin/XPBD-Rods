@@ -7,6 +7,7 @@ set(CONSTRAINT_SRC_DIR "./")
 set(CONSTRAINT_HEADERS
     ${CONSTRAINT_INCLUDE_DIR}/Constraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RodElasticConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/RodElasticGaussPointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/FixedJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RevoluteJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/SphericalJointConstraint.hpp
@@ -23,6 +24,7 @@ set(CONSTRAINT_HEADERS
 
 set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/RodElasticConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/RodElasticGaussPointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/FixedJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/RevoluteJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/SphericalJointConstraint.cpp

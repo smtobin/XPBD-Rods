@@ -40,7 +40,7 @@ target_link_libraries(Solver Eigen3::Eigen)
 
 add_library(Constraint)
 add_subdirectory("src/constraint")
-target_link_libraries(Constraint Eigen3::Eigen)
+target_link_libraries(Constraint Eigen3::Eigen SimObject)
 
 add_library(SimObject)
 add_subdirectory("src/simobject")

@@ -5,8 +5,8 @@ namespace SimObject
 
 Real linearN1(Real s_hat) { return -s_hat + 1; }
 Real linearN2(Real s_hat) { return s_hat; }
-Real dlinearN1(Real s_hat) { return -1; }
-Real dlinearN2(Real s_hat) { return 1; }
+Real dlinearN1(Real /* s_hat */) { return -1; }
+Real dlinearN2(Real /* s_hat */) { return 1; }
 
 Real quadraticN1(Real s_hat) { return 2*s_hat*s_hat - 3*s_hat + 1; }
 Real quadraticN2(Real s_hat) { return -4*s_hat*s_hat + 4*s_hat; }
@@ -16,11 +16,9 @@ Real dquadraticN2(Real s_hat) { return -8*s_hat + 4; }
 Real dquadraticN3(Real s_hat) { return 4*s_hat - 1; }
 
 template<int Order>
-RodElement<Order>::RodElement(std::initializer_list<const SimObject::OrientedParticle*> nodes_list, Real rest_length)
-    : _nodes{}, _bases{}, _bases_derivatives{}, _rest_length(rest_length)
+RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
+    : _nodes(nodes_list), _bases{}, _bases_derivatives{}, _rest_length(rest_length)
 {
-    std::copy(nodes_list.begin(), nodes_list.end(), _nodes.begin());
-
     // get pointers to basis functions and their derivatives, according to element order
     if constexpr (Order == 1)
     {
@@ -35,6 +33,24 @@ RodElement<Order>::RodElement(std::initializer_list<const SimObject::OrientedPar
     else
     {
         static_assert(0);
+    }
+}
+
+template<int Order>
+std::array<Real, Order+1> RodElement<Order>::lumpedMasses()
+{
+    if constexpr (Order == 1)
+    {
+        return {0.5, 0.5};
+    }
+    else if constexpr (Order == 2)
+    {
+        return {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    }
+    else
+    {
+        static_assert(0);
+        return std::array<Real, Order+1>{};
     }
 }
 

@@ -114,6 +114,9 @@ namespace Constraint
     class OneSidedPrismaticJointLimitConstraint;
 
     class RodElasticConstraint;
+    template <int Order>
+    class RodElasticGaussPointConstraint;
+
     class PointLineConstraint;
 
     class RigidBodyCollisionConstraint;
@@ -151,6 +154,8 @@ using XPBDJointLimitConstraints_TypeList = TypeList<
 
 using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticConstraint,
+    Constraint::RodElasticGaussPointConstraint<1>,
+    Constraint::RodElasticGaussPointConstraint<2>,
     Constraint::PointLineConstraint
 >;
 

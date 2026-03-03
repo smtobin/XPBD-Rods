@@ -7,6 +7,7 @@
 #include "constraint/PrismaticJointConstraint.hpp"
 
 #include "constraint/RodElasticConstraint.hpp"
+#include "constraint/RodElasticGaussPointConstraint.hpp"
 #include "constraint/PointLineConstraint.hpp"
 
 

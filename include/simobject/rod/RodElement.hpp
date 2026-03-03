@@ -13,9 +13,14 @@ template <int Order>
 class RodElement
 {
 public:
+    using NodeArrayType = std::array<SimObject::OrientedParticle*, Order+1>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(Order+1)>;
 
-    RodElement(std::initializer_list<const SimObject::OrientedParticle*> nodes_list, Real rest_length);
+    RodElement(const NodeArrayType& nodes_list, Real rest_length);
+
+    static std::array<Real, Order+1> lumpedMasses();
+
+    const NodeArrayType& nodes() const { return _nodes; }
 
     Vec3r position(Real s_hat) const;
     Mat3r orientation(Real s_hat) const;
@@ -32,7 +37,7 @@ public:
     
 
 private:
-    std::array<const SimObject::OrientedParticle*, Order+1> _nodes;
+    NodeArrayType _nodes;
     
     std::array<Real(*)(Real), Order+1> _bases;
     std::array<Real(*)(Real), Order+1> _bases_derivatives;
