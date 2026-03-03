@@ -36,6 +36,39 @@ static Mat3r ExpMap_RightJacobian(const Vec3r& theta)
     return Mat3r::Identity() - (1 - std::cos(theta_norm)) / (theta_norm * theta_norm) * skew + (theta_norm - std::sin(theta_norm)) / (theta_norm * theta_norm * theta_norm) * skew * skew;
 }
 
+// Computes derivative of right Jacobian of SO(3) exponential map (at theta), multiplied by some perturbation xi
+static Mat3r DExpMap_RightJacobian(const Vec3r& theta, const Vec3r& xi)
+{
+    Real theta_norm = theta.norm();
+
+    Mat3r skew_theta = Skew3(theta);
+    Mat3r skew_xi = Skew3(xi);
+
+    if (theta_norm < Real(1e-8))
+    {
+        return  1.0/12.0 * theta.dot(xi) * skew_theta - 0.5 * skew_xi;
+    }
+
+    Real theta_norm2 = theta_norm*theta_norm;
+    Real theta_norm3 = theta_norm2*theta_norm;
+    Real theta_norm4 = theta_norm3*theta_norm;
+
+    Real a = (1 - std::cos(theta_norm)) / theta_norm2;
+    Real b = (theta_norm - std::sin(theta_norm)) / theta_norm3;
+    Real da_dtheta_norm = -2*(1 - std::cos(theta_norm)) / theta_norm3 + std::sin(theta_norm) / theta_norm2;
+    Real db_dtheta_norm = (1 - std::cos(theta_norm)) / theta_norm3 - 3*(theta_norm - std::sin(theta_norm)) / theta_norm4;
+
+    
+
+    Mat3r term1 = -da_dtheta_norm * theta.dot(xi) / theta_norm * skew_theta;
+    Mat3r term2 = -a * skew_xi;
+    Mat3r term3 = db_dtheta_norm * theta.dot(xi) / theta_norm * skew_theta * skew_theta;
+    Mat3r term4 = b * (skew_xi * skew_theta + skew_theta * skew_xi);
+
+    return term1 + term2 + term3 + term4;
+    
+}
+
 // Computes the inverse of the right Jacobian of SO(3) exponential map
 static Mat3r ExpMap_InvRightJacobian(const Vec3r& theta)
 {
