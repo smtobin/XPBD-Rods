@@ -37,6 +37,9 @@ public:
 
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override;
 
+    Real radius() const { return _radius; }
+    const std::vector<SimObject::OrientedParticle>& nodes() const { return _nodes; }
+
 private:
     /** Number of elements the rod is discretized into. */
     int _num_elements;

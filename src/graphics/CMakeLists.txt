@@ -6,6 +6,7 @@ set(GRAPHICS_SRC_DIR "./")
 
 set(GRAPHICS_HEADERS
     ${GRAPHICS_INCLUDE_DIR}/RodGraphicsObject.hpp
+    ${GRAPHICS_INCLUDE_DIR}/HigherOrderRodGraphicsObject.hpp
     ${GRAPHICS_INCLUDE_DIR}/BoxGraphicsObject.hpp
     ${GRAPHICS_INCLUDE_DIR}/PlaneGraphicsObject.hpp
     ${GRAPHICS_INCLUDE_DIR}/SphereGraphicsObject.hpp
@@ -15,6 +16,7 @@ set(GRAPHICS_HEADERS
 
 set(GRAPHICS_SOURCES
     ${GRAPHICS_SRC_DIR}/RodGraphicsObject.cpp
+    ${GRAPHICS_SRC_DIR}/HigherOrderRodGraphicsObject.cpp
     ${GRAPHICS_SRC_DIR}/BoxGraphicsObject.cpp
     ${GRAPHICS_SRC_DIR}/PlaneGraphicsObject.cpp
     ${GRAPHICS_SRC_DIR}/SphereGraphicsObject.cpp

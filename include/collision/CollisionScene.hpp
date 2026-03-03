@@ -44,6 +44,12 @@ public:
         _spatial_hasher.addObject(obj);
     }
 
+    template <int Order>
+    void addObject(SimObject::XPBDRod_<Order>* rod)
+    {
+        // do nothing for now
+    }
+
     void addObject(SimObject::XPBDPlane* plane)
     {
         // don't add planes to the spatial hasher
