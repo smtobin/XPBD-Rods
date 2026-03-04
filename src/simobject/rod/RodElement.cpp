@@ -103,7 +103,7 @@ Vec3r RodElement<Order>::shearStrain(Real s_hat) const
         dp_ds += _bases_derivatives[i](s_hat) * _nodes[i]->position;
     }
 
-    return R.transpose() * dshat_ds() * dp_ds;
+    return R.transpose() * dshat_ds() * dp_ds - Vec3r(0,0,1);
 }
 
 template <int Order>
@@ -180,7 +180,7 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     Vec3r dp_ds = Vec3r::Zero();
     for (int i = 0; i < Order+1; i++)
     {
-        dp_ds += _bases_derivatives[i](s_hat) * _nodes[i]->position;
+        dp_ds += dshat_ds() * _bases_derivatives[i](s_hat) * _nodes[i]->position;
     }
     Mat3r RT_dp_ds_R = R.transpose() * Math::Skew3(dp_ds) * R;
 

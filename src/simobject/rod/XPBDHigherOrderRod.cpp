@@ -109,11 +109,6 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         _elements.emplace_back(element_nodes, _element_rest_length);
     }
 
-    for (int i = 0; i < _num_nodes; i++)
-    {
-        std::cout << "node " << i << " inertia:\n" << _nodes[i].mass << ",\n" << _nodes[i].Ib.transpose() << std::endl;
-    }
-
 }
 
 template <int Order>
@@ -169,8 +164,6 @@ void XPBDRod_<Order>::setup()
             // stiffness scales according to Gauss quadrature weight
             Vec6r scaled_stiffness = _element_rest_length * gauss_weights[gi] * stiffness;
             Vec6r compliance = 1.0/scaled_stiffness.array();
-
-            std::cout << "Constraint " << i << " compliance: " << compliance.transpose() << std::endl;
 
             _elastic_constraints.emplace_back(&_elements[i], gauss_points[gi], compliance);
             // _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], compliance);
@@ -280,6 +273,11 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
         },
         constraint_variant);
     }
+
+    // std::cout << "\nRodElement 1 strain: " << (_elements[1].strain(0.5) - Vec6r(0,0,1,0,0,0)).transpose() << std::endl;
+    // std::cout << "Elastic constraint 1 strain: " << _elastic_constraints[1].evaluate().transpose() << std::endl;
+    // std::cout << "RodElement 1 gradient:\n" << _elements[1].strainGradient(0.5) << std::endl;
+    // std::cout << "Elastic constraint 1 gradient:\n" << _elastic_constraints[1].gradient() << std::endl;
 
     // Step 4: assemble and solve
     // compute LHS

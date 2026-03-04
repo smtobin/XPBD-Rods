@@ -13,7 +13,6 @@ template<int Order>
 typename RodElasticGaussPointConstraint<Order>::ConstraintVecType RodElasticGaussPointConstraint<Order>::evaluate() const
 {
     ConstraintVecType v_and_u = _rod_element->strain(_s_hat);
-    v_and_u[2] -= 1; // constraint is (v - e3)
     return v_and_u;
 }
 

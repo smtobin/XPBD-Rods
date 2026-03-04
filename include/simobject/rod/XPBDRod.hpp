@@ -63,9 +63,6 @@ class XPBDRod : public XPBDObject_Base
         _I_rot = _m_node / _cross_section->area() * Vec3r(_cross_section->Ix(), _cross_section->Iy(), _cross_section->Iz());
         _I_rot_inv = 1.0/_I_rot.array();
 
-        std::cout << "Nodal mass: " << _m_node << std::endl;
-        std::cout << "Nodal rot inertia: " << _I_rot.transpose() << std::endl;
-
         // initialize rod state
         _nodes.resize(_num_nodes);
         _nodes[0].position = config.initialPosition();
