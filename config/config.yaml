@@ -1,9 +1,12 @@
 name: "RodSim"
+sim-mode: "Frame-by-frame"
 time-step: 1e-3
 end-time: 600
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
+
+ground-plane: False
 
 objects:
   - 
@@ -11,7 +14,7 @@ objects:
     name: "rod1"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
-    nodes: 100
+    nodes: 5
     base-fixed: True
     tip-fixed: False
     render-type: "PBR"
@@ -21,12 +24,12 @@ objects:
     roughness: 0.5
     color: [1.0, 1.0, 1.0]
 
-  -
-    type: "RigidBox"
-    name: "sphere1"
-    initial-position: [0,0,0]
-    initial-velocity: [0,0,0]
-    render-type: "PBR"
-    metallic: 0.2
-    roughness: 0.5
-    color: [1.0, 1.0, 1.0]
+  # -
+  #   type: "RigidBox"
+  #   name: "sphere1"
+  #   initial-position: [0,0,0]
+  #   initial-velocity: [0,0,0]
+  #   render-type: "PBR"
+  #   metallic: 0.2
+  #   roughness: 0.5
+  #   color: [1.0, 1.0, 1.0]

@@ -129,5 +129,52 @@ int main()
     Constraint::OneSidedPrismaticJointLimitConstraint   pr_lim_constraint2(pr_constraint2, -0.5, 0.5);
     testConstraint(pr_lim_constraint1);
     testConstraint(pr_lim_constraint2);
+
+    /** Rod Elastic Gauss Constraints */
+    std::array<SimObject::OrientedParticle*, 2> o1_element_particles = {&particle1, &particle2};
+    SimObject::RodElement<1> o1_element(o1_element_particles, 1);
+    Constraint::RodElasticGaussPointConstraint<1> o1_constraint(&o1_element, 0.5, Vec6r::Zero());
+    testConstraint(o1_constraint);
+
+    /** Test derivative of exponential map */
+    Real l = 0.1;
+    Vec3r theta1(0.5, -0.6, 0.4);
+    Vec3r theta2(0.8, 0.2, 0.9);
+    Mat3r R1 = Math::Exp_so3(theta1);
+    Mat3r R2 = Math::Exp_so3(theta2);
+    Vec3r theta = Math::Minus_SO3(R2, R1);
+    Real s = 0.5;
+    Vec3r theta_prime = 1/l * theta;
+
+
+    Mat3r gamma = Math::ExpMap_RightJacobian(s*theta);
+    Mat3r gamma_inv = Math::ExpMap_InvRightJacobian(theta);
+
+    Vec3r u = gamma * theta_prime;
+
+    Vec3r dR1(0.001, -0.002, -0.001);
+    Vec3r u_pred_delta1 = Math::DExpMap_RightJacobian_Contract_k(s*theta, -s*gamma_inv.transpose() * dR1) * theta_prime + gamma * -1/l * gamma_inv.transpose() * dR1;
+    Vec3r u_pred_delta2 = (Math::DExpMap_RightJacobian_Contract_j(s*theta, theta_prime) * -s*gamma_inv.transpose() + gamma * -1/l * gamma_inv.transpose()) * dR1;
+    Vec3r u_pred_delta3 = -1/l * gamma_inv.transpose() * dR1;
+
+
+    R1 = Math::Plus_SO3(R1, dR1);
+    Vec3r u_new = Math::ExpMap_RightJacobian(s*Math::Minus_SO3(R2, R1)) * 1/l * Math::Minus_SO3(R2, R1);
+
+    std::cout << "Original u:\n" << u.transpose() << std::endl;
+    std::cout << "Predicted du1:\n" << u_pred_delta1.transpose() << std::endl;
+    std::cout << "Predicted du2:\n" << u_pred_delta2.transpose() << std::endl;
+    std::cout << "Predicted du3:\n" << u_pred_delta3.transpose() << std::endl;
+    std::cout << "Actual du:\n" << (u_new - u).transpose() << std::endl;
+
+    Vec3r v1(1.2, 0.8, 0.6);
+    Vec3r v2(0.7, 0.2, 0.4);
+    Mat3r A;
+    A << 0.5, 0.9, -0.4, 0.6, 0.5, 0.3, 0.1, -0.1, 0.6;
+    Vec3r res1 = Math::DExpMap_RightJacobian_Contract_k(s*theta, A*v1) * theta_prime;
+    Vec3r res2 = Math::DExpMap_RightJacobian_Contract_j(s*theta, theta_prime) * A * v1;
+
+    std::cout << "res1: " << res1.transpose() << std::endl;
+    std::cout << "res2: " << res2.transpose() << std::endl;
     
 }

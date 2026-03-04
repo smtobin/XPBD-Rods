@@ -37,7 +37,7 @@ static Mat3r ExpMap_RightJacobian(const Vec3r& theta)
 }
 
 // Computes derivative of right Jacobian of SO(3) exponential map (at theta), multiplied by some perturbation xi
-static Mat3r DExpMap_RightJacobian(const Vec3r& theta, const Vec3r& xi)
+static Mat3r DExpMap_RightJacobian_Contract_k(const Vec3r& theta, const Vec3r& xi)
 {
     Real theta_norm = theta.norm();
 
@@ -67,6 +67,60 @@ static Mat3r DExpMap_RightJacobian(const Vec3r& theta, const Vec3r& xi)
 
     return term1 + term2 + term3 + term4;
     
+}
+
+static Mat3r DExpMap_RightJacobian_Contract_j(const Vec3r& theta, const Vec3r& xi)
+{
+    Real theta_norm = theta.norm();
+
+    Mat3r skew_theta = Skew3(theta);
+
+    Mat3r dskew_dtheta_i[3] = {Mat3r::Zero(), Mat3r::Zero(), Mat3r::Zero()};
+    dskew_dtheta_i[0](1, 2) = -1;
+    dskew_dtheta_i[0](2, 1) = 1;
+
+    dskew_dtheta_i[1](0, 2) = 1;
+    dskew_dtheta_i[1](2, 0) = -1;
+
+    dskew_dtheta_i[2](0, 1) = -1;
+    dskew_dtheta_i[2](1, 0) = 1;
+
+    if (theta_norm < Real(1e-8))
+    {
+        Mat3r term1, term2, term3;
+        for (int k = 0; k < 3; k++)
+        {
+            term1.col(k) = 1.0/12.0 * theta[k] * skew_theta * xi;
+            term2.col(k) = 1.0/2.0 * dskew_dtheta_i[k] * xi;
+            term3.col(k) = 1.0/6.0 * (dskew_dtheta_i[k] * skew_theta + skew_theta * dskew_dtheta_i[k]) * xi;
+        }
+        return term1 + term2 + term3;
+    }
+
+    
+
+
+    Real theta_norm2 = theta_norm*theta_norm;
+    Real theta_norm3 = theta_norm2*theta_norm;
+    Real theta_norm4 = theta_norm3*theta_norm;
+
+    Real a = (1 - std::cos(theta_norm)) / theta_norm2;
+    Real b = (theta_norm - std::sin(theta_norm)) / theta_norm3;
+    Real da_dtheta_norm = -2*(1 - std::cos(theta_norm)) / theta_norm3 + std::sin(theta_norm) / theta_norm2;
+    Real db_dtheta_norm = (1 - std::cos(theta_norm)) / theta_norm3 - 3*(theta_norm - std::sin(theta_norm)) / theta_norm4;
+
+
+    Mat3r term1, term2, term3, term4;
+    for (int k = 0; k < 3; k++)
+    {
+        term1.col(k) = -da_dtheta_norm * theta[k] / theta_norm * skew_theta * xi;
+        term2.col(k) = -a * dskew_dtheta_i[k] * xi;
+        term3.col(k) = db_dtheta_norm * theta[k] / theta_norm * skew_theta * skew_theta * xi;
+        term4.col(k) = b * (dskew_dtheta_i[k] * skew_theta + skew_theta * dskew_dtheta_i[k]) * xi;
+    }
+
+    return term1 + term2 + term3 + term4;
+
 }
 
 // Computes the inverse of the right Jacobian of SO(3) exponential map

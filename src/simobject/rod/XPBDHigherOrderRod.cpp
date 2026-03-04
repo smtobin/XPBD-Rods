@@ -2,6 +2,8 @@
 
 #include "common/GaussQuadratureHelper.hpp"
 
+#include <Eigen/Cholesky>
+
 template<typename T>
 struct base_type { using type = T; };
 
@@ -97,7 +99,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         std::array<OrientedParticle*, Order+1> element_nodes;
         for (int j = 0; j <= Order; j++)
         {
-            int node_ind = j*Order + j;
+            int node_ind = i*Order + j;
             element_nodes[j] = &_nodes[node_ind];
 
             _nodes[node_ind].mass += total_mass * lumped_masses[j];
@@ -107,6 +109,24 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         _elements.emplace_back(element_nodes, _element_rest_length);
     }
 
+    for (int i = 0; i < _num_nodes; i++)
+    {
+        std::cout << "node " << i << " inertia:\n" << _nodes[i].mass << ",\n" << _nodes[i].Ib.transpose() << std::endl;
+    }
+
+}
+
+template <int Order>
+std::vector<const OrientedParticle*> XPBDRod_<Order>::particles() const
+{
+    std::vector<const OrientedParticle*> particles_vec;
+    particles_vec.reserve(_nodes.size());
+    for (const auto& node : _nodes)
+    {
+        particles_vec.push_back(&node);
+    }
+
+    return particles_vec;
 }
 
 template <int Order>
@@ -151,28 +171,39 @@ void XPBDRod_<Order>::setup()
             Vec6r compliance = 1.0/scaled_stiffness.array();
 
             _elastic_constraints.emplace_back(&_elements[i], gauss_points[gi], compliance);
-            
-            _ordered_constraints.emplace_back(&_elastic_constraints.back());
         }
     }
 
     /** Create fixed constraints */
     if (_base_fixed)
     {
-        auto& new_constraint = _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
+        _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes[0].position, _nodes[0].orientation, &_nodes[0], Vec3r::Zero(), Mat3r::Identity()
         );
-
-        _ordered_constraints.emplace(_ordered_constraints.begin(), &new_constraint);
     }
 
     if(_tip_fixed)
     {
-        auto& new_constraint = _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
+        _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes.back().position, _nodes.back().orientation, &_nodes.back(), Vec3r::Zero(), Mat3r::Identity()
         );
+    }
 
-        _ordered_constraints.emplace(_ordered_constraints.end(), &new_constraint);
+    /** Add constraints to ordered constraints vector */
+    for (unsigned i = 0; i < _elastic_constraints.size(); i++)
+    {
+        _ordered_constraints.emplace_back(&_elastic_constraints[i]);
+    }
+
+    if (_base_fixed)
+    {
+        _ordered_constraints.emplace(_ordered_constraints.begin(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().front());
+    }
+    if (_tip_fixed)
+    {
+        _ordered_constraints.emplace(_ordered_constraints.end(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().back());
     }
 
     _num_constraints = _elastic_constraints.size() + 1;
@@ -250,14 +281,26 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     // Step 4: assemble and solve
     // compute LHS
     VecXr alpha_tilde = _alpha/(dt*dt);
+    std::cout << "Alpha tilde: " << alpha_tilde.transpose() << std::endl;
+    std::cout << "RHS: " << _RHS_vec.transpose() << std::endl;
+    std::cout << "inertia mat inv: " << _inertia_mat_inv.transpose() << std::endl;
+    std::cout << "DelC mat:\n" << _delC_mat << std::endl;
     MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
     LHS_mat.diagonal() += alpha_tilde;
+    std::cout << "LHS mat:\n" << LHS_mat << std::endl;
 
     _RHS_vec -= alpha_tilde.asDiagonal() * _internal_lambda;
 
     Eigen::LLT<MatXr> llt(LHS_mat);
-    _dlam = llt.solve(_RHS_vec);
-    _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * _dlam;
+    Eigen::SelfAdjointEigenSolver<MatXr> eig(LHS_mat);
+    std::cout << "Eigenvalues: " << eig.eigenvalues().transpose() << std::endl;
+    if (eig.eigenvalues().minCoeff() <= 0) {
+        std::cerr << "Matrix is not positive definite!" << std::endl;
+    }
+    VecXr dlam = llt.solve(_RHS_vec);
+    _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
+    std::cout << "Dlam: " << dlam.transpose() << std::endl;
+    std::cout << "dx: " << _dx.transpose() << std::endl;
 
     _internal_lambda += _dlam;
 

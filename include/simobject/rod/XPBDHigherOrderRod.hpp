@@ -35,7 +35,7 @@ public:
 
     virtual AABB boundingBox() const override;
 
-    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override;
+    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
 
     Real radius() const { return _radius; }
     const std::vector<SimObject::OrientedParticle>& nodes() const { return _nodes; }

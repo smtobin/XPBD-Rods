@@ -117,7 +117,9 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
         dtheta_ds += dshat_ds() * _bases_derivatives[i](s_hat) * Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
     }
 
-    return Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+    Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+
+    return u1;
 }
 
 template <int Order>
@@ -163,7 +165,7 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
 
         // add contribution to dtheta_dR0 and dtheta_ds_dR0
         dtheta_dRi[0] -= dtheta_dRi[i].transpose();
-        dtheta_ds_dRi[0] -= -dtheta_ds_dRi[i].transpose();
+        dtheta_ds_dRi[0] -= dtheta_ds_dRi[i].transpose();
     }
 
 
@@ -172,7 +174,6 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     // precompute useful quantities for gradients of shear strain
     Mat3r exp_theta = Math::Exp_so3(theta);
     Mat3r gam_theta = Math::ExpMap_RightJacobian(theta);
-    Mat3r R0_gam_theta = _nodes[0]->orientation * gam_theta;
     Mat3r R = _nodes[0]->orientation * exp_theta;
 
 
@@ -190,11 +191,11 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
 
         if (i == 0)
         {
-            grad.template block<3,3>(0,6*i+3) = RT_dp_ds_R * (exp_theta + R0_gam_theta * dtheta_dRi[i]);
+            grad.template block<3,3>(0,6*i+3) = RT_dp_ds_R * (exp_theta.transpose() + gam_theta * dtheta_dRi[i]);
         }
         else
         {
-            grad.template block<3,3>(0,6*i+3) = RT_dp_ds_R * R0_gam_theta * dtheta_dRi[i];
+            grad.template block<3,3>(0,6*i+3) = RT_dp_ds_R * gam_theta * dtheta_dRi[i];
         }
     }
 
@@ -208,8 +209,7 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
         grad.template block<3,3>(3, 6*i) = Mat3r::Zero();
 
         // gradient w.r.t. orientation
-        Vec3r xi = dtheta_dRi[i] * dtheta_ds;
-        grad.template block<3,3>(3, 6*i+3) = Math::DExpMap_RightJacobian(theta, xi) + gam_theta * dtheta_ds_dRi[i];
+        grad.template block<3,3>(3, 6*i+3) = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds) * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
     }
 
     return grad;

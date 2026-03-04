@@ -5,7 +5,7 @@ namespace Constraint
 
 template<int Order>
 RodElasticGaussPointConstraint<Order>::RodElasticGaussPointConstraint(const SimObject::RodElement<Order>* rod_element, Real s_hat, const AlphaVecType& alpha)
-    : XPBDConstraint<6, Order+1>(rod_element->nodes(), alpha), _s_hat(s_hat)
+    : XPBDConstraint<6, Order+1>(rod_element->nodes(), alpha), _rod_element(rod_element), _s_hat(s_hat)
 {
 }
 
