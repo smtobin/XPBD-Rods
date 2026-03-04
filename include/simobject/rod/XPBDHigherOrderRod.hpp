@@ -95,6 +95,7 @@ private:
      * The elastic constraints penalize strain energy in the rod.
      */
     std::vector<Constraint::RodElasticGaussPointConstraint<Order>> _elastic_constraints;
+    // std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

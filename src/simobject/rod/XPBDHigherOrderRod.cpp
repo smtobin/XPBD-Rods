@@ -46,7 +46,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
 
     // create elements for the rod
     /** TODO: For now, the nodes() parameter in the config file will be used to specify the number of elements */
-    _num_elements = config.nodes();
+    _num_elements = config.nodes()-1;
     // total number of nodes = internal nodes ((Order - 1) of these per element) + element boundary nodes (number of elements + 1 of these)
     _num_nodes = _num_elements * (Order - 1) + (_num_elements+1);
 
@@ -170,7 +170,10 @@ void XPBDRod_<Order>::setup()
             Vec6r scaled_stiffness = _element_rest_length * gauss_weights[gi] * stiffness;
             Vec6r compliance = 1.0/scaled_stiffness.array();
 
+            std::cout << "Constraint " << i << " compliance: " << compliance.transpose() << std::endl;
+
             _elastic_constraints.emplace_back(&_elements[i], gauss_points[gi], compliance);
+            // _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], compliance);
         }
     }
 
@@ -211,7 +214,7 @@ void XPBDRod_<Order>::setup()
     /** Allocate space */
     _RHS_vec.conservativeResize(6*_num_constraints);
     _alpha.conservativeResize(6*_num_constraints);
-    _internal_lambda.conservativeResize(6*_num_constraints);
+    _internal_lambda = VecXr::Zero(6*_num_constraints);
     _dlam.conservativeResize(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
     _delC_mat.conservativeResize(6*_num_constraints, 6*_num_nodes);
@@ -281,26 +284,26 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     // Step 4: assemble and solve
     // compute LHS
     VecXr alpha_tilde = _alpha/(dt*dt);
-    std::cout << "Alpha tilde: " << alpha_tilde.transpose() << std::endl;
-    std::cout << "RHS: " << _RHS_vec.transpose() << std::endl;
-    std::cout << "inertia mat inv: " << _inertia_mat_inv.transpose() << std::endl;
-    std::cout << "DelC mat:\n" << _delC_mat << std::endl;
+    // std::cout << "Alpha tilde: " << alpha_tilde.transpose() << std::endl;
+    // std::cout << "RHS: " << _RHS_vec.transpose() << std::endl;
+    // std::cout << "inertia mat inv: " << _inertia_mat_inv.transpose() << std::endl;
+    // std::cout << "DelC mat:\n" << _delC_mat << std::endl;
     MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
     LHS_mat.diagonal() += alpha_tilde;
-    std::cout << "LHS mat:\n" << LHS_mat << std::endl;
+    // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
 
     _RHS_vec -= alpha_tilde.asDiagonal() * _internal_lambda;
 
     Eigen::LLT<MatXr> llt(LHS_mat);
-    Eigen::SelfAdjointEigenSolver<MatXr> eig(LHS_mat);
-    std::cout << "Eigenvalues: " << eig.eigenvalues().transpose() << std::endl;
-    if (eig.eigenvalues().minCoeff() <= 0) {
-        std::cerr << "Matrix is not positive definite!" << std::endl;
-    }
+    // Eigen::SelfAdjointEigenSolver<MatXr> eig(LHS_mat);
+    // std::cout << "Eigenvalues: " << eig.eigenvalues().transpose() << std::endl;
+    // if (eig.eigenvalues().minCoeff() <= 0) {
+    //     std::cerr << "Matrix is not positive definite!" << std::endl;
+    // }
     VecXr dlam = llt.solve(_RHS_vec);
     _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
-    std::cout << "Dlam: " << dlam.transpose() << std::endl;
-    std::cout << "dx: " << _dx.transpose() << std::endl;
+    // std::cout << "Dlam: " << dlam.transpose() << std::endl;
+    // std::cout << "dx: " << _dx.transpose() << std::endl;
 
     _internal_lambda += _dlam;
 

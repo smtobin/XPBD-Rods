@@ -1,7 +1,7 @@
 name: "RodSim"
-sim-mode: "Frame-by-frame"
+# sim-mode: "Frame-by-frame"
 time-step: 1e-3
-end-time: 600
+end-time: 10
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -14,7 +14,7 @@ objects:
     name: "rod1"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
-    nodes: 5
+    nodes: 20
     base-fixed: True
     tip-fixed: False
     render-type: "PBR"

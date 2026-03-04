@@ -29,6 +29,9 @@ void XPBDRod::setup()
 
     Vec6r alpha_elastic = 1/dl * Vec6r( 1.0 / (_G * _cross_section->area()), 1.0 / (_G * _cross_section->area()), 1.0 / (_E * _cross_section->area()),
                                          1.0 / (_E * _cross_section->Ix()),   1.0 / (_E * _cross_section->Iy()),   1.0 / (_G * _cross_section->Iz()) );
+    
+    std::cout << "Compliance: " << alpha_elastic.transpose() << std::endl;
+    
     // create elastic constraints
     _elastic_constraints.reserve(_num_nodes-1);
     for (int i = 0; i < _num_nodes-1; i++)

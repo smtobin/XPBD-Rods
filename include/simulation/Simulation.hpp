@@ -125,6 +125,39 @@ class Simulation
         return new_obj_ptr;
     }
 
+    // SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
+    // {
+    //     using RodPtrType = std::unique_ptr<SimObject::XPBDRod>;
+    //     SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+    //     _objects.template push_back<RodPtrType>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
+    //     SimObject::XPBDRod* new_rod_ptr = _objects.template get<RodPtrType>().back().get();
+    //     new_rod_ptr->setup();
+
+    //     // add new rod to graphics scene to be visualized
+    //     _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+    //     // assign global indices to the rod's nodes
+    //     std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod_ptr->particles();
+    //     for (const auto& particle : obj_particles)
+    //     {
+    //         _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});
+    //     }
+    //     // resize the vectors for storing the inertially predicted positions/orientations
+    //     _p_tilde.resize(_particle_ptr_to_index.size());
+    //     _R_tilde.resize(_particle_ptr_to_index.size());
+
+    //     // if the particles of this object should be logged, only log the first and last particle (rods may have many particles)
+    //     if (rod_config.logParticles() && _logger)
+    //     {
+    //         const std::string var_name_0 = new_rod_ptr->name() + "_particle0";
+    //         const std::string var_name_end = new_rod_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
+    //         _logger->addOutput(var_name_0, obj_particles[0]);
+    //         _logger->addOutput(var_name_end, obj_particles.back());   
+    //     }
+
+    //     return new_rod_ptr;
+    // }
+
     SimObject::XPBDRod_<1>* _addObjectFromConfig(const Config::RodConfig& rod_config)
     {
         using RodPtrType = std::unique_ptr<SimObject::XPBDRod_<1>>;
