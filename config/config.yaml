@@ -1,7 +1,7 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
 time-step: 1e-3
-end-time: 10
+end-time: 1000000000000000000000
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -12,10 +12,10 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Quadratic"
+    element-type: "Linear"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
-    nodes: 10
+    elements: 20
     base-fixed: True
     tip-fixed: False
     render-type: "PBR"
@@ -23,7 +23,23 @@ objects:
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
     metallic: 0.0
     roughness: 0.5
-    color: [1.0, 1.0, 1.0]
+    color: [1.0, 0, 0]
+
+  - 
+    type: "Rod"
+    name: "rod2"
+    element-type: "Quadratic"
+    initial-base-position: [0, 0.0, 0.0]
+    initial-base-rotation: [0, 0, 0]
+    elements: 3
+    base-fixed: True
+    tip-fixed: False
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [0, 0, 1.0]
 
   # -
   #   type: "RigidBox"

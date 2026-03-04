@@ -83,6 +83,7 @@ int main()
     randomRotation();
     SimObject::OrientedParticle particle1 = randomParticle();
     SimObject::OrientedParticle particle2 = randomParticle();
+    SimObject::OrientedParticle particle3 = randomParticle();
 
     /** Revolute joint constraints */
     Constraint::RevoluteJointConstraint                 rev_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -132,9 +133,14 @@ int main()
 
     /** Rod Elastic Gauss Constraints */
     std::array<SimObject::OrientedParticle*, 2> o1_element_particles = {&particle1, &particle2};
-    SimObject::RodElement<1> o1_element(o1_element_particles, 1);
+    SimObject::RodElement<1> o1_element(o1_element_particles, 0.5);
     Constraint::RodElasticGaussPointConstraint<1> o1_constraint(&o1_element, 0.5, Vec6r::Zero());
     testConstraint(o1_constraint);
+
+    std::array<SimObject::OrientedParticle*, 3> o2_element_particles = {&particle1, &particle2, &particle3};
+    SimObject::RodElement<2> o2_element(o2_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<2> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
+    testConstraint(o2_constraint);
 
     /** Test derivative of exponential map */
     Real l = 0.1;

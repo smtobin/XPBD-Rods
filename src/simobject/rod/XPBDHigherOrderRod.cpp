@@ -205,12 +205,12 @@ void XPBDRod_<Order>::setup()
     _num_constraints = _elastic_constraints.size() + 1;
 
     /** Allocate space */
-    _RHS_vec.conservativeResize(6*_num_constraints);
+    _RHS_vec = VecXr::Zero(6*_num_constraints);
     _alpha.conservativeResize(6*_num_constraints);
     _internal_lambda = VecXr::Zero(6*_num_constraints);
     _dlam.conservativeResize(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
-    _delC_mat.conservativeResize(6*_num_constraints, 6*_num_nodes);
+    _delC_mat = MatXr::Zero(6*_num_constraints, 6*_num_nodes);
 
     /** Assemble global inertia vector */
     _inertia_mat_inv = VecXr::Zero(6*_num_nodes);
@@ -282,10 +282,13 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     // Step 4: assemble and solve
     // compute LHS
     VecXr alpha_tilde = _alpha/(dt*dt);
+    if (Order == 2)
+    {
     // std::cout << "Alpha tilde: " << alpha_tilde.transpose() << std::endl;
     // std::cout << "RHS: " << _RHS_vec.transpose() << std::endl;
     // std::cout << "inertia mat inv: " << _inertia_mat_inv.transpose() << std::endl;
     // std::cout << "DelC mat:\n" << _delC_mat << std::endl;
+    }
     MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
     LHS_mat.diagonal() += alpha_tilde;
     // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
@@ -300,8 +303,11 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     // }
     VecXr dlam = llt.solve(_RHS_vec);
     _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
+    if (Order == 2)
+    {
     // std::cout << "Dlam: " << dlam.transpose() << std::endl;
     // std::cout << "dx: " << _dx.transpose() << std::endl;
+    }
 
     _internal_lambda += _dlam;
 
