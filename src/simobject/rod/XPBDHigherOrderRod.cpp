@@ -34,7 +34,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
     _length(config.length()), _radius(config.diameter()/2.0),
     _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
     _density(config.density()), _E(config.E()), _nu(config.nu()),
-    _solver(Order, config.nodes())
+    _solver(Order, config.elements()+1)
 {
     // compute shear modulus
     _G = _E / (2 * (1+_nu));
@@ -46,7 +46,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
 
     // create elements for the rod
     /** TODO: For now, the nodes() parameter in the config file will be used to specify the number of elements */
-    _num_elements = config.nodes()-1;
+    _num_elements = config.elements();
     // total number of nodes = internal nodes ((Order - 1) of these per element) + element boundary nodes (number of elements + 1 of these)
     _num_nodes = _num_elements * (Order - 1) + (_num_elements+1);
 

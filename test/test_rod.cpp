@@ -129,6 +129,7 @@ int main()
     Config::RodConfig rod_config(
         "test_rod",
         Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
+        Config::RodElementType::NONE,
         true, true,
         1.0, 0.1,
         num_nodes,
@@ -164,6 +165,7 @@ int main()
     Config::RodConfig rod_config1(
         "rod1",
         Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
+        Config::RodElementType::NONE,
         true, true,
         1.0, 0.1,
         10,
@@ -176,6 +178,7 @@ int main()
     Config::RodConfig rod_config2(
         "rod2",
         Vec3r(-0.505, 0.098, 0.505), Vec3r(0,90,0), Vec3r::Zero(), Vec3r::Zero(),
+        Config::RodElementType::NONE,
         false, false,
         1.0, 0.1,
         10,

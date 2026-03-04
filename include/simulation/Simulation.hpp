@@ -67,7 +67,7 @@ class Simulation
     protected:
 
     template<typename ConfigType>        
-    typename ConfigType::SimObjectType* _addObjectFromConfig(const ConfigType& obj_config)
+    void _addObjectFromConfig(const ConfigType& obj_config)
     {
         // using ObjPtrType = std::unique_ptr<typename ConfigType::SimObjectType>;
         using ObjType = typename ConfigType::SimObjectType;
@@ -121,8 +121,6 @@ class Simulation
                 _logger->addOutput(var_name, obj_particles[i]);
             }
         }
-
-        return new_obj_ptr;
     }
 
     // SimObject::XPBDRod* _addObjectFromConfig(const Config::RodConfig& rod_config)
@@ -158,22 +156,47 @@ class Simulation
     //     return new_rod_ptr;
     // }
 
-    SimObject::XPBDRod_<1>* _addObjectFromConfig(const Config::RodConfig& rod_config)
+    void _addObjectFromConfig(const Config::RodConfig& rod_config)
     {
-        using RodPtrType = std::unique_ptr<SimObject::XPBDRod_<1>>;
-        // SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-        // _objects.template push_back<RodPtrType>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
-        // SimObject::XPBDRod* new_rod_ptr = _objects.template get<RodPtrType>().back().get();
-        // new_rod_ptr->setup();
-        _objects.template push_back<RodPtrType>(std::make_unique<SimObject::XPBDRod_<1>>(rod_config));
-        SimObject::XPBDRod_<1>* new_rod_ptr = _objects.template get<RodPtrType>().back().get();
-        new_rod_ptr->setup();
+        SimObject::XPBDObject_Base* new_obj_ptr = nullptr;
+        if (rod_config.elementType() == Config::RodElementType::NONE)
+        {
+            // create the old XPBDRod
+            SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod>>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
+            SimObject::XPBDRod* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod>>().back().get();
+            new_rod_ptr->setup();
 
-        // add new rod to graphics scene to be visualized
-        _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+            // add new rod to graphics scene to be visualized
+            _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            new_obj_ptr = new_rod_ptr;
+        }
+        else if (rod_config.elementType() == Config::RodElementType::LINEAR)
+        {  
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<1>>>(std::make_unique<SimObject::XPBDRod_<1>>(rod_config));
+            SimObject::XPBDRod_<1>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<1>>>().back().get();
+            new_rod_ptr->setup();
+
+            // add new rod to graphics scene to be visualized
+            _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            new_obj_ptr = new_rod_ptr;
+        }
+        else if (rod_config.elementType() == Config::RodElementType::QUADRATIC)
+        {
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<2>>>(std::make_unique<SimObject::XPBDRod_<2>>(rod_config));
+            SimObject::XPBDRod_<2>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<2>>>().back().get();
+            new_rod_ptr->setup();
+
+            // add new rod to graphics scene to be visualized
+            _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            new_obj_ptr = new_rod_ptr;
+        }
 
         // assign global indices to the rod's nodes
-        std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod_ptr->particles();
+        std::vector<const SimObject::OrientedParticle*> obj_particles = new_obj_ptr->particles();
         for (const auto& particle : obj_particles)
         {
             _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});
@@ -185,13 +208,11 @@ class Simulation
         // if the particles of this object should be logged, only log the first and last particle (rods may have many particles)
         if (rod_config.logParticles() && _logger)
         {
-            const std::string var_name_0 = new_rod_ptr->name() + "_particle0";
-            const std::string var_name_end = new_rod_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
+            const std::string var_name_0 = new_obj_ptr->name() + "_particle0";
+            const std::string var_name_end = new_obj_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
             _logger->addOutput(var_name_0, obj_particles[0]);
             _logger->addOutput(var_name_end, obj_particles.back());   
         }
-
-        return new_rod_ptr;
     }
 
     SimObject::XPBDRigidBody_Base* _findRigidBodyWithName(const std::string& name);

@@ -45,9 +45,9 @@ class XPBDRod : public XPBDObject_Base
     template <typename CrossSectionType_>
     XPBDRod(const Config::RodConfig& config, const CrossSectionType_& cross_section)
         : XPBDObject_Base(config),
-         _num_nodes(config.nodes()), _length(config.length()), _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
+         _num_nodes(config.elements()+1), _length(config.length()), _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
          _density(config.density()), _E(config.E()), _nu(config.nu()),
-         _solver(1, config.nodes())
+         _solver(1, _num_nodes)
     {
         // make sure CrossSectionType_ is a type of CrossSection
         static_assert(std::is_base_of_v<CrossSection, CrossSectionType_>);

@@ -19,14 +19,16 @@ XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(const Config::XPBDConcentricTub
 void XPBDConcentricTubeRobot::setup()
 {
     Config::RodConfig outer_rod_config(
-        "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), true, false,
+        "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
+        Config::RodElementType::NONE, true, false,
         1, 0.1, 20, 1000, 1e6, 0.3
     );
 
     SimObject::CircleCrossSection outer_cross_section(0.1/2.0, 10);
 
     Config::RodConfig inner_rod_config(
-        "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), true, false,
+        "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
+        Config::RodElementType::NONE, true, false,
         1.5, 0.08, 20, 1000, 1e6, 0.3
     );
 

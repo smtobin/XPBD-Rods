@@ -12,6 +12,7 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
+    element-type: "Quadratic"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
     nodes: 10
