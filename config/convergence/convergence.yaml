@@ -1,0 +1,20 @@
+name: "Rod convergence"
+# sim-mode: "Frame-by-frame"
+sim-mode: "AFAP"
+time-step: 1e-3
+end-time: 1000
+
+ground-plane: False
+
+E: 1e6
+nu: 0.4
+diameter: 0.1
+length: 1
+density: 1000
+
+linear-rod-elements: [5, 10, 20, 40, 80]
+quadratic-rod-elements: [5, 10, 20, 40, 80]
+
+# simulation render settings
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True

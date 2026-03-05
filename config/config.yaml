@@ -1,8 +1,13 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
+sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 20
+end-time: 1000
+
+logging: True
+logging-output-folder: "../output/convergence"
+logging-interval: 1
+log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -10,23 +15,24 @@ create-skybox: True
 ground-plane: True
 
 objects:
-  - 
-    type: "Rod"
-    name: "rod1"
-    element-type: "Quadratic"
-    initial-position: [0, 1, 0.0]
-    initial-rotation: [0, 0, 0]
-    E: 1e5
-    elements: 10
-    base-fixed: True
-    tip-fixed: False
-    collisions: False
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [1.0, 0, 0]
+  # - 
+  #   type: "Rod"
+  #   name: "rod1"
+  #   element-type: "Quadratic"
+  #   initial-position: [0, 1, 0.0]
+  #   initial-rotation: [0, 0, 0]
+  #   E: 5e6
+  #   elements: 100
+  #   base-fixed: True
+  #   tip-fixed: False
+  #   collisions: False
+  #   log-particles: True
+  #   render-type: "PBR"
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.0
+  #   roughness: 0.5
+  #   color: [1.0, 0, 0]
 
   - 
     type: "Rod"
@@ -34,11 +40,12 @@ objects:
     element-type: "Linear"
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    E: 1e5
-    elements: 50
+    E: 5e6
+    elements: 100
     base-fixed: True
     tip-fixed: False
     collisions: False
+    log-particles: True
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

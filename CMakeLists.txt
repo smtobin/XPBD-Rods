@@ -64,6 +64,9 @@ target_link_libraries(Sim Simulation ${VTK_LIBRARIES})
 add_executable(RodGraspingSim src/exec/rod_grasping_sim.cpp)
 target_link_libraries(RodGraspingSim Simulation ${VTK_LIBRARIES})
 
+add_executable(RodConvergenceSim src/exec/rod_convergence_sim.cpp)
+target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
+
 
 ###################################################
 # TESTS
@@ -115,6 +118,11 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS Sim
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS RodConvergenceSim
   MODULES ${VTK_LIBRARIES}
 )
 

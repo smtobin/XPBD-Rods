@@ -38,11 +38,13 @@ class Simulation
 
     explicit Simulation(const Config::SimulationConfig& sim_config);
 
+    virtual ~Simulation() = default;
+
     virtual void setup();
 
-    int run();
+    virtual int run();
 
-    void update();
+    virtual void update();
 
     VecXr primaryResidual() const;
     VecXr constraintResidual() const;

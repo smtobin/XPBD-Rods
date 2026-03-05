@@ -7,6 +7,7 @@ set(SIMULATION_SRC_DIR "./")
 set(SIMULATION_HEADERS
     ${SIMULATION_INCLUDE_DIR}/Simulation.hpp
     ${SIMULATION_INCLUDE_DIR}/RodGraspingSimulation.hpp
+    ${SIMULATION_INCLUDE_DIR}/RodConvergenceSimulation.hpp
 
     ${SIMULATION_INCLUDE_DIR}/SimulationLogger.hpp
 )
@@ -14,6 +15,7 @@ set(SIMULATION_HEADERS
 set(SIMULATION_SOURCES
     ${SIMULATION_SRC_DIR}/Simulation.cpp
     ${SIMULATION_SRC_DIR}/RodGraspingSimulation.cpp
+    ${SIMULATION_SRC_DIR}/RodConvergenceSimulation.cpp
 
     ${SIMULATION_SRC_DIR}/SimulationLogger.cpp
 )
