@@ -17,6 +17,8 @@ template<int Order>
 class XPBDRod_ : public XPBDObject_Base
 {
 public:
+    constexpr static int NUM_GP = Order;
+
     XPBDRod_(const Config::RodConfig& config);
 
     virtual std::vector<const OrientedParticle*> particles() const override;
@@ -90,12 +92,18 @@ private:
     /** Nodes of the rod (most current state) */
     std::vector<OrientedParticle> _nodes;
 
+    /** Store the inverse inertias of each node */
+    std::vector<Vec6r> _node_inverse_inertias;
+
     /** Stores the elastic rod constraints.
      * One elastic rod constraint is defined per each rod segment between two nodes (so there is N-1 elastic constraints).
      * The elastic constraints penalize strain energy in the rod.
      */
     std::vector<Constraint::RodElasticGaussPointConstraint<Order>> _elastic_constraints;
     // std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
+
+    /** A buffer to store the gradients of all the elastic constraints. Avoids needless recomputation of gradients. */
+    std::vector<typename Constraint::RodElasticGaussPointConstraint<Order>::GradientMatType> _gradient_buffer;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

@@ -9,26 +9,26 @@ create-skybox: True
 ground-plane: False
 
 objects:
-  - 
-    type: "Rod"
-    name: "rod1"
-    element-type: "Linear"
-    initial-base-position: [0, 0.0, 0.0]
-    initial-base-rotation: [0, 0, 0]
-    elements: 20
-    base-fixed: True
-    tip-fixed: False
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [1.0, 0, 0]
+  # - 
+  #   type: "Rod"
+  #   name: "rod1"
+  #   element-type: "Linear"
+  #   initial-base-position: [0, 0.0, 0.0]
+  #   initial-base-rotation: [0, 0, 0]
+  #   elements: 20
+  #   base-fixed: True
+  #   tip-fixed: False
+  #   render-type: "PBR"
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.0
+  #   roughness: 0.5
+  #   color: [1.0, 0, 0]
 
   - 
     type: "Rod"
     name: "rod2"
-    element-type: "Quadratic"
+    element-type: "Linear"
     initial-base-position: [0, 0.0, 0.0]
     initial-base-rotation: [0, 0, 0]
     elements: 3
