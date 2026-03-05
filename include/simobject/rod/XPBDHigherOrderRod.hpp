@@ -41,6 +41,7 @@ public:
 
     Real radius() const { return _radius; }
     const std::vector<SimObject::OrientedParticle>& nodes() const { return _nodes; }
+    const std::vector<SimObject::RodElement<Order>>& elements() const { return _elements; }
 
 private:
     /** Number of elements the rod is discretized into. */

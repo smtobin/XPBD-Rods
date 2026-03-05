@@ -10,29 +10,32 @@ create-skybox: True
 ground-plane: True
 
 objects:
-  # - 
-  #   type: "Rod"
-  #   name: "rod1"
-  #   element-type: "Linear"
-  #   initial-base-position: [0, 0.0, 0.0]
-  #   initial-base-rotation: [0, 0, 0]
-  #   elements: 20
-  #   base-fixed: True
-  #   tip-fixed: False
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.0
-  #   roughness: 0.5
-  #   color: [1.0, 0, 0]
+  - 
+    type: "Rod"
+    name: "rod1"
+    element-type: "Quadratic"
+    initial-position: [0, 1, 0.0]
+    initial-rotation: [0, 0, 0]
+    E: 1e5
+    elements: 10
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [1.0, 0, 0]
 
   - 
     type: "Rod"
     name: "rod2"
-    element-type: "None"
+    element-type: "Linear"
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    elements: 100
+    E: 1e5
+    elements: 50
     base-fixed: True
     tip-fixed: False
     collisions: False

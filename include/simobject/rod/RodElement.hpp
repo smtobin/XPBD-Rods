@@ -21,6 +21,7 @@ public:
     static std::array<Real, Order+1> lumpedMasses();
 
     const NodeArrayType& nodes() const { return _nodes; }
+    Real restLength() const { return _rest_length; }
 
     Vec3r position(Real s_hat) const;
     Mat3r orientation(Real s_hat) const;

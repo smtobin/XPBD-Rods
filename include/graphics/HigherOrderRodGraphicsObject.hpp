@@ -37,6 +37,12 @@ private:
 
     Config::ObjectRenderConfig _render_config;
 
+    /** Points (in the XY plane) for the cross-section of the rod */
+    std::vector<Vec3r> _cross_section_points;
+
+    /** Number of points to sample for each element */
+    int _sample_points_per_element;
+
 
 
 };
