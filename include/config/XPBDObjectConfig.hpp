@@ -43,6 +43,8 @@ public:
 
         _extractParameter("log-particles", node, _log_particles);
 
+        _extractParameter("collisions", node, _collisions);
+
         _extractParameter("static-friction-coeff", node, _static_friction_coeff);
         _extractParameter("dynamic-friction-coeff", node, _dynamic_friction_coeff);
     }
@@ -72,6 +74,8 @@ public:
 
     bool logParticles() const { return _log_particles.value; }
 
+    bool collisions() const { return _collisions.value; }
+
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
 protected:
@@ -86,6 +90,8 @@ protected:
     ConfigParameter<ProjectorType> _projector_type = ConfigParameter<ProjectorType>(ProjectorType::BLOCK);
 
     ConfigParameter<bool> _log_particles = ConfigParameter<bool>(false);
+
+    ConfigParameter<bool> _collisions = ConfigParameter<bool>(true);
 
     ObjectRenderConfig _render_config;
 };

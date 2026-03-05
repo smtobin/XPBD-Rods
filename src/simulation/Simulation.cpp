@@ -411,12 +411,14 @@ void Simulation::setup()
     // add objects to collision scene
     /** TODO: determine grid size based on object sizes */
     _objects.for_each_element([&](auto& obj) {
-        _collision_scene.addObject(obj.get());
+        if (obj->collisions())
+            _collision_scene.addObject(obj.get());
     });
     _object_groups.for_each_element([&](auto& obj_group) {
         auto& objects = obj_group->objects();
         objects.for_each_element([&](auto& obj) {
-            _collision_scene.addObject(&obj);
+            if (obj.collisions())
+                _collision_scene.addObject(&obj);
         });
     });
     
