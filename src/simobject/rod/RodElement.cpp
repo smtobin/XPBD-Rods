@@ -7,6 +7,8 @@ Real linearN1(Real s_hat) { return -s_hat + 1; }
 Real linearN2(Real s_hat) { return s_hat; }
 Real dlinearN1(Real /* s_hat */) { return -1; }
 Real dlinearN2(Real /* s_hat */) { return 1; }
+Real d2linearN1(Real /* s_hat */) { return 0; }
+Real d2linearN2(Real /* s_hat */) { return 0; }
 
 Real quadraticN1(Real s_hat) { return 2*s_hat*s_hat - 3*s_hat + 1; }
 Real quadraticN2(Real s_hat) { return -4*s_hat*s_hat + 4*s_hat; }
@@ -14,6 +16,9 @@ Real quadraticN3(Real s_hat) { return 2*s_hat*s_hat - s_hat; }
 Real dquadraticN1(Real s_hat) { return 4*s_hat - 3; }
 Real dquadraticN2(Real s_hat) { return -8*s_hat + 4; }
 Real dquadraticN3(Real s_hat) { return 4*s_hat - 1; }
+Real d2quadraticN1(Real /* s_hat */) { return 4; }
+Real d2quadraticN2(Real /* s_hat */) { return -8; }
+Real d2quadraticN3(Real /* s_hat */) { return 4; }
 
 template<int Order>
 RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
@@ -24,11 +29,13 @@ RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
     {
         _bases = {linearN1, linearN2};
         _bases_derivatives = {dlinearN1, dlinearN2};
+        _bases_derivatives2 = {d2linearN1, d2linearN2};
     }
     else if constexpr (Order == 2)
     {
         _bases = {quadraticN1, quadraticN2, quadraticN3};
         _bases_derivatives = {dquadraticN1, dquadraticN2, dquadraticN3};
+        _bases_derivatives2 = {d2quadraticN1, d2quadraticN2, d2quadraticN3};
     }
     else
     {
@@ -64,6 +71,30 @@ Vec3r RodElement<Order>::position(Real s_hat) const
     }
 
     return p;
+}
+
+template<int Order>
+Vec3r RodElement<Order>::dposition_dshat(Real s_hat) const
+{
+    Vec3r dp = _bases_derivatives[0](s_hat) * _nodes[0]->position;
+    for (int i = 1; i < Order+1; i++)
+    {
+        dp += _bases_derivatives[i](s_hat) * _nodes[i]->position;
+    }
+
+    return dp;
+}
+
+template<int Order>
+Vec3r RodElement<Order>::d2position_dshat2(Real s_hat) const
+{
+    Vec3r d2p = _bases_derivatives2[0](s_hat) * _nodes[0]->position;
+    for (int i = 1; i < Order+1; i++)
+    {
+        d2p += _bases_derivatives2[i](s_hat) * _nodes[i]->position;
+    }
+
+    return d2p;
 }
 
 template <int Order>
@@ -215,7 +246,131 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     return grad;
 }
 
+ /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
+template <int Order1, int Order2>
+void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1, const SimObject::RodElement<Order2>* elem2)
+{
+    // get initial estimates based on linear approximation
+    std::array<std::pair<Real, Real>, Order1*Order2> seeds;
+    for (int i = 0; i < Order1; i++)
+    {
+        for (int j = 0; j < Order2; j++)
+        {
+            auto [s1_loc, s2_loc] = Math::findClosestPointsOnLineSegments(
+                elem1->nodes()[i]->position, elem1->nodes()[i+1]->position, elem2->nodes()[j]->position, elem2->nodes()[j+1]->position
+            );
+            Real s1 = s1_loc / Order1 + Real(i) / Order1;
+            Real s2 = s2_loc / Order2 + Real(j) / Order2;
+
+            seeds[i*Order1 + j] = std::make_pair(s1, s2);
+
+            std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
+        }
+    }
+
+    for (const auto& seed : seeds)
+    {
+        Real s1 = seed.first;
+        Real s2 = seed.second;
+
+        int num_iters = 10;
+        // Newton's method
+        // for (int iter = 0; iter < num_iters; iter++)
+        // {
+        //     Vec3r p1 = elem1->position(s1);
+        //     Vec3r dp1 = elem1->dposition_dshat(s1);
+        //     Vec3r d2p1 = elem1->d2position_dshat2(s1);
+        //     Vec3r p2 = elem2->position(s2);
+        //     Vec3r dp2 = elem2->dposition_dshat(s2);
+        //     Vec3r d2p2 = elem2->d2position_dshat2(s2);
+
+        //     Vec3r diff = p1 - p2;
+
+        //     Mat2r J;
+        //     J(0,0) = 2*dp1.dot(dp1) + 2*diff.dot(d2p1);
+        //     J(0,1) = -2*dp1.dot(dp2);
+        //     J(1,0) = J(0,1);
+        //     J(1,1) = 2*dp2.dot(dp2) - 2*diff.dot(d2p2);
+
+        //     Vec2r res;
+        //     res[0] = -2*diff.dot(dp1);
+        //     res[1] = 2*diff.dot(dp2);
+
+        //     Real det = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        //     if (det < 1e-12)
+        //         break;
+            
+        //     Vec2r ds = Vec2r(
+        //         J(1,1)*res(0) - J(0,1)*res(1),
+        //         -J(1,0)*res(0) + J(0,0)*res(1)
+        //     ) / det;
+
+        //     std::cout << "ds: " << ds.transpose() << std::endl;
+
+        //     s1 = std::clamp(s1 + ds[0], 0.0, 1.0);
+        //     s2 = std::clamp(s2 + ds[1], 0.0, 1.0);
+        // }
+
+        /** TODO: try Gauss-Newton
+         * 
+         * f(x) = ||r(x)||^2
+         * 
+         * (J^T * J) dx = -J^T * r
+         * 
+         * where J is the jacobian of r, the residual vector (p1 - p2)
+         */
+
+        // coordinate descent
+        for (int iter = 0; iter < num_iters; iter++)
+        {
+            // solve for s1 with s2 fixed
+            Vec3r p1 = elem1->position(s1);
+            Vec3r dp1 = elem1->dposition_dshat(s1);
+            Vec3r d2p1 = elem1->d2position_dshat2(s1);
+
+            Vec3r p2 = elem2->position(s2);
+
+            Real g1 = (p1 - p2).dot(dp1);
+            Real dg1 = dp1.dot(dp1) + (p1 - p2).dot(d2p1);
+            if (std::abs(dg1) > 1e-12)
+                s1 = std::clamp(s1 - g1/dg1, Real(0.0), Real(1.0));
+
+            // solve for s2 with s1 fixed
+            p1 = elem1->position(s1);
+            Vec3r dp2 = elem2->dposition_dshat(s2);
+            Vec3r d2p2 = elem2->d2position_dshat2(s2);
+
+            Real g2 = (p1 - p2).dot(dp2);
+            Real dg2 = -dp2.dot(dp2) + (p1 - p2).dot(d2p2);
+            if (std::abs(dg2) > 1e-12)
+                s2 = std::clamp(s2 - g2/dg2, Real(0.0), Real(1.0));
+
+            std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
+        }
+
+        std::cout << "\nFinal s1 and s2: " << s1 << ", " << s2 << std::endl;
+        std::cout << "Distance: " << (elem1->position(s1) - elem2->position(s2)).norm() << std::endl;
+    }
+
+    
+
+
+}   
+
 template class RodElement<1>;
 template class RodElement<2>;
+
+template void closestPointsBetweenRodElements<1,1>(
+    const RodElement<1>*, const RodElement<1>*);
+
+template void closestPointsBetweenRodElements<1,2>(
+    const RodElement<1>*, const RodElement<2>*);
+
+template void closestPointsBetweenRodElements<2,1>(
+    const RodElement<2>*, const RodElement<1>*);
+
+template void closestPointsBetweenRodElements<2,2>(
+    const RodElement<2>*, const RodElement<2>*);
 
 } // namespace SimObject

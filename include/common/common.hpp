@@ -32,6 +32,7 @@ using Vec4r = Eigen::Vector<Real, 4>;
 using Vec6r = Eigen::Vector<Real, 6>;
 using VecXr = Eigen::Vector<Real, -1>;
 
+using Mat2r = Eigen::Matrix<Real, 2, 2>;
 using Mat3r = Eigen::Matrix<Real, 3, 3>;
 using Mat4r = Eigen::Matrix<Real, 4, 4>;
 using Mat6r = Eigen::Matrix<Real, 6, 6>;
