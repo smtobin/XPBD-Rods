@@ -273,7 +273,7 @@ void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1,
         Real s1 = seed.first;
         Real s2 = seed.second;
 
-        int num_iters = 10;
+        int num_iters = 5;
         // Newton's method
         // for (int iter = 0; iter < num_iters; iter++)
         // {
@@ -312,7 +312,7 @@ void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1,
         //     s2 = std::clamp(s2 + ds[1], 0.0, 1.0);
         // }
 
-        /** TODO: try Gauss-Newton
+        /** Gauss-Newton
          * 
          * f(x) = ||r(x)||^2
          * 
@@ -320,34 +320,65 @@ void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1,
          * 
          * where J is the jacobian of r, the residual vector (p1 - p2)
          */
-
-        // coordinate descent
+        Real damping = 0.5;
         for (int iter = 0; iter < num_iters; iter++)
         {
-            // solve for s1 with s2 fixed
             Vec3r p1 = elem1->position(s1);
             Vec3r dp1 = elem1->dposition_dshat(s1);
-            Vec3r d2p1 = elem1->d2position_dshat2(s1);
-
             Vec3r p2 = elem2->position(s2);
-
-            Real g1 = (p1 - p2).dot(dp1);
-            Real dg1 = dp1.dot(dp1) + (p1 - p2).dot(d2p1);
-            if (std::abs(dg1) > 1e-12)
-                s1 = std::clamp(s1 - g1/dg1, Real(0.0), Real(1.0));
-
-            // solve for s2 with s1 fixed
-            p1 = elem1->position(s1);
             Vec3r dp2 = elem2->dposition_dshat(s2);
-            Vec3r d2p2 = elem2->d2position_dshat2(s2);
+            Eigen::Matrix<Real, 3, 2> J;
+            J.col(0) = dp1;
+            J.col(1) = -dp2;
 
-            Real g2 = (p1 - p2).dot(dp2);
-            Real dg2 = -dp2.dot(dp2) + (p1 - p2).dot(d2p2);
-            if (std::abs(dg2) > 1e-12)
-                s2 = std::clamp(s2 - g2/dg2, Real(0.0), Real(1.0));
+            Vec2r res = -J.transpose() * (p1 - p2);
+
+
+            Mat2r JTJ = J.transpose()*J;
+            Real det = JTJ(0,0)*JTJ(1,1) - JTJ(0,1)*JTJ(1,0);
+
+            if (std::abs(det) < 1e-12)
+                break;
+            
+            Vec2r ds = Vec2r(
+                JTJ(1,1)*res(0) - JTJ(0,1)*res(1),
+                -JTJ(1,0)*res(0) + JTJ(0,0)*res(1)
+            ) / det;
+
+            s1 = std::clamp(s1 + damping*ds[0], 0.0, 1.0);
+            s2 = std::clamp(s2 + damping*ds[1], 0.0, 1.0);
 
             std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
+
         }
+
+        // coordinate descent
+        // for (int iter = 0; iter < num_iters; iter++)
+        // {
+        //     // solve for s1 with s2 fixed
+        //     Vec3r p1 = elem1->position(s1);
+        //     Vec3r dp1 = elem1->dposition_dshat(s1);
+        //     Vec3r d2p1 = elem1->d2position_dshat2(s1);
+
+        //     Vec3r p2 = elem2->position(s2);
+
+        //     Real g1 = (p1 - p2).dot(dp1);
+        //     Real dg1 = dp1.dot(dp1) + (p1 - p2).dot(d2p1);
+        //     if (std::abs(dg1) > 1e-12)
+        //         s1 = std::clamp(s1 - g1/dg1, Real(0.0), Real(1.0));
+
+        //     // solve for s2 with s1 fixed
+        //     p1 = elem1->position(s1);
+        //     Vec3r dp2 = elem2->dposition_dshat(s2);
+        //     Vec3r d2p2 = elem2->d2position_dshat2(s2);
+
+        //     Real g2 = (p1 - p2).dot(dp2);
+        //     Real dg2 = -dp2.dot(dp2) + (p1 - p2).dot(d2p2);
+        //     if (std::abs(dg2) > 1e-12)
+        //         s2 = std::clamp(s2 - g2/dg2, Real(0.0), Real(1.0));
+
+        //     std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
+        // }
 
         std::cout << "\nFinal s1 and s2: " << s1 << ", " << s2 << std::endl;
         std::cout << "Distance: " << (elem1->position(s1) - elem2->position(s2)).norm() << std::endl;

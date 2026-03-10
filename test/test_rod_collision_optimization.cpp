@@ -62,8 +62,8 @@ int main()
     SimObject::OrientedParticle p5; p5.position = Vec3r(0.2,0.5,0.2);
     SimObject::OrientedParticle p6; p6.position = Vec3r(0.1,0.2,0.3);
 
-    std::array<SimObject::OrientedParticle*, 3> elem1_nodes = {&p1, &p2, &p3};
-    std::array<SimObject::OrientedParticle*, 3> elem2_nodes = {&p4, &p5, &p6};
+    std::array<SimObject::OrientedParticle*, 3> elem1_nodes = {&p1, &p3, &p2};
+    std::array<SimObject::OrientedParticle*, 3> elem2_nodes = {&p4, &p6, &p5};
 
     SimObject::RodElement<2> elem1(elem1_nodes, 0.5);
     SimObject::RodElement<2> elem2(elem2_nodes, 0.5);
