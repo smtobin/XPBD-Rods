@@ -22,7 +22,7 @@ Real d2quadraticN3(Real /* s_hat */) { return 4; }
 
 template<int Order>
 RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
-    : _nodes(nodes_list), _bases{}, _bases_derivatives{}, _rest_length(rest_length)
+    : RodElement_Base(rest_length), _nodes(nodes_list), _bases{}, _bases_derivatives{}
 {
     // get pointers to basis functions and their derivatives, according to element order
     if constexpr (Order == 1)
@@ -247,22 +247,23 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
 }
 
  /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
-template <int Order1, int Order2>
-void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1, const SimObject::RodElement<Order2>* elem2)
+void closestPointsBetweenRodElements(const SimObject::RodElement_Base* elem1, const SimObject::RodElement_Base* elem2)
 {
     // get initial estimates based on linear approximation
-    std::array<std::pair<Real, Real>, Order1*Order2> seeds;
-    for (int i = 0; i < Order1; i++)
+    int order1 = elem1->order();
+    int order2 = elem2->order();
+    std::vector<std::pair<Real, Real>> seeds(order1*order2);
+    for (int i = 0; i < order1; i++)
     {
-        for (int j = 0; j < Order2; j++)
+        for (int j = 0; j < order2; j++)
         {
             auto [s1_loc, s2_loc] = Math::findClosestPointsOnLineSegments(
-                elem1->nodes()[i]->position, elem1->nodes()[i+1]->position, elem2->nodes()[j]->position, elem2->nodes()[j+1]->position
+                elem1->node(i)->position, elem1->node(i+1)->position, elem2->node(j)->position, elem2->node(j+1)->position
             );
-            Real s1 = s1_loc / Order1 + Real(i) / Order1;
-            Real s2 = s2_loc / Order2 + Real(j) / Order2;
+            Real s1 = s1_loc / order1 + Real(i) / order1;
+            Real s2 = s2_loc / order2 + Real(j) / order2;
 
-            seeds[i*Order1 + j] = std::make_pair(s1, s2);
+            seeds[i*order1 + j] = std::make_pair(s1, s2);
 
             std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
         }
@@ -391,17 +392,5 @@ void closestPointsBetweenRodElements(const SimObject::RodElement<Order1>* elem1,
 
 template class RodElement<1>;
 template class RodElement<2>;
-
-template void closestPointsBetweenRodElements<1,1>(
-    const RodElement<1>*, const RodElement<1>*);
-
-template void closestPointsBetweenRodElements<1,2>(
-    const RodElement<1>*, const RodElement<2>*);
-
-template void closestPointsBetweenRodElements<2,1>(
-    const RodElement<2>*, const RodElement<1>*);
-
-template void closestPointsBetweenRodElements<2,2>(
-    const RodElement<2>*, const RodElement<2>*);
 
 } // namespace SimObject
