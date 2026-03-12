@@ -67,6 +67,7 @@ class RodElement : public RodElement_Base
 public:
     using NodeArrayType = std::array<SimObject::OrientedParticle*, Order+1>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(Order+1)>;
+    using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(Order+1)>;
 
     RodElement(const NodeArrayType& nodes_list, Real rest_length);
 
@@ -82,6 +83,9 @@ public:
     virtual Vec3r position(Real s_hat) const override;
     virtual Mat3r orientation(Real s_hat) const override;
 
+    Vec3r previousPosition(Real s_hat) const;
+    Mat3r previousOrientation(Real s_hat) const;
+
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const override;
 
@@ -96,6 +100,12 @@ public:
 
     Vec6r strain(Real s_hat) const;
     StrainGradientMatType strainGradient(Real s_hat) const;
+
+    Vec3r contactPoint(Real s_hat, const Vec3r& cp_local) const;
+    ContactPointGradientMatType contactPointGradient(Real s_hat, const Vec3r& cp_local) const;
+    Vec3r previousContactPoint(Real s_hat, const Vec3r& cp_local) const;
+    Vec3r contactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
+
 
 private:
     NodeArrayType _nodes;

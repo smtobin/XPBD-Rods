@@ -1,34 +1,36 @@
 #include "constraint/RodRodCollisionConstraint.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 
+#include "common/ArrayConcatenate.hpp"
+
 namespace Constraint
 {
 
-RodRodCollisionConstraint::RodRodCollisionConstraint(
-    SimObject::OrientedParticle* segment1_particle1, SimObject::OrientedParticle* segment1_particle2,
-    Real beta1, Vec3r cp_local1,
-    SimObject::OrientedParticle* segment2_particle1, SimObject::OrientedParticle* segment2_particle2,
-    Real beta2, Vec3r cp_local2,
-    const Vec3r& n, Real mu_s, Real mu_d
+template <int Order1, int Order2>
+RodRodCollisionConstraint<Order1, Order2>::RodRodCollisionConstraint(
+    SimObject::RodElement<Order1>* element1,
+    Real s_hat1, Vec3r cp_local1,
+    SimObject::RodElement<Order2>* element2,
+    Real s_hat2, Vec3r cp_local2,
+    const Vec3r& n,
+    Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 4>({segment1_particle1, segment1_particle2, segment2_particle1, segment2_particle2},
+    : XPBDConstraint<1, Order1+1 + Order2+1>(concat_arrays(element1->nodes(), element2->nodes()),
      1e-10*AlphaVecType::Ones()),
-    _beta1(beta1), _beta2(beta2),
+    _s_hat1(s_hat1), _s_hat2(s_hat2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
-RodRodCollisionConstraint::ConstraintVecType RodRodCollisionConstraint::evaluate() const
+template <int Order1, int Order2>
+typename RodRodCollisionConstraint<Order1, Order2>::ConstraintVecType
+RodRodCollisionConstraint<Order1, Order2>::evaluate() const
 {
     // contact point on rod 1
-    const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
-    const Mat3r R_local1 = Math::Plus_SO3(_particles[0]->orientation, _beta1*R_diff1);
-    const Vec3r cp_rod1 = (1-_beta1)*_particles[0]->position + _beta1*_particles[1]->position + R_local1*_cp_local1;
+    Vec3r cp_rod1 = _element1->contactPoint(_s_hat1, _cp_local1);
 
     // contact point on rod 2
-    const Vec3r R_diff2 = Math::Minus_SO3(_particles[3]->orientation, _particles[2]->orientation);
-    const Mat3r R_local2 = Math::Plus_SO3(_particles[2]->orientation, _beta2*R_diff2);
-    const Vec3r cp_rod2 = (1-_beta2)*_particles[2]->position + _beta2*_particles[3]->position + R_local2*_cp_local2;
+    Vec3r cp_rod2 = _element2->contactPoint(_s_hat2, _cp_local2);
 
     ConstraintVecType C;
     C[0] = (cp_rod2 - cp_rod1).dot(_n);
@@ -36,81 +38,40 @@ RodRodCollisionConstraint::ConstraintVecType RodRodCollisionConstraint::evaluate
     return 0.1*C;
 }
 
-RodRodCollisionConstraint::GradientMatType RodRodCollisionConstraint::gradient(bool /*update_cache*/) const
+template <int Order1, int Order2>
+typename RodRodCollisionConstraint<Order1, Order2>::GradientMatType
+RodRodCollisionConstraint<Order1, Order2>::gradient(bool /*update_cache*/) const
 {
-    // gradients w.r.t. positions of rod 1
-    Vec3r dC_dp1 = -(1-_beta1)*_n;
-    Vec3r dC_dp2 = -_beta1*_n;
-
-    // gradients w.r.t. orientations of rod 1
-    const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
-    const Mat3r exp_Rdiff1 = Math::Exp_so3(_beta1*R_diff1);
-    const Mat3r gam1 = Math::ExpMap_RightJacobian(_beta1*R_diff1);
-    const Mat3r inv_gam1 = Math::ExpMap_InvRightJacobian(R_diff1);
-    const Mat3r beta_gam_inv_gam1 = _beta1 * gam1 * inv_gam1;
-    const Mat3r R_local_skew_cp1 = _particles[0]->orientation * exp_Rdiff1 * Math::Skew3(_cp_local1);
-
-    const Vec3r dC_dR1 = _n.transpose() * R_local_skew_cp1 * (exp_Rdiff1 - beta_gam_inv_gam1);
-    const Vec3r dC_dR2 = _n.transpose() * R_local_skew_cp1 * beta_gam_inv_gam1;
-
-    // gradients w.r.t. positions of rod 2
-    Vec3r dC_dp3 = (1-_beta2)*_n;
-    Vec3r dC_dp4 = (_beta2)*_n;
-
-    // gradients w.r.t. orientations of rod 1
-    const Vec3r R_diff2 = Math::Minus_SO3(_particles[3]->orientation, _particles[2]->orientation);
-    const Mat3r exp_Rdiff2 = Math::Exp_so3(_beta2*R_diff2);
-    const Mat3r gam2 = Math::ExpMap_RightJacobian(_beta2*R_diff2);
-    const Mat3r inv_gam2 = Math::ExpMap_InvRightJacobian(R_diff2);
-    const Mat3r beta_gam_inv_gam2 = _beta2 * gam2 * inv_gam2;
-    const Mat3r R_local_skew_cp2 = _particles[2]->orientation * exp_Rdiff2 * Math::Skew3(_cp_local2);
-
-    const Vec3r dC_dR3 = -_n.transpose() * R_local_skew_cp2 * (exp_Rdiff2 - beta_gam_inv_gam2);
-    const Vec3r dC_dR4 = -_n.transpose() * R_local_skew_cp2 * beta_gam_inv_gam2;
-
     GradientMatType grad;
-    grad.block<1,3>(0,0) = dC_dp1;
-    grad.block<1,3>(0,3) = dC_dR1;
-    grad.block<1,3>(0,6) = dC_dp2;
-    grad.block<1,3>(0,9) = dC_dR2;
-    grad.block<1,3>(0,12) = dC_dp3;
-    grad.block<1,3>(0,15) = dC_dR3;
-    grad.block<1,3>(0,18) = dC_dp4;
-    grad.block<1,3>(0,21) = dC_dR4;
-
+    grad.template block<1, 6*(Order1+1)>(0,0) = -_n.transpose() * _element1->contactPointGradient(_s_hat1, _cp_local1);
+    grad.template block<1, 6*(Order2+1)>(0,6*(Order1+1)) = _n.transpose() * _element2->contactPointGradient(_s_hat2, _cp_local2);
     return grad;
 }
 
-RodRodCollisionConstraint::SingleParticleGradientMatType RodRodCollisionConstraint::singleParticleGradient(const SimObject::OrientedParticle* /*node_ptr*/, bool /*use_cache*/) const
+template <int Order1, int Order2>
+typename RodRodCollisionConstraint<Order1, Order2>::SingleParticleGradientMatType
+RodRodCollisionConstraint<Order1, Order2>::singleParticleGradient(const SimObject::OrientedParticle* /*node_ptr*/, bool /*use_cache*/) const
 {
     throw std::runtime_error("singleParticleGradient not implemented for RodRodCollisionConstraint");
     return SingleParticleGradientMatType::Zero();
 }
 
-void RodRodCollisionConstraint::applyFriction(Real lambda_n) const
+template <int Order1, int Order2>
+void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) const
 {
     // return;
     // contact point on rod 1
-    const Vec3r R_diff1 = Math::Minus_SO3(_particles[1]->orientation, _particles[0]->orientation);
-    const Mat3r exp_Rdiff1 = Math::Exp_so3(_beta1*R_diff1);
-    const Mat3r R_local1 = _particles[0]->orientation * exp_Rdiff1;
-    const Vec3r cp1 = (1-_beta1)*_particles[0]->position + _beta1*_particles[1]->position + R_local1*_cp_local1;
+    Vec3r cp1 = _element1->contactPoint(_s_hat1, _cp_local1);
 
     // contact point on rod 2
-    const Vec3r R_diff2 = Math::Minus_SO3(_particles[3]->orientation, _particles[2]->orientation);
-    const Mat3r exp_Rdiff2 = Math::Exp_so3(_beta2*R_diff2);
-    const Mat3r R_local2 = _particles[2]->orientation * exp_Rdiff2;
-    const Vec3r cp2 = (1-_beta2)*_particles[2]->position + _beta2*_particles[3]->position + R_local2*_cp_local2;
+    Vec3r cp2 = _element2->contactPoint(_s_hat2, _cp_local2);
 
 
     // previous location of contact point on rigid body 1
-    const Vec3r R_diff_prev1 = Math::Minus_SO3(_particles[1]->prev_orientation, _particles[0]->prev_orientation);
-    const Mat3r R_local_prev1 = Math::Plus_SO3(_particles[0]->prev_orientation, _beta1*R_diff_prev1);
-    const Vec3r prev_cp1 = (1-_beta1)*_particles[0]->prev_position + _beta1*_particles[1]->prev_position + R_local_prev1*_cp_local1;
+    Vec3r prev_cp1 = _element1->previousContactPoint(_s_hat1, _cp_local1);
+
     // previous location of contact point on rigid body 2
-    const Vec3r R_diff_prev2 = Math::Minus_SO3(_particles[3]->prev_orientation, _particles[2]->prev_orientation);
-    const Mat3r R_local_prev2 = Math::Plus_SO3(_particles[2]->prev_orientation, _beta2*R_diff_prev2);
-    const Vec3r prev_cp2 = (1-_beta2)*_particles[2]->prev_position + _beta2*_particles[3]->prev_position + R_local_prev2*_cp_local2;
+    Vec3r prev_cp2 = _element2->previousContactPoint(_s_hat2, _cp_local2);
 
     // get tangent direction (direction of relative motion, with normal component removed)
     Vec3r dp_rel = (cp2 - prev_cp2) - (cp1 - prev_cp1);
@@ -125,47 +86,9 @@ void RodRodCollisionConstraint::applyFriction(Real lambda_n) const
     Real C = dp_tan.norm();
 
 
-    Vec3r dC_dp1 = -(1-_beta1)*tan_dir;
-    Vec3r dC_dp2 = -_beta1*tan_dir;
-
-    // gradients w.r.t. orientations of rod 1
-    const Mat3r gam1 = Math::ExpMap_RightJacobian(_beta1*R_diff1);
-    const Mat3r inv_gam1 = Math::ExpMap_InvRightJacobian(R_diff1);
-    const Mat3r beta_gam_inv_gam1 = _beta1 * gam1 * inv_gam1;
-    const Mat3r R_local_skew_cp1 = _particles[0]->orientation * exp_Rdiff1 * Math::Skew3(_cp_local1);
-
-    const Mat3r dRcp_dR1 = R_local_skew_cp1 * (exp_Rdiff1 - beta_gam_inv_gam1);
-    const Mat3r dRcp_dR2 = R_local_skew_cp1 * beta_gam_inv_gam1;
-
-    const Vec3r dC_dR1 = tan_dir.transpose() * dRcp_dR1;
-    const Vec3r dC_dR2 = tan_dir.transpose() * dRcp_dR2;
-
-    // gradients w.r.t. positions of rod 2
-    Vec3r dC_dp3 = (1-_beta2)*tan_dir;
-    Vec3r dC_dp4 = (_beta2)*tan_dir;
-
-    // gradients w.r.t. orientations of rod 1
-    const Mat3r gam2 = Math::ExpMap_RightJacobian(_beta2*R_diff2);
-    const Mat3r inv_gam2 = Math::ExpMap_InvRightJacobian(R_diff2);
-    const Mat3r beta_gam_inv_gam2 = _beta2 * gam2 * inv_gam2;
-    const Mat3r R_local_skew_cp2 = _particles[2]->orientation * exp_Rdiff2 * Math::Skew3(_cp_local2);
-
-    const Mat3r dRcp_dR3 = R_local_skew_cp2 * (exp_Rdiff2 - beta_gam_inv_gam2);
-    const Mat3r dRcp_dR4 = R_local_skew_cp2 * beta_gam_inv_gam2;
-
-    const Vec3r dC_dR3 = -tan_dir.transpose() * dRcp_dR3;
-    const Vec3r dC_dR4 = -tan_dir.transpose() * dRcp_dR4;
-
-    // compute lambda as if we are undoing the entire movement in the tangent direction
     GradientMatType delC;
-    delC.block<1,3>(0,0) = dC_dp1;
-    delC.block<1,3>(0,3) = dC_dR1;
-    delC.block<1,3>(0,6) = dC_dp2;
-    delC.block<1,3>(0,9) = dC_dR2;
-    delC.block<1,3>(0,12) = dC_dp3;
-    delC.block<1,3>(0,15) = dC_dR3;
-    delC.block<1,3>(0,18) = dC_dp4;
-    delC.block<1,3>(0,21) = dC_dR4;
+    delC.template block<1, 6*(Order1+1)>(0,0) = -tan_dir.transpose() * _element1->contactPointGradient(_s_hat1, _cp_local1);
+    delC.template block<1, 6*(Order2+1)>(0,6*(Order1+1)) = tan_dir.transpose() * _element2->contactPointGradient(_s_hat2, _cp_local2);
 
     // std::cout << std::endl;
     // std::cout << "  p1: " << _particles[0]->position.transpose() << std::endl;
@@ -195,8 +118,8 @@ void RodRodCollisionConstraint::applyFriction(Real lambda_n) const
     
 
     // get last relative velocity between contact points, in the tangential direction
-    Vec3r v_cp1 = (1-_beta1)*_particles[0]->lin_velocity + _beta1*_particles[1]->lin_velocity + dRcp_dR1*_particles[0]->ang_velocity + dRcp_dR2*_particles[1]->ang_velocity;
-    Vec3r v_cp2 = (1-_beta2)*_particles[2]->lin_velocity + _beta2*_particles[3]->lin_velocity + dRcp_dR3*_particles[2]->ang_velocity + dRcp_dR4*_particles[3]->ang_velocity;
+    Vec3r v_cp1 = _element1->contactPointVelocity(_s_hat1, _cp_local1);
+    Vec3r v_cp2 = _element2->contactPointVelocity(_s_hat2, _cp_local2);
     Vec3r v_rel = v_cp1 - v_cp2;
     Vec3r v_rel_tan = v_rel - (v_rel.dot(_n))*_n;
 
