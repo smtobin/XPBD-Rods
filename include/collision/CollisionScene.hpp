@@ -44,12 +44,6 @@ public:
         _spatial_hasher.addObject(obj);
     }
 
-    template <int Order>
-    void addObject(SimObject::XPBDRod_<Order>* rod)
-    {
-        // do nothing for now
-    }
-
     void addObject(SimObject::XPBDPlane* plane)
     {
         // don't add planes to the spatial hasher
@@ -72,16 +66,16 @@ private:
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane1, SimObject::XPBDPlane* plane2);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box);
-    static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRodSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::RodCollisionSegment* segment);
 
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere1, SimObject::XPBDRigidSphere* sphere2);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRigidBox* box);
-    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::RodCollisionSegment* segment);
 
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box1, SimObject::XPBDRigidBox* box2);
-    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRodSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::RodCollisionSegment* segment);
     
-    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRodSegment* segment1, SimObject::XPBDRodSegment* segment2);
+    static void _checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2);
 
     static void _initCollisionTable();
 

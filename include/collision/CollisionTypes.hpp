@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 #include "simobject/OrientedParticle.hpp"
-#include "simobject/rod/XPBDRodSegment.hpp"
+#include "simobject/rod/RodCollisionSegment.hpp"
 
 #include <variant>
 
@@ -34,17 +34,17 @@ struct RigidSegmentCollision
 
 struct SegmentSegmentCollision
 {
-    SimObject::XPBDRod* rod1;   // one rod in collision
-    SimObject::OrientedParticle* segment1_particle1; // one endpoint of rod segment 1
-    SimObject::OrientedParticle* segment1_particle2; // other endpoint of rod segment 1
-    Real beta1; // interpolation parameter in [0,1] for 1st segment
+    SimObject::RodElement_Base* element1; // element on rod 1
+    Real s_hat1; // interpolation parameter in [0,1] for 1st segment
     Vec3r cp_local1; // contact point in the interpolated coordinate frame
-    SimObject::XPBDRod* rod2;   // the other rod in collision
-    SimObject::OrientedParticle* segment2_particle1; // one endpoint of rod segment 2
-    SimObject::OrientedParticle* segment2_particle2; // other endpoint of rod segment 2
-    Real beta2; // interpolation parameter in [0,1] 
+    SimObject::RodElement_Base* element2; // element on rod 2
+    Real s_hat2; // interpolation parameter in [0,1] 
     Vec3r cp_local2; // contact point in the interpolated coordinate frame
     Vec3r normal;   //collision normal (points outward from segment)
+    Real mu_s1;
+    Real mu_d1;
+    Real mu_s2;
+    Real mu_d2;
 };
 
 using DetectedCollision = std::variant<RigidRigidCollision, RigidSegmentCollision, SegmentSegmentCollision>;

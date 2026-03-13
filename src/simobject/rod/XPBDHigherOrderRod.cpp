@@ -112,6 +112,35 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         _node_inverse_inertias[i] = Vec6r(1.0/_nodes[i].mass, 1.0/_nodes[i].mass, 1.0/_nodes[i].mass, 1.0/_nodes[i].Ib[0], 1.0/_nodes[i].Ib[1], 1.0/_nodes[i].Ib[2]);
     }
 
+    /** Create collision segments */
+    // divide the rod up into collision segments that are at least as long as the diameter of the rod
+    // this prevents segments from within the rod fighting with each other in collision detection
+    // and makes collision detection a lot faster if we downsample
+    int num_segments_per_dia = static_cast<int>(2*_radius / _element_rest_length) + 1;    // round up
+    int remainder = (_num_nodes - 1) % num_segments_per_dia;
+    int num_collision_segments = (_num_nodes - 1) / num_segments_per_dia;
+    _collision_segments.reserve(num_collision_segments);
+
+    int cur_index = 0;
+    for (int i = 0; i < num_collision_segments; i++)
+    {
+        int size = num_segments_per_dia;
+        if (remainder > 0)
+        {
+            size++;
+            remainder--;
+        }
+
+        std::vector<RodElement_Base*> seg_elements;
+        for (int k = 0; k < size; k++)
+        {
+            seg_elements.push_back(&_elements[cur_index + k]);
+        }
+
+        _collision_segments.emplace_back(seg_elements, _radius, _mu_s, _mu_d);
+        cur_index += size;
+    }
+
 }
 
 template <int Order>

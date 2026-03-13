@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)                       # specify C++ standard
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-ftime-trace)
     message(STATUS "Added -ftime-trace flag")

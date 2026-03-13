@@ -69,7 +69,7 @@ namespace SimObject
     template<int Order>
     class XPBDRod_;
 
-    class XPBDRodSegment;
+    class RodCollisionSegment;
     class XPBDRigidSphere;
     class XPBDRigidBox;
     class XPBDPlane;
@@ -171,7 +171,10 @@ using XPBDCollisionConstraints_TypeList = TypeList<
     Constraint::OneSidedRigidBodyCollisionConstraint,
     Constraint::RodRigidBodyCollisionConstraint,
     Constraint::OneSidedRodRigidBodyCollisionConstraint,
-    Constraint::RodRodCollisionConstraint<1,1>
+    Constraint::RodRodCollisionConstraint<1,1>,
+    Constraint::RodRodCollisionConstraint<1,2>,
+    Constraint::RodRodCollisionConstraint<2,1>,
+    Constraint::RodRodCollisionConstraint<2,2>
 >;
 
 using XPBDConstraints_TypeList = ConcatenateTypeLists<

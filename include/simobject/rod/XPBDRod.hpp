@@ -6,7 +6,7 @@
 #include "config/RodConfig.hpp"
 #include "simobject/XPBDObject_Base.hpp"
 #include "simobject/rod/CrossSection.hpp"
-#include "simobject/rod/XPBDRodSegment.hpp"
+#include "simobject/rod/RodCollisionSegment.hpp"
 #include "simobject/OrientedParticle.hpp"
 #include "solver/BlockThomasSolver.hpp"
 #include "solver/BlockBandedSolver.hpp"
@@ -88,32 +88,32 @@ class XPBDRod : public XPBDObject_Base
         // divide the rod up into collision segments that are at least as long as the diameter of the rod
         // this prevents segments from within the rod fighting with each other in collision detection
         // and makes collision detection a lot faster if we downsample
-        Real segment_length = _length / (_num_nodes-1);
-        int num_segments_per_dia = static_cast<int>(2*cross_section.radius() / segment_length) + 1;    // round up
-        int remainder = (_num_nodes - 1) % num_segments_per_dia;
-        int num_collision_segments = (_num_nodes - 1) / num_segments_per_dia;
-        _collision_segments.reserve(num_collision_segments);
+        // Real segment_length = _length / (_num_nodes-1);
+        // int num_segments_per_dia = static_cast<int>(2*cross_section.radius() / segment_length) + 1;    // round up
+        // int remainder = (_num_nodes - 1) % num_segments_per_dia;
+        // int num_collision_segments = (_num_nodes - 1) / num_segments_per_dia;
+        // _collision_segments.reserve(num_collision_segments);
 
-        int cur_index = 0;
-        for (int i = 0; i < num_collision_segments; i++)
-        {
-            int size = num_segments_per_dia;
-            if (remainder > 0)
-            {
-                size++;
-                remainder--;
-            }
+        // int cur_index = 0;
+        // for (int i = 0; i < num_collision_segments; i++)
+        // {
+        //     int size = num_segments_per_dia;
+        //     if (remainder > 0)
+        //     {
+        //         size++;
+        //         remainder--;
+        //     }
 
-            _collision_segments.emplace_back(this, cur_index, cur_index + size);
-            cur_index += size;
-        }
+        //     _collision_segments.emplace_back(this, cur_index, cur_index + size);
+        //     cur_index += size;
+        // }
     }
 
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
-    const std::vector<XPBDRodSegment>& collisionSegments() const { return _collision_segments; }
-    std::vector<XPBDRodSegment>& collisionSegments() { return _collision_segments; }
+    const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
+    std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
 
     /** Required override of XPBDObject_Base */
     virtual std::vector<const OrientedParticle*> particles() const override;
@@ -293,7 +293,7 @@ class XPBDRod : public XPBDObject_Base
     VecXr _dx;
 
     /** Stores the individual rod segments (useful for collision detection). */
-    std::vector<XPBDRodSegment> _collision_segments;
+    std::vector<RodCollisionSegment> _collision_segments;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

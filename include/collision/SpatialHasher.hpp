@@ -25,7 +25,18 @@ public:
     }
 
     /** Specific overload for rods - create a collision object for each rod segment. */
-    void addObject(SimObject::XPBDRod* rod);
+    template <int Order>
+    void addObject(SimObject::XPBDRod_<Order>* rod)
+    {
+        // create a collision object for each rod segment
+        std::vector<SimObject::RodCollisionSegment>& rod_segments = rod->collisionSegments();
+        for (auto& segment : rod_segments)
+        {
+            _collision_objects.emplace_back(&segment);
+        }
+    }
+
+    void addObject(SimObject::XPBDRod* rod) {}
 
     void hashObjects();
 

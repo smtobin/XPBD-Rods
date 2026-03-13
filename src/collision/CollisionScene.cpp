@@ -3,7 +3,7 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDPlane.hpp"
-#include "simobject/rod/XPBDRodSegment.hpp"
+#include "simobject/rod/RodCollisionSegment.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 
 #include "collision/sdf/SDF.hpp"
@@ -41,7 +41,7 @@ void CollisionScene::_initCollisionTable()
     };
 
     _collision_table[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
     // first type is a box
@@ -54,20 +54,20 @@ void CollisionScene::_initCollisionTable()
     };
 
     _collision_table[static_cast<int>(ColliderType::Box)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
     // first type is a rod segment
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Sphere)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::XPBDRodSegment*>(a));     // switched
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::RodCollisionSegment*>(a));     // switched
     };
 
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Box)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(b), static_cast<SimObject::XPBDRodSegment*>(a));     // switched
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(b), static_cast<SimObject::RodCollisionSegment*>(a));     // switched
     };
 
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRodSegment*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::RodCollisionSegment*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
     // first type is a plane
@@ -80,7 +80,7 @@ void CollisionScene::_initCollisionTable()
     };
 
     _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
-        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDRodSegment*>(b));
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
     _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Plane)] = [](CollisionScene* scene, void* a, void* b) {
@@ -196,46 +196,46 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
 
 }
 
-void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRodSegment* segment)
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::RodCollisionSegment* segment)
 {
     if (scene->_checkJoint(&plane->com(), segment->particle1()) || scene->_checkJoint(&plane->com(), segment->particle2()))
         return;
 
-    const Vec3r& p1 = segment->particle1()->position;
-    const Vec3r& p2 = segment->particle2()->position;
-    Vec3r cp_p1 = p1 - segment->radius() * plane->normal();
-    Vec3r cp_p2 = p2 - segment->radius() * plane->normal();
+    // const Vec3r& p1 = segment->particle1()->position;
+    // const Vec3r& p2 = segment->particle2()->position;
+    // Vec3r cp_p1 = p1 - segment->radius() * plane->normal();
+    // Vec3r cp_p2 = p2 - segment->radius() * plane->normal();
 
-    Vec3r diff1 = cp_p1 - plane->com().position;
-    Vec3r diff2 = cp_p2 - plane->com().position;
+    // Vec3r diff1 = cp_p1 - plane->com().position;
+    // Vec3r diff2 = cp_p2 - plane->com().position;
 
-    if (diff1.dot(plane->normal()) <= COLLISION_TOL || diff2.dot(plane->normal()) <= COLLISION_TOL)
-    {
-        for (int ind = segment->index1(); ind < segment->index2(); ind++)
-        {
-            Collision::RigidSegmentCollision new_collision;
-            new_collision.beta = 0; // always create the constraint at the center of the segment for stability
-            new_collision.cp_local_rod = segment->particle1()->orientation.transpose() * (cp_p1 - segment->particle1()->position);
-            new_collision.normal = -plane->normal();
-            new_collision.rb = plane;
-            new_collision.cp_local_rb = Vec3r::Zero();
-            new_collision.rod = segment->rod();
-            new_collision.segment_particle1 = &segment->rod()->nodes()[ind];
-            new_collision.segment_particle2 = &segment->rod()->nodes()[ind+1];
+    // if (diff1.dot(plane->normal()) <= COLLISION_TOL || diff2.dot(plane->normal()) <= COLLISION_TOL)
+    // {
+    //     for (int ind = segment->index1(); ind < segment->index2(); ind++)
+    //     {
+    //         Collision::RigidSegmentCollision new_collision;
+    //         new_collision.beta = 0; // always create the constraint at the center of the segment for stability
+    //         new_collision.cp_local_rod = segment->particle1()->orientation.transpose() * (cp_p1 - segment->particle1()->position);
+    //         new_collision.normal = -plane->normal();
+    //         new_collision.rb = plane;
+    //         new_collision.cp_local_rb = Vec3r::Zero();
+    //         new_collision.rod = segment->rod();
+    //         new_collision.segment_particle1 = &segment->rod()->nodes()[ind];
+    //         new_collision.segment_particle2 = &segment->rod()->nodes()[ind+1];
 
-            if (ind == segment->index2()-1)
-            {
-                // std::cout << " Creating collision constraint at rod node " << ind+1 << std::endl;
-                Collision::RigidSegmentCollision new_collision2 = new_collision;
-                new_collision.beta = 1;
-                new_collision.cp_local_rod = segment->particle2()->orientation.transpose() * (cp_p2 - segment->particle2()->position);
-                scene->_new_collisions.push_back(std::move(new_collision2));
-            }
-            scene->_new_collisions.push_back(std::move(new_collision));
+    //         if (ind == segment->index2()-1)
+    //         {
+    //             // std::cout << " Creating collision constraint at rod node " << ind+1 << std::endl;
+    //             Collision::RigidSegmentCollision new_collision2 = new_collision;
+    //             new_collision.beta = 1;
+    //             new_collision.cp_local_rod = segment->particle2()->orientation.transpose() * (cp_p2 - segment->particle2()->position);
+    //             scene->_new_collisions.push_back(std::move(new_collision2));
+    //         }
+    //         scene->_new_collisions.push_back(std::move(new_collision));
 
             
-        }
-    }
+    //     }
+    // }
 
 }
 
@@ -359,66 +359,66 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     }
 }
 
-void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRodSegment* segment)
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::RodCollisionSegment* segment)
 {
     if (scene->_checkJoint(&sphere->com(), segment->particle1()) || scene->_checkJoint(&sphere->com(), segment->particle2()))
         return;
 
-    // project the sphere center onto the line segment, and clamp between [0,1]
-    const Vec3r& sphere_center = sphere->com().position;
-    const Vec3r& endpoint1 = segment->particle1()->position;
-    const Vec3r& endpoint2 = segment->particle2()->position;
-    Real t = Math::projectPointOntoLine(sphere_center, endpoint1, endpoint2);
-    t = std::clamp(t, 0.0, 1.0);
+    // // project the sphere center onto the line segment, and clamp between [0,1]
+    // const Vec3r& sphere_center = sphere->com().position;
+    // const Vec3r& endpoint1 = segment->particle1()->position;
+    // const Vec3r& endpoint2 = segment->particle2()->position;
+    // Real t = Math::projectPointOntoLine(sphere_center, endpoint1, endpoint2);
+    // t = std::clamp(t, 0.0, 1.0);
 
-    // get the closest point on the line segment
-    const Vec3r segment_cp = (1-t)*endpoint1 + t*endpoint2;
+    // // get the closest point on the line segment
+    // const Vec3r segment_cp = (1-t)*endpoint1 + t*endpoint2;
 
-    // find the distance
-    const Vec3r diff = sphere_center - segment_cp;
-    Real sq_dist = diff.squaredNorm();
-    Real combined_radius = sphere->radius() + segment->radius() + COLLISION_TOL;
+    // // find the distance
+    // const Vec3r diff = sphere_center - segment_cp;
+    // Real sq_dist = diff.squaredNorm();
+    // Real combined_radius = sphere->radius() + segment->radius() + COLLISION_TOL;
 
-    if (sq_dist < combined_radius*combined_radius)
-    {
-        // Collision!
-        // special case: sphere center is almost on the line segment between the two rod nodes
-        // normal should just be any perpendicular vector to the line
-        Vec3r normal;
-        if (sq_dist < 1e-8)
-        {
-            Vec3r segment_vec = endpoint2 - endpoint1;
-            // get an arbitrary vector thats NOT parallel
-            if (segment_vec[0] < segment_vec[1])
-                normal = segment_vec.cross(Vec3r(1,0,0));
-            else
-                normal = segment_vec.cross(Vec3r(0,1,0));
-        }
-        else
-        {
-            normal = diff / std::sqrt(sq_dist);
-        }
+    // if (sq_dist < combined_radius*combined_radius)
+    // {
+    //     // Collision!
+    //     // special case: sphere center is almost on the line segment between the two rod nodes
+    //     // normal should just be any perpendicular vector to the line
+    //     Vec3r normal;
+    //     if (sq_dist < 1e-8)
+    //     {
+    //         Vec3r segment_vec = endpoint2 - endpoint1;
+    //         // get an arbitrary vector thats NOT parallel
+    //         if (segment_vec[0] < segment_vec[1])
+    //             normal = segment_vec.cross(Vec3r(1,0,0));
+    //         else
+    //             normal = segment_vec.cross(Vec3r(0,1,0));
+    //     }
+    //     else
+    //     {
+    //         normal = diff / std::sqrt(sq_dist);
+    //     }
 
-        const Vec3r cp_rod_surface = segment_cp + normal*segment->radius();
+    //     const Vec3r cp_rod_surface = segment_cp + normal*segment->radius();
 
-        const Vec3r rod_frame_o = segment_cp;
-        const Mat3r rod_frame_R = Math::Plus_SO3(segment->particle1()->orientation, t*Math::Minus_SO3(segment->particle2()->orientation, segment->particle1()->orientation));
+    //     const Vec3r rod_frame_o = segment_cp;
+    //     const Mat3r rod_frame_R = Math::Plus_SO3(segment->particle1()->orientation, t*Math::Minus_SO3(segment->particle2()->orientation, segment->particle1()->orientation));
 
-        const Vec3r cp_local_rod = rod_frame_R.transpose() * (cp_rod_surface - rod_frame_o);
+    //     const Vec3r cp_local_rod = rod_frame_R.transpose() * (cp_rod_surface - rod_frame_o);
 
-        Vec3r sphere_cp_local = -sphere->com().orientation.transpose() * normal*sphere->radius();
+    //     Vec3r sphere_cp_local = -sphere->com().orientation.transpose() * normal*sphere->radius();
 
-        RigidSegmentCollision new_collision;
-        new_collision.beta = t;
-        new_collision.normal = normal;
-        new_collision.cp_local_rod = cp_local_rod;
-        new_collision.rod = segment->rod();
-        new_collision.segment_particle1 = segment->particle1();
-        new_collision.segment_particle2 = segment->particle2();
-        new_collision.rb = sphere;
-        new_collision.cp_local_rb = sphere_cp_local;
-        scene->_new_collisions.push_back(std::move(new_collision));    
-    }
+    //     RigidSegmentCollision new_collision;
+    //     new_collision.beta = t;
+    //     new_collision.normal = normal;
+    //     new_collision.cp_local_rod = cp_local_rod;
+    //     new_collision.rod = segment->rod();
+    //     new_collision.segment_particle1 = segment->particle1();
+    //     new_collision.segment_particle2 = segment->particle2();
+    //     new_collision.rb = sphere;
+    //     new_collision.cp_local_rb = sphere_cp_local;
+    //     scene->_new_collisions.push_back(std::move(new_collision));    
+    // }
     
 
 }
@@ -436,179 +436,164 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 }
 
 
-void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRodSegment* segment)
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::RodCollisionSegment* segment)
 {
     if (scene->_checkJoint(&box->com(), segment->particle1()) || scene->_checkJoint(&box->com(), segment->particle2()))
         return;
 
-    const Vec3r& p1 = segment->particle1()->position;
-    const Vec3r& p2 = segment->particle2()->position;
+    // const Vec3r& p1 = segment->particle1()->position;
+    // const Vec3r& p2 = segment->particle2()->position;
 
-    Real beta = std::clamp(Math::projectPointOntoLine(box->com().position, p1, p2), Real(0.0), Real(1.0));
-    Vec3r cp_segment = (1-beta)*p1 + beta*p2;
-    Vec3r cp_segment_box_local = box->com().orientation.transpose() * (cp_segment - box->com().position);
-    Vec3r cp_box_local = cp_segment_box_local;
-    cp_box_local[0] = std::clamp(cp_box_local[0], -box->size()[0]/2.0, box->size()[0]/2.0);
-    cp_box_local[1] = std::clamp(cp_box_local[1], -box->size()[1]/2.0, box->size()[1]/2.0);
-    cp_box_local[2] = std::clamp(cp_box_local[2], -box->size()[2]/2.0, box->size()[2]/2.0);
+    // Real beta = std::clamp(Math::projectPointOntoLine(box->com().position, p1, p2), Real(0.0), Real(1.0));
+    // Vec3r cp_segment = (1-beta)*p1 + beta*p2;
+    // Vec3r cp_segment_box_local = box->com().orientation.transpose() * (cp_segment - box->com().position);
+    // Vec3r cp_box_local = cp_segment_box_local;
+    // cp_box_local[0] = std::clamp(cp_box_local[0], -box->size()[0]/2.0, box->size()[0]/2.0);
+    // cp_box_local[1] = std::clamp(cp_box_local[1], -box->size()[1]/2.0, box->size()[1]/2.0);
+    // cp_box_local[2] = std::clamp(cp_box_local[2], -box->size()[2]/2.0, box->size()[2]/2.0);
 
-    Vec3r diff_box_local = cp_box_local - cp_segment_box_local;
-    Real dist = diff_box_local.norm();
-    if (dist <= segment->radius() + COLLISION_TOL)
-    {
-        // collision!
-        if (segment->size() == 1)
-        {
-            Vec3r normal;
-            if (dist < 1e-12)
-            {
-                normal = Vec3r(1,0,0);
-            }
-            else
-            {
-                normal = box->com().orientation * diff_box_local.normalized();
-            }
+    // Vec3r diff_box_local = cp_box_local - cp_segment_box_local;
+    // Real dist = diff_box_local.norm();
+    // if (dist <= segment->radius() + COLLISION_TOL)
+    // {
+    //     // collision!
+    //     if (segment->size() == 1)
+    //     {
+    //         Vec3r normal;
+    //         if (dist < 1e-12)
+    //         {
+    //             normal = Vec3r(1,0,0);
+    //         }
+    //         else
+    //         {
+    //             normal = box->com().orientation * diff_box_local.normalized();
+    //         }
 
-            const Vec3r cp_rod_surface = cp_segment + normal*segment->radius();
+    //         const Vec3r cp_rod_surface = cp_segment + normal*segment->radius();
 
-            const Vec3r rod_frame_o = cp_segment;
-            const Mat3r rod_frame_R = Math::Plus_SO3(segment->particle1()->orientation, beta*Math::Minus_SO3(segment->particle2()->orientation, segment->particle1()->orientation));
+    //         const Vec3r rod_frame_o = cp_segment;
+    //         const Mat3r rod_frame_R = Math::Plus_SO3(segment->particle1()->orientation, beta*Math::Minus_SO3(segment->particle2()->orientation, segment->particle1()->orientation));
 
-            const Vec3r cp_local_rod = rod_frame_R.transpose() * (cp_rod_surface - rod_frame_o);
+    //         const Vec3r cp_local_rod = rod_frame_R.transpose() * (cp_rod_surface - rod_frame_o);
 
-            RigidSegmentCollision new_collision;
-            new_collision.normal = normal;
-            new_collision.rb = box;
-            new_collision.cp_local_rb = cp_box_local;
-            new_collision.rod = segment->rod();
-            new_collision.segment_particle1 = segment->particle1();
-            new_collision.segment_particle2 = segment->particle2();
-            new_collision.beta = beta;
-            new_collision.cp_local_rod = cp_local_rod;
-            scene->_new_collisions.push_back(std::move(new_collision));
-        }
-        else
-        {
-            for (int ind = segment->index1(); ind < segment->index2(); ind++)
-            {
-                SimObject::XPBDRodSegment subsegment(segment->rod(), ind, ind+1);
-                _checkCollision(scene, box, &subsegment);
-            }
-        }
+    //         RigidSegmentCollision new_collision;
+    //         new_collision.normal = normal;
+    //         new_collision.rb = box;
+    //         new_collision.cp_local_rb = cp_box_local;
+    //         new_collision.rod = segment->rod();
+    //         new_collision.segment_particle1 = segment->particle1();
+    //         new_collision.segment_particle2 = segment->particle2();
+    //         new_collision.beta = beta;
+    //         new_collision.cp_local_rod = cp_local_rod;
+    //         scene->_new_collisions.push_back(std::move(new_collision));
+    //     }
+    //     else
+    //     {
+    //         for (int ind = segment->index1(); ind < segment->index2(); ind++)
+    //         {
+    //             SimObject::RodCollisionSegment subsegment(segment->rod(), ind, ind+1);
+    //             _checkCollision(scene, box, &subsegment);
+    //         }
+    //     }
         
-    }
+    // }
 }
 
-void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRodSegment* segment1, SimObject::XPBDRodSegment* segment2)
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2)
 {
+    /** Step 1: ensure segments should actually be tested for collision */
+    // if the segments are the same, obviously don't test them
     if (segment1 == segment2)
         return;
 
+    // if the segments are adjacent, don't test them
     if (segment1->particle1() == segment2->particle2() || segment1->particle2() == segment2->particle1())
         return;
 
+    // if the segments are jointed by a joint, don't test them
+    /** TODO: do this on an element level */
     if (scene->_checkJoint(segment1->particle1(), segment2->particle1()) || scene->_checkJoint(segment1->particle2(), segment2->particle1()) ||
         scene->_checkJoint(segment1->particle1(), segment2->particle2()) || scene->_checkJoint(segment1->particle2(), segment2->particle2()))
         return;
 
+    /** Step 2: test if coarse collision segments are in collision or are close to colliding */
     const Vec3r& p1 = segment1->particle1()->position;
     const Vec3r& p2 = segment1->particle2()->position;
     const Vec3r& p3 = segment2->particle1()->position;
     const Vec3r& p4 = segment2->particle2()->position;
     auto [beta1, beta2] = Math::findClosestPointsOnLineSegments(p1, p2, p3, p4);
     
-    // const Vec3r cp_rod1 = segment1->pointOnSegment(beta1);
-    // const Vec3r cp_rod2 = segment2->pointOnSegment(beta2);
     const Vec3r cp_rod1 = p1 + beta1*(p2 - p1);
     const Vec3r cp_rod2 = p3 + beta2*(p4 - p3);
-
-    // std::cout << "\np1: " << p1.transpose() << std::endl;
-    // std::cout << "p2: " << p2.transpose() << std::endl;
-    // std::cout << "p3: " << p3.transpose() << std::endl;
-    // std::cout << "p4: " << p4.transpose() << std::endl;
-    // std::cout << "cp_rod1: " << cp_rod1.transpose() << std::endl;
-    // std::cout << "cp_rod2: " << cp_rod2.transpose() << std::endl;
-    // std::cout << "radius1: " << segment1->radius() << "  radius2: " << segment2->radius() << std::endl;
 
     Vec3r diff = cp_rod2 - cp_rod1;
     Real sq_dist = diff.squaredNorm();
     Real rads_sq = (segment1->radius() + segment2->radius() + COLLISION_TOL) * (segment1->radius() + segment2->radius() + COLLISION_TOL);
-    if (sq_dist < rads_sq) 
+    if (sq_dist > rads_sq)
+        return;
+    
+    /** Step 3: test each individual rod element within each collision segment
+     * 
+     */
+    const std::vector<SimObject::RodElement_Base*>& rod1_elements = segment1->elements();
+    const std::vector<SimObject::RodElement_Base*>& rod2_elements = segment2->elements();
+    for (auto& elem1 : rod1_elements)
     {
-
-        if (segment1->size() == 1 && segment2->size() == 1)
+        for (auto& elem2 : rod2_elements)
         {
-            Vec3r normal;
-            if (sq_dist < 1e-6)
+            // get candidate pairs of closest positions on each rod
+            std::vector<std::pair<Real,Real>> cps = SimObject::closestPointsBetweenRodElements(elem1, elem2);
+            for (const auto& cp : cps)
             {
-                normal = (p2 - p1).cross(p4 - p3);
-                normal = normal.normalized();
-            }
-            else
-            {
-                normal = diff / std::sqrt(sq_dist);
-            }
-            
-            // std::cout << "Rod-rod collision!" << std::endl;
-            const Vec3r cp_rod_surface1 = cp_rod1 + normal*segment1->radius();
-            const Vec3r cp_rod_surface2 = cp_rod2 - normal*segment2->radius();
+                Real s_hat1 = cp.first;
+                Real s_hat2 = cp.second;
 
-            const Vec3r frame1_o = cp_rod1;
-            const Mat3r frame1_R = Math::Plus_SO3(segment1->particle1()->orientation, beta1*Math::Minus_SO3(segment1->particle2()->orientation, segment1->particle1()->orientation));
+                Vec3r p1 = elem1->position(s_hat1);
+                Vec3r p2 = elem2->position(s_hat2);
+                Vec3r diff = (p2 - p1);
 
-            const Vec3r frame2_o = cp_rod2;
-            const Mat3r frame2_R = Math::Plus_SO3(segment2->particle1()->orientation, beta2*Math::Minus_SO3(segment2->particle2()->orientation, segment2->particle1()->orientation));
-
-            const Vec3r cp_local1 = frame1_R.transpose() * (cp_rod_surface1 - frame1_o);
-            const Vec3r cp_local2 = frame2_R.transpose() * (cp_rod_surface2 - frame2_o);
-
-            // std::cout << "normal: " << normal.transpose() << std::endl;
-            // std::cout << "cp_rod1: " << cp_rod1.transpose() << std::endl;
-            // std::cout << "cp_rod2: " << cp_rod2.transpose() << std::endl;
-            // std::cout << "cp_rod_surface1: " << cp_rod_surface1.transpose() << std::endl;
-            // std::cout << "cp_rod_surface2: " << cp_rod_surface2.transpose() << std::endl;
-            // std::cout << "cp_local1: " << cp_local1.transpose() << std::endl;
-            // std::cout << "cp_local2: " << cp_local2.transpose() << std::endl;
-
-            Collision::SegmentSegmentCollision new_collision;
-            new_collision.beta1 = beta1;
-            new_collision.beta2 = beta2;
-            new_collision.normal = normal;
-            new_collision.rod1 = segment1->rod();
-            new_collision.segment1_particle1 = segment1->particle1();
-            new_collision.segment1_particle2 = segment1->particle2();
-            new_collision.rod2 = segment2->rod();
-            new_collision.segment2_particle1 = segment2->particle1();
-            new_collision.segment2_particle2 = segment2->particle2();
-            new_collision.cp_local1 = cp_local1;
-            new_collision.cp_local2 = cp_local2;
-            scene->_new_collisions.push_back(std::move(new_collision));
-        }
-
-        else
-        {
-            // collision between two collision segments
-            // need to add collisions between each of the individual length=1 segments in both segments
-            SimObject::XPBDRod* rod1 = segment1->rod();
-            SimObject::XPBDRod* rod2 = segment2->rod();
-            for (int ind1 = segment1->index1(); ind1 < segment1->index2(); ind1++)
-            {
-                for (int ind2 = segment2->index1(); ind2 < segment2->index2(); ind2++)
+                Real sq_dist = (p2 - p1).squaredNorm();
+                
+                if (sq_dist < rads_sq)
                 {
-                    SimObject::XPBDRodSegment subsegment1(rod1, ind1, ind1+1);
-                    SimObject::XPBDRodSegment subsegment2(rod2, ind2, ind2+1);
-                    _checkCollision(scene, &subsegment1, &subsegment2);
+                    std::cout << "Rod-rod collision!" << std::endl;
+                    Vec3r normal;
+                    if (sq_dist < 1e-6)
+                        normal = Vec3r(1,0,0);
+                    else
+                        normal = diff / std::sqrt(sq_dist);
+                    
+                    // contact points on the surface of each rod
+                    const Vec3r cp_rod_surface1 = cp_rod1 + normal*segment1->radius();
+                    const Vec3r cp_rod_surface2 = cp_rod2 - normal*segment2->radius();
+
+
+                    const Vec3r frame1_o = cp_rod1;
+                    const Mat3r frame1_R = elem1->orientation(s_hat1); 
+
+                    const Vec3r frame2_o = cp_rod2;
+                    const Mat3r frame2_R = elem2->orientation(s_hat2);
+
+                    const Vec3r cp_local1 = frame1_R.transpose() * (cp_rod_surface1 - frame1_o);
+                    const Vec3r cp_local2 = frame2_R.transpose() * (cp_rod_surface2 - frame2_o);
+
+                    Collision::SegmentSegmentCollision new_collision;
+                    new_collision.s_hat1 = s_hat1;
+                    new_collision.s_hat2 = s_hat2;
+                    new_collision.normal = normal;
+                    new_collision.element1 = elem1;
+                    new_collision.element2 = elem2;
+                    new_collision.cp_local1 = cp_local1;
+                    new_collision.cp_local2 = cp_local2;
+                    new_collision.mu_s1 = segment1->staticFrictionCoeff();
+                    new_collision.mu_d1 = segment1->dynamicFrictionCoeff();
+                    new_collision.mu_s2 = segment2->staticFrictionCoeff();
+                    new_collision.mu_d2 = segment2->dynamicFrictionCoeff();
+                    scene->_new_collisions.push_back(std::move(new_collision));
                 }
             }
         }
-
-        
-
-        
-
     }
-
-    // std::cout << "Potential collision between two rod segments!" << std::endl;
 }
 
 Vec3r CollisionScene::_frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3)

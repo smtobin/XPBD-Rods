@@ -398,7 +398,7 @@ typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::conta
 
 
  /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
-void closestPointsBetweenRodElements(const SimObject::RodElement_Base* elem1, const SimObject::RodElement_Base* elem2)
+std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const SimObject::RodElement_Base* elem1, const SimObject::RodElement_Base* elem2)
 {
     // get initial estimates based on linear approximation
     int order1 = elem1->order();
@@ -420,10 +420,10 @@ void closestPointsBetweenRodElements(const SimObject::RodElement_Base* elem1, co
         }
     }
 
-    for (const auto& seed : seeds)
+    for (unsigned i = 0; i < seeds.size(); i++)
     {
-        Real s1 = seed.first;
-        Real s2 = seed.second;
+        Real s1 = seeds[i].first;
+        Real s2 = seeds[i].second;
 
         int num_iters = 5;
         // Newton's method
@@ -534,10 +534,13 @@ void closestPointsBetweenRodElements(const SimObject::RodElement_Base* elem1, co
 
         std::cout << "\nFinal s1 and s2: " << s1 << ", " << s2 << std::endl;
         std::cout << "Distance: " << (elem1->position(s1) - elem2->position(s2)).norm() << std::endl;
+
+        seeds[i].first = s1;
+        seeds[i].second = s2;
     }
 
     
-
+    return seeds;
 
 }   
 

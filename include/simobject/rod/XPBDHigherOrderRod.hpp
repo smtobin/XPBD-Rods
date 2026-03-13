@@ -5,6 +5,7 @@
 #include "config/RodConfig.hpp"
 #include "simobject/XPBDObject_Base.hpp"
 #include "simobject/rod/RodElement.hpp"
+#include "simobject/rod/RodCollisionSegment.hpp"
 
 #include "constraint/RodElasticGaussPointConstraint.hpp"
 
@@ -40,8 +41,13 @@ public:
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
 
     Real radius() const { return _radius; }
-    const std::vector<SimObject::OrientedParticle>& nodes() const { return _nodes; }
-    const std::vector<SimObject::RodElement<Order>>& elements() const { return _elements; }
+    const std::vector<OrientedParticle>& nodes() const { return _nodes; }
+    std::vector<OrientedParticle>& nodes() { return _nodes; }
+
+    const std::vector<RodElement<Order>>& elements() const { return _elements; }
+
+    const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
+    std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
 
 private:
     /** Number of elements the rod is discretized into. */
@@ -63,6 +69,9 @@ private:
     Real _area;
     Real _Ix;
     Real _Iz;
+
+    /** Collision geometries */
+    std::vector<RodCollisionSegment> _collision_segments;
 
     /** Total number of internal constraints currently on the rod. */
     int _num_constraints;

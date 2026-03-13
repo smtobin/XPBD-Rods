@@ -17,6 +17,7 @@ RodRodCollisionConstraint<Order1, Order2>::RodRodCollisionConstraint(
 )
     : XPBDConstraint<1, Order1+1 + Order2+1>(concat_arrays(element1->nodes(), element2->nodes()),
      1e-10*AlphaVecType::Ones()),
+    _element1(element1), _element2(element2),
     _s_hat1(s_hat1), _s_hat2(s_hat2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
@@ -152,5 +153,10 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
         _particles[i]->positionUpdate(position_update);
     }
 }
+
+template class RodRodCollisionConstraint<1,1>;
+template class RodRodCollisionConstraint<1,2>;
+template class RodRodCollisionConstraint<2,1>;
+template class RodRodCollisionConstraint<2,2>;
 
 } // namespace Constraint

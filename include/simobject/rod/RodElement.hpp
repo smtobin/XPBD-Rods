@@ -29,7 +29,10 @@ public:
     virtual int order() const = 0;
 
     /** Returns the node at the specified index in the element. */
-    virtual SimObject::OrientedParticle* node(int index) const = 0;
+    virtual OrientedParticle* node(int index) const = 0;
+
+    virtual OrientedParticle* firstNode() const = 0;
+    virtual OrientedParticle* lastNode() const = 0;
 
     /** Rest length of the element */
     virtual Real restLength() const { return _rest_length; }
@@ -65,7 +68,7 @@ template <int Order>
 class RodElement : public RodElement_Base
 {
 public:
-    using NodeArrayType = std::array<SimObject::OrientedParticle*, Order+1>;
+    using NodeArrayType = std::array<OrientedParticle*, Order+1>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(Order+1)>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(Order+1)>;
 
@@ -75,7 +78,9 @@ public:
 
     static std::array<Real, Order+1> lumpedMasses();
 
-    virtual SimObject::OrientedParticle* node(int index) const override { return _nodes[index]; }
+    virtual OrientedParticle* node(int index) const override { return _nodes[index]; }
+    virtual OrientedParticle* firstNode() const override { return _nodes.front(); }
+    virtual OrientedParticle* lastNode() const override { return _nodes.back(); }
     const NodeArrayType& nodes() const { return _nodes; }
 
     virtual Real restLength() const override { return _rest_length; }
@@ -116,6 +121,6 @@ private:
 };
 
  /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
-void closestPointsBetweenRodElements(const RodElement_Base* elem1, const RodElement_Base* elem2);
+std::vector<std::pair<Real,Real>> closestPointsBetweenRodElements(const RodElement_Base* elem1, const RodElement_Base* elem2);
 
 } // namespace SimObject

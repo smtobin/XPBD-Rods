@@ -1,5 +1,5 @@
 name: "Rod-Rod Collision"
-# sim-mode: "Frame-by-frame"
+sim-mode: "Frame-by-frame"
 time-step: 1e-3
 end-time: 100
 solver-iters: 1
@@ -11,47 +11,50 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
+    element-type: "Linear"
     initial-position: [-0.2, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    nodes: 20
-    E: 1e6
+    elements: 5
+    E: 1e8
     diameter: 0.1
     length: 1
     nu: 0.3
     base-fixed: True
-    tip-fixed: True
+    tip-fixed: False
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [1.0, 0.0, 0.0]
 
-  - 
-    type: "Rod"
-    name: "rod1"
-    initial-position: [0.2, 1, 0.0]
-    initial-rotation: [0, 0, 0]
-    nodes: 20
-    E: 1e6
-    diameter: 0.1
-    length: 1
-    nu: 0.3
-    base-fixed: True
-    tip-fixed: True
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
-    roughness: 0.5
-    color: [1.0, 0.0, 0.0]
+  # - 
+  #   type: "Rod"
+  #   name: "rod1"
+  #   element-type: "Linear"
+  #   initial-position: [0.2, 1, 0.0]
+  #   initial-rotation: [0, 0, 0]
+  #   elements: 20
+  #   E: 1e8
+  #   diameter: 0.1
+  #   length: 1
+  #   nu: 0.3
+  #   base-fixed: True
+  #   tip-fixed: False
+  #   render-type: "PBR"
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.0
+  #   roughness: 0.5
+  #   color: [1.0, 0.0, 0.0]
 
   - 
     type: "Rod"
     name: "rod2"
+    element-type: "Linear"
     initial-position: [-0.5, 1.3, 0.5]
     initial-rotation: [0, 90, 0]
-    nodes: 50
+    elements: 20
     E: 1e6
     diameter: 0.1
     length: 1
@@ -61,7 +64,7 @@ objects:
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [0.0, 0.0, 1.0]
    

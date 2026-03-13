@@ -29,7 +29,7 @@ struct CollisionObject
         : obj(box), type(ColliderType::Box)
     {}
 
-    CollisionObject(SimObject::XPBDRodSegment* segment)
+    CollisionObject(SimObject::RodCollisionSegment* segment)
         : obj(segment), type(ColliderType::RodSegment)
     {}
 

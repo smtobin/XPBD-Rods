@@ -2,7 +2,7 @@
 
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
-#include "simobject/rod/XPBDRodSegment.hpp"
+#include "simobject/rod/RodCollisionSegment.hpp"
 
 namespace Collision
 {
@@ -21,7 +21,7 @@ SimObject::AABB CollisionObject::boundingBox() const
     }
     else if (type == ColliderType::RodSegment)
     {
-        SimObject::XPBDRodSegment* segment = static_cast<SimObject::XPBDRodSegment*>(obj);
+        SimObject::RodCollisionSegment* segment = static_cast<SimObject::RodCollisionSegment*>(obj);
         return segment->boundingBox();
     }
     else
