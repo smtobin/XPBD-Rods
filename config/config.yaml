@@ -1,6 +1,6 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
-sim-mode: "AFAP"
+# sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 1000
 
@@ -41,9 +41,9 @@ objects:
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
     E: 5e6
-    elements: 100
-    base-fixed: True
-    tip-fixed: False
+    elements: 20
+    base-fixed: False
+    tip-fixed: True
     collisions: False
     log-particles: True
     render-type: "PBR"

@@ -240,7 +240,7 @@ void XPBDRod_<Order>::setup()
     _RHS_vec = VecXr::Zero(6*_num_constraints);
     _alpha.conservativeResize(6*_num_constraints);
     _internal_lambda = VecXr::Zero(6*_num_constraints);
-    _dlam.conservativeResize(6*_num_constraints);
+    _dlam = VecXr::Zero(6*_num_constraints);
     _dx.conservativeResize(6*_num_nodes);
     _delC_mat = MatXr::Zero(6*_num_constraints, 6*_num_nodes);
 
@@ -422,8 +422,8 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
         //  delC_element * M1^-1 * delC_fixed^T
         for (int j = 0; j < NUM_GP; j++)
         {
-            Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,6*(Order));
-            _diagonals[j+1][diag_block_ind] = node1_block * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
+            Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(Order));
+            _diagonals[j+1][diag_block_ind-(j+1)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * node1_block.transpose();
         }
 
         diag_block_ind++;
@@ -479,7 +479,10 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
             _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
 
         Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
-        _dx.template block<6,1>(0,0) += _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam;
+        // std::cout << "constraint dlam: " << constraint_dlam << std::endl;
+        _dx.template block<6,1>(6*(_num_nodes-1),0) += _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam;
+
+        // std::cout << "dx tip fixed: " << _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam << std::endl;
     }
 
     // std::cout << "dx banded solver: " << _dx.transpose() << std::endl;
@@ -537,7 +540,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     // // }
     // VecXr dlam = llt.solve(_RHS_vec);
     // _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
-    // std::cout << "dlam global: " << dlam.transpose() << std::endl;
+    // // std::cout << "dlam global: " << dlam.transpose() << std::endl;
     // std::cout << "dx global: " << _dx.transpose() << std::endl;
 
     _internal_lambda += _dlam;
