@@ -13,9 +13,9 @@ XPBDPendulum::XPBDPendulum(const Config::XPBDPendulumConfig& config)
 void XPBDPendulum::setup()
 {
         
-    Config::XPBDRigidBoxConfig base_config("base", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
+    Config::XPBDRigidBoxConfig base_config("base", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         1000, true, Vec3r(1, 0.1, 1));
-    XPBDRigidBox& base = _addObject<XPBDRigidBox>(base_config);
+    _addObject<XPBDRigidBox>(base_config);
 
     Real body_length = 1.0;
 
@@ -25,7 +25,7 @@ void XPBDPendulum::setup()
     {
         Real pos_x = (0.5 + i*body_length) * std::sin(_initial_angle * M_PI/180.0);
         Real pos_y = (-0.5 - i*body_length) * std::cos(_initial_angle * M_PI/180.0);
-        Config::XPBDRigidBoxConfig box_config("box", Vec3r(pos_x,pos_y,0), Vec3r(0,10,_initial_angle), Vec3r(0,0,0), Vec3r(0,0,0),
+        Config::XPBDRigidBoxConfig box_config("box", Vec3r(pos_x,pos_y,0), Vec3r(0,10,_initial_angle), Vec3r(0,0,0), Vec3r(0,0,0), true,
             1000, false, Vec3r(0.1, body_length, 0.1));
         _addObject<XPBDRigidBox>(box_config);
     }

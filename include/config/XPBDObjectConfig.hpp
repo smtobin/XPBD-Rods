@@ -50,13 +50,15 @@ public:
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
-        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity)
+        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions)
         : Config_Base(name), _render_config()
     {
         _initial_position.value = initial_position;
         _initial_rotation.value = initial_rotation;
         _initial_velocity.value = initial_velocity;
         _initial_angular_velocity.value = initial_angular_velocity;
+
+        _collisions.value = collisions;
 
         _projector_type.value = ProjectorType::BLOCK;
         _log_particles.value = false;

@@ -394,7 +394,7 @@ void Simulation::setup()
     {
         Config::XPBDPlaneConfig plane_config(
             "ground-plane",
-            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
+            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
             1, true,
             1000, 1000,
             Vec3r(0,1,0)
