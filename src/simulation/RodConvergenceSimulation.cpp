@@ -55,7 +55,7 @@ void RodConvergenceSimulation::setup()
     );
     _addObjectFromConfig(ground_truth_config);
 
-    _ground_truth = _objects.get<std::unique_ptr<SimObject::XPBDRod_<1>>>().back().get();
+    _ground_truth = _objects.get<std::unique_ptr<SimObject::XPBDRod_<2>>>().back().get();
 
 }
 

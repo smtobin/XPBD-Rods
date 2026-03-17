@@ -105,66 +105,51 @@ void HigherOrderRodGraphicsObject<Order>::_generateInitialPolyData()
 
     // insert cross-section vertices
     vtkNew<vtkPoints> points;
-    for (unsigned ei = 0; ei < elements.size(); ei++)
+    for (unsigned si = 0; si < _num_samples; si++)
     {
-        int num_samples = _sample_points_per_element;
-        if (ei == elements.size()-1)
-            num_samples = _sample_points_per_element + 1;
+        // position along rod in [0, 1]
+        Real s = (Real)si / (_num_samples - 1);
+        // the element index that s corresponds to
+        int elem_ind = std::clamp(static_cast<int>(s * elements.size()), 0, static_cast<int>(elements.size()-1));
+        // the "local" s within the element
+        Real s_hat = s * elements.size() - (Real)elem_ind;
 
-        for (int si = 0; si < num_samples; si++)
+        Vec3r position = elements[elem_ind].position(s_hat);
+        Mat3r orientation = elements[elem_ind].orientation(s_hat);
+        // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
+        for (const auto& p : _cross_section_points)
         {
-            Real s_hat = si * 1.0 / _sample_points_per_element;
-
-            Vec3r position = elements[ei].position(s_hat);
-            Mat3r orientation = elements[ei].orientation(s_hat);
-            // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
-            for (const auto& p : _cross_section_points)
-            {
-                // transform each point in local cross section to global frame
-                const Vec3r transformed = orientation * p + position;
-                points->InsertNextPoint( transformed[0], transformed[1], transformed[2] );
-            }
+            // transform each point in local cross section to global frame
+            const Vec3r transformed = orientation * p + position;
+            points->InsertNextPoint( transformed[0], transformed[1], transformed[2] );
         }
-        
     }
 
     // create faces inbetween nodes
-    int cs_ind = 0;
     vtkNew<vtkCellArray> faces;
-    for (unsigned ei = 0; ei < elements.size(); ei++)
+    for (unsigned si = 0; si < _num_samples-1; si++)
     {
-        int num_samples = _sample_points_per_element;
-
-        for (int si = 0; si < num_samples; si++)
+        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
         {
+            // vertices for the quad face
+            const int v1 = si*_cross_section_points.size() + pi;
+            const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : si*_cross_section_points.size();
+            const int v3 = v2 + _cross_section_points.size();
+            const int v4 = v1 + _cross_section_points.size();
 
-            for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
-            {
-                // vertices for the quad face
-                const int v1 = cs_ind*_cross_section_points.size() + pi;
-                const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : cs_ind*_cross_section_points.size();
-                const int v3 = v2 + _cross_section_points.size();
-                const int v4 = v1 + _cross_section_points.size();
+            vtkNew<vtkTriangle> tri1;
+            tri1->GetPointIds()->SetId(0, v1);
+            tri1->GetPointIds()->SetId(1, v2);
+            tri1->GetPointIds()->SetId(2, v3);
 
-                vtkNew<vtkTriangle> tri1;
-                tri1->GetPointIds()->SetId(0, v1);
-                tri1->GetPointIds()->SetId(1, v2);
-                tri1->GetPointIds()->SetId(2, v3);
-
-                vtkNew<vtkTriangle> tri2;
-                tri2->GetPointIds()->SetId(0, v1);
-                tri2->GetPointIds()->SetId(1, v3);
-                tri2->GetPointIds()->SetId(2, v4);
-                faces->InsertNextCell(tri1);
-                faces->InsertNextCell(tri2);
-            }
-
-            cs_ind++;
+            vtkNew<vtkTriangle> tri2;
+            tri2->GetPointIds()->SetId(0, v1);
+            tri2->GetPointIds()->SetId(1, v3);
+            tri2->GetPointIds()->SetId(2, v4);
+            faces->InsertNextCell(tri1);
+            faces->InsertNextCell(tri2);
         }
-        
     }
-
-    int num_cs = cs_ind+1;
 
     // end cap points
     points->InsertNextPoint( nodes[0].position[0], nodes[0].position[1], nodes[0].position[2] );
@@ -175,7 +160,7 @@ void HigherOrderRodGraphicsObject<Order>::_generateInitialPolyData()
     for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
     {
         const int v1 = pi;
-        const int v2 = num_cs*_cross_section_points.size();
+        const int v2 = _num_samples*_cross_section_points.size();
         const int v3 = (pi != _cross_section_points.size()-1) ? v1 + 1 : 0;
 
         vtkNew<vtkTriangle> tri;
@@ -188,9 +173,9 @@ void HigherOrderRodGraphicsObject<Order>::_generateInitialPolyData()
     // tip faces
     for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
     {
-        const int v1 = (num_cs-1)*_cross_section_points.size() + pi;
-        const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : (num_cs-1)*_cross_section_points.size();
-        const int v3 = num_cs*_cross_section_points.size() + 1;
+        const int v1 = (_num_samples-1)*_cross_section_points.size() + pi;
+        const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : (_num_samples-1)*_cross_section_points.size();
+        const int v3 = _num_samples*_cross_section_points.size() + 1;
         
 
         vtkNew<vtkTriangle> tri;
@@ -241,34 +226,28 @@ void HigherOrderRodGraphicsObject<Order>::_updatePolyData()
     const std::vector<SimObject::RodElement<Order>>& elements = _rod->elements();
 
     vtkPoints* points = _vtk_poly_data->GetPoints();
-    int cs_ind = 0;
-    for (unsigned ei = 0; ei < elements.size(); ei++)
+    for (int si = 0; si < _num_samples; si++)
     {
-        int num_samples = _sample_points_per_element;
-        if (ei == elements.size()-1)
-            num_samples = _sample_points_per_element + 1;
+        // position along rod in [0, 1]
+        Real s = (Real)si / (_num_samples - 1);
+        // the element index that s corresponds to
+        int elem_ind = std::clamp(static_cast<int>(s * elements.size()), 0, static_cast<int>(elements.size()-1));
+        // the "local" s within the element
+        Real s_hat = s * elements.size() - (Real)elem_ind;
 
-        for (int si = 0; si < num_samples; si++)
+        Vec3r position = elements[elem_ind].position(s_hat);
+        Mat3r orientation = elements[elem_ind].orientation(s_hat);
+        // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
+        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
         {
-            Real s_hat = si * 1.0 / _sample_points_per_element;
-
-            Vec3r position = elements[ei].position(s_hat);
-            Mat3r orientation = elements[ei].orientation(s_hat);
-            // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
-            for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
-            {
-                // transform each point in local cross section to global frame
-                const Vec3r transformed = orientation * _cross_section_points[pi] + position;
-                points->SetPoint( cs_ind*_cross_section_points.size() + pi, transformed.data() );
-            }
-
-            cs_ind++;
+            // transform each point in local cross section to global frame
+            const Vec3r transformed = orientation * _cross_section_points[pi] + position;
+            points->SetPoint( si*_cross_section_points.size() + pi, transformed.data() );
         }
-        
     }
 
-    points->SetPoint(cs_ind*_cross_section_points.size(), nodes[0].position[0], nodes[0].position[1], nodes[0].position[2]);
-    points->SetPoint(cs_ind*_cross_section_points.size()+1, nodes.back().position[0], nodes.back().position[1], nodes.back().position[2]);
+    points->SetPoint(_num_samples*_cross_section_points.size(), nodes[0].position[0], nodes[0].position[1], nodes[0].position[2]);
+    points->SetPoint(_num_samples*_cross_section_points.size()+1, nodes.back().position[0], nodes.back().position[1], nodes.back().position[2]);
     points->Modified();
 }
 

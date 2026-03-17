@@ -35,7 +35,7 @@ private:
     std::vector<int> _linear_rod_elements;
     std::vector<int> _quadratic_rod_elements;
 
-    SimObject::XPBDRod_<1>* _ground_truth;
+    SimObject::XPBDRod_<2>* _ground_truth;
 };
 
 } // namespace Sim
