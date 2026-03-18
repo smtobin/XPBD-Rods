@@ -65,7 +65,7 @@ void RodConvergenceSimulation::setup()
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::QUADRATIC, true, false, true,
-        _rod_length, _rod_dia, 5000, _rod_density, _rod_E, _rod_nu
+        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu
     );
     _addObjectFromConfig(ground_truth_config);
 
@@ -80,9 +80,17 @@ void RodConvergenceSimulation::update()
     // after the sim is finished, we assume that we've reached steady state
     // compute the energy norm between each rod and the final rod
 
+    std::cout << "\n=== Energy Norms ===" << std::endl;
     _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<0>>, std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
     {
         std::cout << "Energy norm for " << obj->name() << ": " << _energyNorm(obj.get(), _ground_truth) << std::endl;
+    });
+
+    std::cout << "\n\n=== Position Norms ===" << std::endl;
+    _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<0>>, std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
+    {
+        Vec3r gt_tip = _ground_truth->nodes().back().position;
+        std::cout << "Position norm for " << obj->name() << ": " << (obj->nodes().back().position - gt_tip).norm() << std::endl;
     });
 }
 
