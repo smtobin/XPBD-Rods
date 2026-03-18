@@ -7,13 +7,13 @@ namespace Config
 
 enum class RodElementType
 {
-    NONE,
+    RIGID_BODY,
     LINEAR,
     QUADRATIC
 };
 static std::map<std::string, RodElementType> ROD_ELEMENT_TYPE_OPTIONS()
 {
-    static std::map<std::string, RodElementType> rod_element_options{{"None", RodElementType::NONE},
+    static std::map<std::string, RodElementType> rod_element_options{{"Rigid Body", RodElementType::RIGID_BODY},
                                                                     {"Linear", RodElementType::LINEAR},
                                                                     {"Quadratic", RodElementType::QUADRATIC}};
     return rod_element_options;

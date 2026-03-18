@@ -32,7 +32,7 @@ template <int Order>
 XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
     : XPBDObject_Base(config),
     _num_elements(config.elements()),
-    _num_nodes(_num_elements * (Order - 1) + (_num_elements+1)),
+    _num_nodes(_num_elements * (NUM_EN - 2) + (_num_elements+1)),
     _length(config.length()), _radius(config.diameter()/2.0),
     _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
     _density(config.density()), _E(config.E()), _nu(config.nu()),
@@ -47,7 +47,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
     _Iz = 2*_Ix;
 
     // element rest length
-    _element_rest_length = _length/(_num_nodes-1) * Order;
+    _element_rest_length = _length/(_num_nodes-1) * (NUM_EN - 1);
 
     /** Create nodes */
     _nodes.resize(_num_nodes);
@@ -81,7 +81,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
     _elements.reserve(_num_elements);
 
     // lumped mass proportions
-    std::array<Real, Order+1> lumped_masses = RodElement<Order>::lumpedMasses();
+    std::array<Real, NUM_EN> lumped_masses = RodElement<Order>::lumpedMasses();
 
     for (int i = 0; i < _num_elements; i++)
     {
@@ -92,10 +92,10 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         
 
         // this element is composed of nodes i*Order through (i+1)*Order
-        std::array<OrientedParticle*, Order+1> element_nodes;
-        for (int j = 0; j <= Order; j++)
+        std::array<OrientedParticle*, NUM_EN> element_nodes;
+        for (int j = 0; j < NUM_EN; j++)
         {
-            int node_ind = i*Order + j;
+            int node_ind = i*(NUM_EN - 1) + j;
             element_nodes[j] = &_nodes[node_ind];
 
             _nodes[node_ind].mass += total_mass * lumped_masses[j];
@@ -186,8 +186,8 @@ void XPBDRod_<Order>::setup()
     Vec6r stiffness(_G*_area, _G*_area, _E*_area, _E*_Ix, _E*_Ix, _G*_Iz);
 
     // create (# Gauss points) constraints per element
-    std::array<Real, NUM_GP> gauss_points = GaussQuadratureHelper<Order>::points();
-    std::array<Real, NUM_GP> gauss_weights = GaussQuadratureHelper<Order>::weights();
+    std::array<Real, NUM_GP> gauss_points = GaussQuadratureHelper<NUM_GP>::points();
+    std::array<Real, NUM_GP> gauss_weights = GaussQuadratureHelper<NUM_GP>::weights();
     for (int i = 0; i < _num_elements; i++)
     {
         for (unsigned gi = 0; gi < gauss_points.size(); gi++)
@@ -343,10 +343,10 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     for (int i = 0; i < _num_elements; i++)
     {
         // assemble element inertia
-        Eigen::Vector<Real, 6*(Order+1)> element_inverse_inertia;
-        for (int k = 0; k < Order+1; k++)
+        Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
+        for (int k = 0; k < NUM_EN; k++)
         {
-            int node_ind = i*Order + k;
+            int node_ind = i*(NUM_EN-1) + k;
             element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
         }
 
@@ -380,10 +380,10 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
                 int diag_index = other - this_ind;
 
                 // the index of the node shared by the constraints
-                int shared_node_ind = (i+1)*Order;
+                int shared_node_ind = (i+1)*(NUM_EN-1);
 
                 // extract the block associated with the "last" node affected by the constraint
-                Mat6r this_block = _gradient_buffer[this_ind].template block<6,6>(0,6*(Order));
+                Mat6r this_block = _gradient_buffer[this_ind].template block<6,6>(0,6*(NUM_EN-1));
                 // extract the block associated with the "first" node affected by the constraint
                 Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
 
@@ -422,7 +422,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
         //  delC_element * M1^-1 * delC_fixed^T
         for (int j = 0; j < NUM_GP; j++)
         {
-            Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(Order));
+            Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(NUM_EN-1));
             _diagonals[j+1][diag_block_ind-(j+1)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * node1_block.transpose();
         }
 
@@ -451,14 +451,14 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
 
     for (int i = 0; i < _num_elements; i++)
     {
-        int first_node_ind = i*Order;
+        int first_node_ind = i*(NUM_EN-1);
         for (int j = 0; j < NUM_GP; j++)
         {
             // index of the current elastic constraint we are on
             int elastic_constraint_ind = NUM_GP*i + j;
 
             // iterate through the nodes of the elastic constraint and compute position updates
-            for (int k = 0; k < Order+1; k++)
+            for (int k = 0; k < NUM_EN; k++)
             {
                 int node_ind = first_node_ind + k;
                 Mat6r delC_block = _gradient_buffer[elastic_constraint_ind].template block<6,6>(0,6*k);
@@ -553,6 +553,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     }
 }
 
+template class XPBDRod_<0>;
 template class XPBDRod_<1>;
 template class XPBDRod_<2>;
 

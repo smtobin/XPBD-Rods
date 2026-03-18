@@ -132,6 +132,11 @@ int main()
     testConstraint(pr_lim_constraint2);
 
     /** Rod Elastic Gauss Constraints */
+    std::array<SimObject::OrientedParticle*, 2> o0_element_particles = {&particle1, &particle2};
+    SimObject::RodElement<0> o0_element(o0_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<0> o0_constraint(&o0_element, 0.5, Vec6r::Zero());
+    testConstraint(o0_constraint);
+
     std::array<SimObject::OrientedParticle*, 2> o1_element_particles = {&particle1, &particle2};
     SimObject::RodElement<1> o1_element(o1_element_particles, 0.5);
     Constraint::RodElasticGaussPointConstraint<1> o1_constraint(&o1_element, 0.5, Vec6r::Zero());

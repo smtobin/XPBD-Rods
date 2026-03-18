@@ -7,13 +7,14 @@ namespace Constraint
 {
 
 template<int Order>
-class RodElasticGaussPointConstraint : public XPBDConstraint<6, Order+1>
+class RodElasticGaussPointConstraint : public XPBDConstraint<6, SimObject::RodElement<Order>::NumNodes>
 {
 public:
-    using AlphaVecType = typename XPBDConstraint<6, Order+1>::AlphaVecType;
-    using ConstraintVecType = typename XPBDConstraint<6, Order+1>::ConstraintVecType;
-    using GradientMatType = typename XPBDConstraint<6, Order+1>::GradientMatType;
-    using SingleParticleGradientMatType = typename XPBDConstraint<6, Order+1>::SingleParticleGradientMatType;
+    constexpr static int NumNodes = SimObject::RodElement<Order>::NumNodes;
+    using AlphaVecType = typename XPBDConstraint<6, NumNodes>::AlphaVecType;
+    using ConstraintVecType = typename XPBDConstraint<6, NumNodes>::ConstraintVecType;
+    using GradientMatType = typename XPBDConstraint<6, NumNodes>::GradientMatType;
+    using SingleParticleGradientMatType = typename XPBDConstraint<6, NumNodes>::SingleParticleGradientMatType;
 
     RodElasticGaussPointConstraint(const SimObject::RodElement<Order>* rod_element, Real s_hat, const AlphaVecType& alpha);
 

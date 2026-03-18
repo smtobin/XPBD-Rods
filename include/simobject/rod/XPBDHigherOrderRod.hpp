@@ -18,7 +18,8 @@ template<int Order>
 class XPBDRod_ : public XPBDObject_Base
 {
 public:
-    constexpr static int NUM_GP = Order;
+    constexpr static int NUM_EN = RodElement<Order>::NumNodes;
+    constexpr static int NUM_GP = NUM_EN-1;
 
     XPBDRod_(const Config::RodConfig& config);
 

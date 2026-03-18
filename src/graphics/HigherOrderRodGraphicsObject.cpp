@@ -251,6 +251,7 @@ void HigherOrderRodGraphicsObject<Order>::_updatePolyData()
     points->Modified();
 }
 
+template class HigherOrderRodGraphicsObject<0>;
 template class HigherOrderRodGraphicsObject<1>;
 template class HigherOrderRodGraphicsObject<2>;
 

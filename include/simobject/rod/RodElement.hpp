@@ -68,15 +68,17 @@ template <int Order>
 class RodElement : public RodElement_Base
 {
 public:
-    using NodeArrayType = std::array<OrientedParticle*, Order+1>;
-    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(Order+1)>;
-    using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(Order+1)>;
+    static constexpr int NumNodes = std::max(2,Order+1);
+
+    using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
+    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(NumNodes)>;
+    using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(NumNodes)>;
 
     RodElement(const NodeArrayType& nodes_list, Real rest_length);
 
     virtual int order() const override { return Order; }
 
-    static std::array<Real, Order+1> lumpedMasses();
+    static std::array<Real, NumNodes> lumpedMasses();
 
     virtual OrientedParticle* node(int index) const override { return _nodes[index]; }
     virtual OrientedParticle* firstNode() const override { return _nodes.front(); }
@@ -115,9 +117,9 @@ public:
 private:
     NodeArrayType _nodes;
     
-    std::array<Real(*)(Real), Order+1> _bases;
-    std::array<Real(*)(Real), Order+1> _bases_derivatives;
-    std::array<Real(*)(Real), Order+1> _bases_derivatives2;
+    std::array<Real(*)(Real), NumNodes> _bases;
+    std::array<Real(*)(Real), NumNodes> _bases_derivatives;
+    std::array<Real(*)(Real), NumNodes> _bases_derivatives2;
 };
 
  /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */

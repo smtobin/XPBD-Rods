@@ -80,7 +80,7 @@ namespace SimObject
 using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 /** TODO: automate this */
 using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>, std::unique_ptr<SimObject::XPBDPlane>>; 
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRod_<1>, SimObject::XPBDRod_<2>, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRod_<0>, SimObject::XPBDRod_<1>, SimObject::XPBDRod_<2>, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
@@ -161,6 +161,7 @@ using XPBDJointLimitConstraints_TypeList = TypeList<
 
 using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticConstraint,
+    Constraint::RodElasticGaussPointConstraint<0>,
     Constraint::RodElasticGaussPointConstraint<1>,
     Constraint::RodElasticGaussPointConstraint<2>,
     Constraint::PointLineConstraint

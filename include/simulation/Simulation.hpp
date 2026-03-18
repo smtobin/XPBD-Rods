@@ -161,12 +161,21 @@ class Simulation
     void _addObjectFromConfig(const Config::RodConfig& rod_config)
     {
         SimObject::XPBDObject_Base* new_obj_ptr = nullptr;
-        if (rod_config.elementType() == Config::RodElementType::NONE)
+        if (rod_config.elementType() == Config::RodElementType::RIGID_BODY)
         {
-            // create the old XPBDRod
-            SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
-            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod>>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
-            SimObject::XPBDRod* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod>>().back().get();
+            // // create the old XPBDRod
+            // SimObject::CircleCrossSection cross_section(rod_config.diameter()/2.0, 20);
+            // _objects.template push_back<std::unique_ptr<SimObject::XPBDRod>>(std::make_unique<SimObject::XPBDRod>(rod_config, cross_section));
+            // SimObject::XPBDRod* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod>>().back().get();
+            // new_rod_ptr->setup();
+
+            // // add new rod to graphics scene to be visualized
+            // _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            // new_obj_ptr = new_rod_ptr;
+
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<0>>>(std::make_unique<SimObject::XPBDRod_<0>>(rod_config));
+            SimObject::XPBDRod_<0>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<0>>>().back().get();
             new_rod_ptr->setup();
 
             // add new rod to graphics scene to be visualized
