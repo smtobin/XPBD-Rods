@@ -171,6 +171,14 @@ Vec3r RodElement<Order>::shearStrain(Real s_hat) const
     return R.transpose() * dshat_ds() * dp_ds - Vec3r(0,0,1);
 }
 
+template <>
+Vec3r RodElement<1>::shearStrain(Real s_hat) const
+{
+    Mat3r R = Math::Plus_SO3(_nodes[0]->orientation, s_hat * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation));
+
+    return 1/_rest_length * R.transpose() * (_nodes[1]->position - _nodes[0]->position) - Vec3r(0,0,1);
+}
+
 template <int Order>
 Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
 {
@@ -185,6 +193,12 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
     Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
 
     return u1;
+}
+
+template <>
+Vec3r RodElement<1>::bendingStrain(Real /* s_hat */) const
+{
+    return 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
 }
 
 template <int Order>
@@ -276,6 +290,65 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
         // gradient w.r.t. orientation
         grad.template block<3,3>(3, 6*i+3) = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds) * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
     }
+
+    return grad;
+}
+
+template <>
+typename RodElement<1>::StrainGradientMatType RodElement<1>::strainGradient(Real s_hat) const
+{
+    StrainGradientMatType grad;
+    
+    Real inv_length = 1.0/_rest_length;
+
+    // stores d theta(s) / d Ri for i = 1,...,Order+1
+    std::array<Mat3r, 2> dtheta_dRi;
+    // stores d/d Ri ( d theta(s) / ds) for i = 1,...Order+1
+    std::array<Mat3r, 2> dtheta_ds_dRi;
+
+    Vec3r R2_minus_R1 = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
+    Mat3r gam_inv = Math::ExpMap_InvRightJacobian(R2_minus_R1);
+
+    // theta(s)
+    Vec3r theta = s_hat * R2_minus_R1;
+
+    // precompute quantities
+    dtheta_dRi[1] = s_hat * gam_inv;
+    dtheta_dRi[0] = -dtheta_dRi[1].transpose();
+
+    dtheta_ds_dRi[1] = inv_length * gam_inv;
+    dtheta_ds_dRi[0] = -dtheta_ds_dRi[1].transpose();
+
+
+    /** Compute gradients of shear strain */
+
+    // precompute useful quantities for gradients of shear strain
+    Mat3r exp_theta = Math::Exp_so3(theta);
+    Mat3r gam_theta = Math::ExpMap_RightJacobian(theta);
+    Mat3r R = _nodes[0]->orientation * exp_theta;
+
+
+    Vec3r dp_ds = 1/_rest_length * (_nodes[1]->position - _nodes[0]->position);
+    Mat3r RT_dp_ds_R = Math::Skew3(R.transpose() * dp_ds);
+
+    // gradients of shear strain
+    grad.template block<3,3>(0, 0) = -inv_length * R.transpose();
+    grad.template block<3,3>(0, 6) = inv_length * R.transpose();
+
+    grad.template block<3,3>(0, 3) = RT_dp_ds_R * (exp_theta.transpose() + gam_theta * dtheta_dRi[0]);
+    grad.template block<3,3>(0, 9) = RT_dp_ds_R * gam_theta * dtheta_dRi[1];
+
+
+    /** Compute gradients of bending strain */
+
+    // gradients of bending strain
+    // gradient w.r.t. positions = 0
+    grad.template block<3,3>(3, 0) = Mat3r::Zero();
+    grad.template block<3,3>(3, 6) = Mat3r::Zero();
+
+    // gradient w.r.t. orientation
+    grad.template block<3,3>(3, 3) = dtheta_ds_dRi[0];
+    grad.template block<3,3>(3, 9) = dtheta_ds_dRi[1];
 
     return grad;
 }

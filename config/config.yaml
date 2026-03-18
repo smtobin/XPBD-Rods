@@ -73,8 +73,8 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 5
-    global-solve: False
+    elements: 10
+    global-solve: True
     base-fixed: True
     tip-fixed: False
     collisions: False
