@@ -35,6 +35,8 @@ class RodConfig : public XPBDObjectConfig
         _extractParameter("base-fixed", node, _base_fixed);
         _extractParameter("tip-fixed", node, _tip_fixed);
 
+        _extractParameter("global-solve", node, _global_solve);
+
         _extractParameter("length", node, _length);
         _extractParameter("diameter", node, _diameter);
         _extractParameter("elements", node, _elements);
@@ -48,7 +50,7 @@ class RodConfig : public XPBDObjectConfig
     explicit RodConfig(const std::string& name, const Vec3r& initial_base_position, const Vec3r& initial_base_rotation,
                           const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions,
                         RodElementType element_type,
-                        bool base_fixed, bool tip_fixed,
+                        bool base_fixed, bool tip_fixed, bool global_solve,
                         Real length, Real diameter, int elements,
                         Real density, Real E, Real nu)
         : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity, collisions)
@@ -57,6 +59,8 @@ class RodConfig : public XPBDObjectConfig
 
         _base_fixed.value = base_fixed;
         _tip_fixed.value = tip_fixed;
+
+        _global_solve.value = global_solve;
 
         _length.value = length;
         _diameter.value = diameter;
@@ -72,6 +76,8 @@ class RodConfig : public XPBDObjectConfig
     bool baseFixed() const { return _base_fixed.value; }
     bool tipFixed() const { return _tip_fixed.value; }
 
+    bool globalSolve() const { return _global_solve.value; }
+
     Real length() const { return _length.value; }
     Real diameter() const { return _diameter.value; }
     int elements() const { return _elements.value; }
@@ -85,6 +91,8 @@ class RodConfig : public XPBDObjectConfig
 
     ConfigParameter<bool> _base_fixed = ConfigParameter<bool>(true);
     ConfigParameter<bool> _tip_fixed = ConfigParameter<bool>(false);
+
+    ConfigParameter<bool> _global_solve = ConfigParameter<bool>(true);
 
     ConfigParameter<Real> _length = ConfigParameter<Real>(1.0);
     ConfigParameter<Real> _diameter = ConfigParameter<Real>(0.1);

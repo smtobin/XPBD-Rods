@@ -42,10 +42,14 @@ public:
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
 
     Real radius() const { return _radius; }
+    bool globalSolve() const { return _global_solve; }
+
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
     const std::vector<RodElement<Order>>& elements() const { return _elements; }
+
+    const XPBDConstraints_Container& constraints() const { return _internal_constraints; }
 
     const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
     std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
@@ -81,6 +85,11 @@ private:
     bool _base_fixed;
     bool _tip_fixed;
 
+    /** Whether or not to do a global solve for all the constraints.
+     * If false, the constraints will be added to the top-level Gauss-Seidel solver.
+     */
+    bool _global_solve;
+
     /** Material properties */
     Real _density;  // density
     Real _E;    // elastic modulus
@@ -110,7 +119,7 @@ private:
      * One elastic rod constraint is defined per each rod segment between two nodes (so there is N-1 elastic constraints).
      * The elastic constraints penalize strain energy in the rod.
      */
-    std::vector<Constraint::RodElasticGaussPointConstraint<Order>> _elastic_constraints;
+    // std::vector<Constraint::RodElasticGaussPointConstraint<Order>> _elastic_constraints;
     // std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
 
     /** A buffer to store the gradients of all the elastic constraints. Avoids needless recomputation of gradients. */

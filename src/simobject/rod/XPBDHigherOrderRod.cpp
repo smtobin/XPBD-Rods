@@ -35,6 +35,7 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
     _num_nodes(_num_elements * (NUM_EN - 2) + (_num_elements+1)),
     _length(config.length()), _radius(config.diameter()/2.0),
     _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
+    _global_solve(config.globalSolve()),
     _density(config.density()), _E(config.E()), _nu(config.nu()),
     _solver((3*NUM_GP)/2, _num_nodes)
 {
@@ -181,6 +182,8 @@ template <int Order>
 void XPBDRod_<Order>::setup()
 {
     /** Create elastic constraints */
+    // get a reference to the elastic constraints
+    std::vector<Constraint::RodElasticGaussPointConstraint<Order>>& elastic_constraints = _internal_constraints.template get<Constraint::RodElasticGaussPointConstraint<Order>>();
 
     // stiffness
     Vec6r stiffness(_G*_area, _G*_area, _E*_area, _E*_Ix, _E*_Ix, _G*_Iz);
@@ -190,14 +193,14 @@ void XPBDRod_<Order>::setup()
     std::array<Real, NUM_GP> gauss_weights = GaussQuadratureHelper<NUM_GP>::weights();
     for (int i = 0; i < _num_elements; i++)
     {
-        for (unsigned gi = 0; gi < gauss_points.size(); gi++)
+        for (unsigned gi = 0; gi < NUM_GP; gi++)
         {
             // get compliance for this constraint
             // stiffness scales according to Gauss quadrature weight
             Vec6r scaled_stiffness = _element_rest_length * gauss_weights[gi] * stiffness;
             Vec6r compliance = 1.0/scaled_stiffness.array();
 
-            _elastic_constraints.emplace_back(&_elements[i], gauss_points[gi], compliance);
+            elastic_constraints.emplace_back(&_elements[i], gauss_points[gi], compliance);
             // _elastic_constraints.emplace_back(&_nodes[i], &_nodes[i+1], compliance);
         }
     }
@@ -218,9 +221,9 @@ void XPBDRod_<Order>::setup()
     }
 
     /** Add constraints to ordered constraints vector */
-    for (unsigned i = 0; i < _elastic_constraints.size(); i++)
+    for (unsigned i = 0; i < elastic_constraints.size(); i++)
     {
-        _ordered_constraints.emplace_back(&_elastic_constraints[i]);
+        _ordered_constraints.emplace_back(&elastic_constraints[i]);
     }
 
     if (_base_fixed)
@@ -234,7 +237,7 @@ void XPBDRod_<Order>::setup()
             &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().back());
     }
 
-    _num_constraints = _elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed;
+    _num_constraints = elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed;
 
     /** Allocate space */
     _RHS_vec = VecXr::Zero(6*_num_constraints);
@@ -253,13 +256,13 @@ void XPBDRod_<Order>::setup()
     }
 
     /** Ensure proper setup of block banded solver */
-    int bandwidth = (3*NUM_GP)/2;
-    _gradient_buffer.reserve(_elastic_constraints.size());
+    int bandwidth = 2*NUM_GP - 1;
+    _gradient_buffer.reserve(elastic_constraints.size());
 
     // number of diagonals = bandwidth + 1
     _diagonals.resize(bandwidth+1);
     for (int i = 0; i < bandwidth+1; i++)
-        _diagonals[i].resize(_num_constraints);
+        _diagonals[i].resize(_num_constraints, Mat6r::Zero());
 
     _solver.setBandwidth(bandwidth);
     _solver.setNumDiagBlocks(_num_constraints);
@@ -292,6 +295,15 @@ void XPBDRod_<Order>::velocityUpdate(Real dt)
 template <int Order>
 void XPBDRod_<Order>::internalConstraintSolve(Real dt)
 {
+    // if we are not solving the system globally (i.e. using Gauss-Seidel or other iterative method instead),
+    // don't do the internal constraint solve
+    // assume that we have added the constraints to the top-level Gauss-Seidel solver, and let it do the work
+    if (!_global_solve)
+        return;
+
+    // get a reference to the elastic constraints
+    std::vector<Constraint::RodElasticGaussPointConstraint<Order>>& elastic_constraints = _internal_constraints.template get<Constraint::RodElasticGaussPointConstraint<Order>>();
+
     /** Assemble diagonal blocks for solver */
 
     // iterate through elements and compute all the constraint gradients
@@ -300,7 +312,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
         for (int j = 0; j < NUM_GP; j++)
         {
             int constraint_ind = NUM_GP*i + j;
-            _gradient_buffer[constraint_ind] = _elastic_constraints[constraint_ind].gradient();
+            _gradient_buffer[constraint_ind] = elastic_constraints[constraint_ind].gradient();
         }
     }
 
@@ -356,8 +368,8 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
             int this_ind = NUM_GP*i + j;
 
             // compute RHS
-            typename Constraint::RodElasticGaussPointConstraint<Order>::AlphaVecType alpha_tilde = _elastic_constraints[this_ind].alpha() / (dt*dt);
-            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -_elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+            typename Constraint::RodElasticGaussPointConstraint<Order>::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
+            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
 
             // last constraint index that is still in this same element (element i)
             int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);

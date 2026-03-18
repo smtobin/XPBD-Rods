@@ -14,7 +14,9 @@ RodConvergenceSimulation::RodConvergenceSimulation()
 RodConvergenceSimulation::RodConvergenceSimulation(const Config::RodConvergenceSimulationConfig& config)
     : Simulation(config), _rod_E(config.rodE()), _rod_nu(config.rodNu()), _rod_density(config.rodDensity()),
      _rod_dia(config.rodDia()), _rod_length(config.rodLength()),
-    _linear_rod_elements(config.linearRodElements()), _quadratic_rod_elements(config.quadraticRodElements())
+    _rigid_body_elements(config.rigidBodyRodElements()),
+    _linear_rod_elements(config.linearRodElements()),
+    _quadratic_rod_elements(config.quadraticRodElements())
 {
 
 }
@@ -24,12 +26,24 @@ void RodConvergenceSimulation::setup()
     Simulation::setup();
 
     // create rods for each number of nodes specified
+    for (const auto& num_elem: _rigid_body_elements)
+    {
+        std::string name = "rigid_body_rod" + std::to_string(num_elem);
+        Config::RodConfig config(
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            Config::RodElementType::RIGID_BODY, true, false, true,
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+        );
+
+        _addObjectFromConfig(config);
+    }
+
     for (const auto& num_elem : _linear_rod_elements)
     {
         std::string name = "linear_rod" + std::to_string(num_elem);
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
-            Config::RodElementType::LINEAR, true, false,
+            Config::RodElementType::LINEAR, true, false, true,
             _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
         );
 
@@ -41,7 +55,7 @@ void RodConvergenceSimulation::setup()
         std::string name = "quadratic_rod" + std::to_string(num_elem);
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
-            Config::RodElementType::QUADRATIC, true, false,
+            Config::RodElementType::QUADRATIC, true, false, true,
             _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
         );
         _addObjectFromConfig(config);
@@ -50,8 +64,8 @@ void RodConvergenceSimulation::setup()
     // create ground truth rod
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
-        Config::RodElementType::QUADRATIC, true, false,
-        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu
+        Config::RodElementType::QUADRATIC, true, false, true,
+        _rod_length, _rod_dia, 5000, _rod_density, _rod_E, _rod_nu
     );
     _addObjectFromConfig(ground_truth_config);
 
@@ -66,7 +80,7 @@ void RodConvergenceSimulation::update()
     // after the sim is finished, we assume that we've reached steady state
     // compute the energy norm between each rod and the final rod
 
-    _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
+    _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<0>>, std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
     {
         std::cout << "Energy norm for " << obj->name() << ": " << _energyNorm(obj.get(), _ground_truth) << std::endl;
     });
@@ -113,24 +127,38 @@ Real RodConvergenceSimulation::_energyNorm(SimObject::XPBDRod_<Order1>* rod1, Si
     Real rod1_elem_length = rod1_elements[0].restLength();
     Real rod2_elem_length = rod2_elements[0].restLength();
 
-    // iterate through rod2's elements
+    // iterate through rod1's elements and compare strains at Gauss points
     Real total_energy_norm = 0;
-    for (unsigned i = 0; i < rod2_elements.size(); i++)
+
+    auto points = GaussQuadratureHelper<SimObject::XPBDRod_<Order1>::NUM_GP>::points();
+    auto weights = GaussQuadratureHelper<SimObject::XPBDRod_<Order1>::NUM_GP>::weights();
+    for (unsigned i = 0; i < rod1_elements.size(); i++)
     {
-        // get position along rod (i.e. get s)
-        Real s = i*rod2_elem_length + rod2_elem_length/2.0;
+        
 
-        // get index of corresponding element in rod1
-        int rod1_elem_ind = static_cast<int>(s / rod1_elem_length);
-        Real rod1_shat = (s - rod1_elem_ind*rod1_elem_length) / (rod1_elem_length);
+        for (unsigned j = 0; j < points.size(); j++)
+        {
+            // get position along rod (i.e. get s)
+            Real s = i*rod1_elem_length + points[j]*rod1_elem_length;
 
-        // compute difference in strain variables at this point
-        Vec6r strain1 = rod1_elements[rod1_elem_ind].strain(rod1_shat);
-        Vec6r strain2 = rod2_elements[i].strain(0.5);
+            // get index of corresponding element in rod2
+            int rod2_elem_ind = static_cast<int>(s / rod2_elem_length);
+            Real rod2_shat = (s - rod2_elem_ind*rod2_elem_length) / (rod2_elem_length);
 
-        Vec6r strain_diff = strain2 - strain1;
-        Real energy_norm = rod2_elem_length * strain_diff.transpose() * stiffness.asDiagonal() * strain_diff;
-        total_energy_norm += energy_norm;
+            // compute difference in strain variables at this point
+            Vec6r strain1 = rod1_elements[i].strain(points[j]);
+            Vec6r strain2 = rod2_elements[rod2_elem_ind].strain(rod2_shat);
+
+            Vec6r strain_diff = strain2 - strain1;
+
+            // std::cout << "\nExp strain " << i << ": \t" << strain2.transpose() << std::endl;
+            // std::cout << "GT strain " << i << ": \t" << strain1.transpose() << std::endl; 
+            // std::cout << "strain diff " << i << ": \t" << strain_diff.transpose() << std::endl;
+
+            Real energy_norm = rod1_elem_length * weights[j] * strain_diff.transpose() * stiffness.asDiagonal() * strain_diff;
+            total_energy_norm += energy_norm;
+        }
+        
     }
     total_energy_norm = std::sqrt(total_energy_norm);
 

@@ -32,6 +32,7 @@ private:
     Real _rod_dia;
     Real _rod_length;
 
+    std::vector<int> _rigid_body_elements;
     std::vector<int> _linear_rod_elements;
     std::vector<int> _quadratic_rod_elements;
 

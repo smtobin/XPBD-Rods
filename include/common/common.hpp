@@ -179,9 +179,9 @@ using XPBDCollisionConstraints_TypeList = TypeList<
 >;
 
 using XPBDConstraints_TypeList = ConcatenateTypeLists<
+    XPBDRodConstraints_TypeList,
     XPBDJointConstraints_TypeList,
     XPBDJointLimitConstraints_TypeList,
-    XPBDRodConstraints_TypeList,
     XPBDCollisionConstraints_TypeList   // important that this goes last (I think)
 >::type;
 

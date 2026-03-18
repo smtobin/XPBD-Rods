@@ -20,6 +20,7 @@ public:
         _extractParameter("length", node, _rod_length);
         _extractParameter("density", node, _rod_density);
 
+        _extractParameter("rigid-body-rod-elements", node, _rigid_body_rod_elements);
         _extractParameter("linear-rod-elements", node, _linear_rod_elements);
         _extractParameter("quadratic-rod-elements", node, _quadratic_rod_elements);
     }
@@ -30,6 +31,7 @@ public:
     Real rodDia() const { return _rod_dia.value; }
     Real rodLength() const { return _rod_length.value; }
 
+    std::vector<int> rigidBodyRodElements() const { return _rigid_body_rod_elements.value; }
     std::vector<int> linearRodElements() const { return _linear_rod_elements.value; }
     std::vector<int> quadraticRodElements() const { return _quadratic_rod_elements.value; }
 
@@ -40,6 +42,7 @@ private:
     ConfigParameter<Real> _rod_dia = ConfigParameter<Real>(0.1);
     ConfigParameter<Real> _rod_length = ConfigParameter<Real>(1.0);
 
+    ConfigParameter<std::vector<int>> _rigid_body_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
     ConfigParameter<std::vector<int>> _linear_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
     ConfigParameter<std::vector<int>> _quadratic_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
 };
