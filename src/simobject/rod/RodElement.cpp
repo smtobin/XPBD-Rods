@@ -282,13 +282,14 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     /** Compute gradients of bending strain */
 
     // gradients of bending strain
+    Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
     for (int i = 0; i < Order+1; i++)
     {
         // gradient w.r.t. positions = 0
         grad.template block<3,3>(3, 6*i) = Mat3r::Zero();
 
         // gradient w.r.t. orientation
-        grad.template block<3,3>(3, 6*i+3) = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds) * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
+        grad.template block<3,3>(3, 6*i+3) = dexpmap_contract_j * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
     }
 
     return grad;

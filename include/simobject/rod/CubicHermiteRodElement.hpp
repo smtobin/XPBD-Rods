@@ -10,23 +10,25 @@
 namespace SimObject
 {
 
-template <int Order_>
-class RodElement : public RodElement_Base
+class CubicHermiteRodElement : public RodElement_Base
 {
 public:
-    static constexpr int NumNodes = std::max(2,Order_+1);  // number of nodes in the element
+    static constexpr int NumNodes = 2;  // number of nodes in the element
     static constexpr int NumGP = 2;     // number of Gauss points per element
-    static constexpr int Order = Order_;     // the order of the polynomial bases
+    static constexpr int Order = 3;     // the order of the polynomial bases
 
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
-    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(NumNodes)>;
-    using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(NumNodes)>;
+    using DerivativeArrayType = std::array<Vec3r*, NumNodes>;
+    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*NumNodes>;
+    using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*NumNodes>;
 
-    RodElement(const NodeArrayType& nodes_list, Real rest_length);
+    CubicHermiteRodElement(const NodeArrayType& nodes_list, 
+        const DerivativeArrayType& dp_ds, const DerivativeArrayType& dR_ds,
+        Real rest_length);
 
     virtual int order() const override { return Order; }
 
-    static std::array<Real, NumNodes> lumpedMasses();
+    static std::array<Real, 4> lumpedMasses();
 
     virtual OrientedParticle* node(int index) const override { return _nodes[index]; }
     virtual OrientedParticle* firstNode() const override { return _nodes.front(); }
@@ -63,14 +65,36 @@ public:
 
 
 private:
+    /** Array of pointers to nodes (oriented particles)
+     * The source of p, R for the element endpoints
+     */
     NodeArrayType _nodes;
-    
-    std::array<Real(*)(Real), NumNodes> _bases;
-    std::array<Real(*)(Real), NumNodes> _bases_derivatives;
-    std::array<Real(*)(Real), NumNodes> _bases_derivatives2;
-};
 
- /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
-std::vector<std::pair<Real,Real>> closestPointsBetweenRodElements(const RodElement_Base* elem1, const RodElement_Base* elem2);
+    /** Array of points to h*p' for the element endpoints
+     * This is stored in the rod class itself (since it is shared by multiple elements)
+     * 
+     * Note that the p' is assumed to be non-dimensionalized, i.e. multiplied by h
+     * so that it has the same units as p. This helps scaling/conditioning.
+     */
+    DerivativeArrayType _dp_ds;
+    DerivativeArrayType _prev_dp_ds;
+
+    /** Array of pointers to R' for the element endpoints
+     * This is stored in the rod class itself (since it is ahred by multiple elements)
+     * 
+     * Note that the R' is assumed to be non-dimensionalized, i.e. multiplied by h
+     * so that it has the same units as R. This helps scaling/conditioning.
+     */
+    DerivativeArrayType _dR_ds;
+    DerivativeArrayType _prev_dR_ds;
+
+
+    /** Basis functions 
+     * Because p' and R' have been scaled by h, all basis functions are non-dimensional scalar functions.
+    */
+    std::array<Real(*)(Real), 4> _bases;
+    /** Basis function derivatives (with respect to s_hat) */
+    std::array<Real(*)(Real), 4> _bases_derivatives;
+};
 
 } // namespace SimObject
