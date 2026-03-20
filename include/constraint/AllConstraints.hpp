@@ -18,3 +18,5 @@
 #include "constraint/RigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRodCollisionConstraint.hpp"
+
+#include "constraint/FixedParticleConstraint.hpp"

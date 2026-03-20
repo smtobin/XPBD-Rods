@@ -37,7 +37,7 @@ public:
     }
 
     /** Enable reduced constructors for when the number of positional particles = 0 */
-    
+
     template<int M = NumParticles_, typename std::enable_if<M == 0, int>::type = 0>
     XPBDConstraint(const OrientedParticlePtrArray& oriented_particles, const AlphaVecType& alpha)
         : _oriented_particles(oriented_particles), _alpha(alpha)
@@ -46,9 +46,25 @@ public:
 
     template<int M = NumParticles_, typename std::enable_if<M == 0, int>::type = 0>
     XPBDConstraint(std::initializer_list<SimObject::OrientedParticle*> oriented_particles_list, const AlphaVecType& alpha)
-        : _oriented_particles{}, _alpha(alpha)
+        : _oriented_particles{}, _particles{}, _alpha(alpha)
     {
         std::copy(oriented_particles_list.begin(), oriented_particles_list.end(), _oriented_particles.begin());
+    }
+
+
+    /** Enable reduced constructors for when the number of oriented particles = 0 */
+    
+    template<int M = NumOrientedParticles_, typename std::enable_if<M == 0, int>::type = 0>
+    XPBDConstraint(const ParticlePtrArray& particles, const AlphaVecType& alpha)
+        : _particles(particles), _alpha(alpha)
+    {
+    }
+
+    template<int M = NumOrientedParticles_, typename std::enable_if<M == 0, int>::type = 0>
+    XPBDConstraint(std::initializer_list<SimObject::Particle*> particles_list, const AlphaVecType& alpha)
+        : _oriented_particles{}, _particles{}, _alpha(alpha)
+    {
+        std::copy(particles_list.begin(), particles_list.end(), _particles.begin());
     }
 
     virtual ~XPBDConstraint() = default;

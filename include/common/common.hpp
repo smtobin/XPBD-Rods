@@ -140,6 +140,8 @@ namespace Constraint
 
     template <int Order1, int Order2>
     class RodRodCollisionConstraint;
+
+    class OneSidedFixedParticleConstraint;
 }
 
 using XPBDJointConstraints_TypeList = TypeList<
@@ -187,8 +189,13 @@ using XPBDCollisionConstraints_TypeList = TypeList<
     Constraint::RodRodCollisionConstraint<2,2>
 >;
 
+using XPBDParticleConstraints_TypeList = TypeList<
+    Constraint::OneSidedFixedParticleConstraint
+>;
+
 using XPBDConstraints_TypeList = ConcatenateTypeLists<
     XPBDRodConstraints_TypeList,
+    XPBDParticleConstraints_TypeList,
     XPBDJointConstraints_TypeList,
     XPBDJointLimitConstraints_TypeList,
     XPBDCollisionConstraints_TypeList   // important that this goes last (I think)

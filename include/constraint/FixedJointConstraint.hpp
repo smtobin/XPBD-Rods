@@ -7,7 +7,7 @@ namespace Constraint
 
 class FixedJointConstraint : public XPBDConstraint<6, 2, 0>
 {
-    public:
+public:
     FixedJointConstraint(
         SimObject::OrientedParticle* particle1, const Vec3r& r1, const Mat3r& or1,
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2,
@@ -20,7 +20,7 @@ class FixedJointConstraint : public XPBDConstraint<6, 2, 0>
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 
-    private:
+private:
     Vec3r _r1;
     Mat3r _or1;
 
@@ -33,7 +33,7 @@ class FixedJointConstraint : public XPBDConstraint<6, 2, 0>
 
 class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1, 0>
 {
-    public:
+public:
     OneSidedFixedJointConstraint(
         const Vec3r& ref_position, const Mat3r& ref_orientation,
         SimObject::OrientedParticle* particle, const Vec3r& r1, const Mat3r& or1,
@@ -56,7 +56,7 @@ class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1, 0>
     //     return _node->index < other._node->index;
     // }
 
-    private:
+private:
     Vec3r _r1;
     Mat3r _or1;
 
