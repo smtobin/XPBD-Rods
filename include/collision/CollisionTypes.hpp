@@ -24,12 +24,14 @@ struct RigidSegmentCollision
 {
     SimObject::XPBDRigidBody_Base* rb;  // the rigid body in collision
     Vec3r cp_local_rb;  // contact point in local rigid body frame
-    SimObject::XPBDRod* rod;    // the rod in collision
+    SimObject::RodElement_Base* rod;    // the rod in collision
     SimObject::OrientedParticle* segment_particle1; // one endpoint of rod segment
     SimObject::OrientedParticle* segment_particle2; // other endpoint of rod segment
     Real beta; // interpolation parameter in [0,1] 
     Vec3r cp_local_rod;  // contact point in local interpolated rod frame
     Vec3r normal;   //collision normal (points outward from segment)
+    Real rod_mu_s;  // rod coefficient of static friction
+    Real rod_mu_d;  // rod coefficient of dynamic friction
 };
 
 struct SegmentSegmentCollision

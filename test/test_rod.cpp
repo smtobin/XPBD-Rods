@@ -43,7 +43,7 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
             using ConstraintType = base_type_t<decltype(constraint)>;
             num_constraints += ConstraintType::ConstraintDim;
 
-            for (int i = 0; i < ConstraintType::NumParticles; i++)
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
                 SimObject::OrientedParticle* particle_i = const_cast<SimObject::OrientedParticle*>(constraint->particles()[i]); // cast away constness - gross! but necessary for now
                 particle_to_index.insert({particle_i, particle_to_index.size()});   // insert if the particle not already accounted for
@@ -81,7 +81,7 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
 
                 // evaluate the gradient and put it in global delC matrix
                 typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumParticles; i++)
+                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
                 {
                     int particle_index = particle_to_index[constraint->particles()[i]];
                     delC.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
@@ -139,11 +139,7 @@ int main()
         1e8, 0.4
     );
 
-    SimObject::CircleCrossSection rod_xs(
-        0.05
-    );
-
-    SimObject::XPBDRod rod(rod_config, rod_xs);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod(rod_config);
     rod.setup();
 
     auto& rod_nodes = rod.nodes();

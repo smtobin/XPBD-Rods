@@ -42,7 +42,7 @@ struct Muller2020ConstraintHelper
     template<typename Constraint>
     static Real positionalW2(const ConstVectorHandle<Constraint>& constraint)
     {
-        if constexpr (Constraint::NumParticles == 1)
+        if constexpr (Constraint::NumOrientedParticles == 1)
         {
             return 0;
         }
@@ -74,7 +74,7 @@ struct Muller2020ConstraintHelper
     template<typename Constraint>
     static Real angularW2(const ConstVectorHandle<Constraint>& constraint)
     {
-        if constexpr (Constraint::NumParticles == 1)
+        if constexpr (Constraint::NumOrientedParticles == 1)
         {
             return 0;
         }
@@ -185,7 +185,7 @@ public:
         particle1->positionUpdate(p1_update, or1_update);
 
         // particle 2 (if applicable)
-        if (Constraint::NumParticles == 2)
+        if (Constraint::NumOrientedParticles == 2)
         {
             SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_update = dlam * n / particle2->mass;
@@ -233,7 +233,7 @@ public:
         std::cout << "p1 Orientation update: " << or1_update.transpose() << std::endl;
         particle1->positionUpdate(Vec3r::Zero(), or1_update);
 
-        if (Constraint::NumParticles == 2)
+        if (Constraint::NumOrientedParticles == 2)
         {
             SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();

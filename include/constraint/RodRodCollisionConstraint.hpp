@@ -8,16 +8,16 @@ namespace Constraint
 {
 
 template <int Order1, int Order2>
-class RodRodCollisionConstraint : public XPBDConstraint<1, Order1+1 + Order2+1>
+class RodRodCollisionConstraint : public XPBDConstraint<1, Order1+1 + Order2+1, 0>
 {
 public:
-    constexpr static int StateDim = XPBDConstraint<1, Order1+1 + Order2+1>::StateDim;
-    constexpr static int ConstraintDim = XPBDConstraint<1, Order1+1 + Order2+1>::ConstraintDim;
-    constexpr static int NumParticles = XPBDConstraint<1, Order1+1 + Order2+1>::NumParticles;
-    using ConstraintVecType = typename XPBDConstraint<1, Order1+1 + Order2+1>::ConstraintVecType;
-    using AlphaVecType = typename XPBDConstraint<1, Order1+1 + Order2+1>::AlphaVecType;
-    using GradientMatType = typename XPBDConstraint<1, Order1+1 + Order2+1>::GradientMatType;
-    using SingleParticleGradientMatType = typename XPBDConstraint<1, Order1+1 + Order2+1>::SingleParticleGradientMatType;
+    using BaseConstraintType = XPBDConstraint<1, Order1+1 + Order2+1, 0>;
+    constexpr static int StateDim = BaseConstraintType::StateDim;
+    constexpr static int ConstraintDim = BaseConstraintType::ConstraintDim;
+    constexpr static int NumOrientedParticles = BaseConstraintType::NumOrientedParticles;
+    using ConstraintVecType = typename BaseConstraintType::ConstraintVecType;
+    using AlphaVecType = typename BaseConstraintType::AlphaVecType;
+    using GradientMatType = typename BaseConstraintType::GradientMatType;
 
     RodRodCollisionConstraint(
         SimObject::RodElement<Order1>* element1,
@@ -31,14 +31,12 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
 
 private:
-    using XPBDConstraint<1, Order1+1 + Order2+1>::_particles;
+    using BaseConstraintType::_oriented_particles;
 
     /** Rod elements */
     SimObject::RodElement<Order1>* _element1;

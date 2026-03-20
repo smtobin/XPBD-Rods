@@ -64,9 +64,6 @@ target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} SimObject Solver
 add_executable(Sim src/exec/main.cpp)
 target_link_libraries(Sim Simulation ${VTK_LIBRARIES})
 
-add_executable(RodGraspingSim src/exec/rod_grasping_sim.cpp)
-target_link_libraries(RodGraspingSim Simulation ${VTK_LIBRARIES})
-
 add_executable(RodConvergenceSim src/exec/rod_convergence_sim.cpp)
 target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 
@@ -82,9 +79,6 @@ target_link_libraries(TestBanded Solver Eigen3::Eigen)
 
 add_executable(TestThomasVsBanded test/test_thomas_vs_banded.cpp)
 target_link_libraries(TestThomasVsBanded Solver Eigen3::Eigen)
-
-add_executable(TestVTK test/test_vtk.cpp)
-target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} SimObject)
 
 add_executable(TestPBR test/test_pbr.cpp)
 target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
@@ -107,10 +101,6 @@ target_link_libraries(TestRod Eigen3::Eigen SimObject Collision)
 
 
 # vtk_module_autoinit is needed
-vtk_module_autoinit(
-  TARGETS TestVTK
-  MODULES ${VTK_LIBRARIES}
-)
 
 vtk_module_autoinit(
   TARGETS TestPBR
@@ -129,11 +119,6 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS RodConvergenceSim
-  MODULES ${VTK_LIBRARIES}
-)
-
-vtk_module_autoinit(
-  TARGETS RodGraspingSim
   MODULES ${VTK_LIBRARIES}
 )
 

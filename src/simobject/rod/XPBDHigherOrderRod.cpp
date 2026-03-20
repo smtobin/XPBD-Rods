@@ -517,7 +517,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
     //         // evaluate the gradient and put it in global delC matrix
     //         typename ConstraintType::GradientMatType gradient = constraint->gradient();
-    //         for (int i = 0; i < ConstraintType::NumParticles; i++)
+    //         for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
     //         {
     //             int particle_index = constraint->particles()[i] - _nodes.data();
     //             _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 

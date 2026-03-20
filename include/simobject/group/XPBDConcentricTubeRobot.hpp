@@ -1,7 +1,7 @@
 #pragma once
 
 #include "simobject/group/XPBDObjectGroup_Base.hpp"
-#include "simobject/rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDHigherOrderRod.hpp"
 
 #include "config/XPBDConcentricTubeRobotConfig.hpp"
 
@@ -28,8 +28,8 @@ private:
     Mat3r _base_orientation;
 
     // separate variables for convenience
-    XPBDRod* _outer_rod;
-    XPBDRod* _inner_rod;
+    XPBDRod_<RodElement<1>>* _outer_rod;
+    XPBDRod_<RodElement<1>>* _inner_rod;
 
     // index all the particles
     std::unordered_map<const OrientedParticle*, int> _particle_ptr_to_index;

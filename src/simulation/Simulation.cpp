@@ -539,11 +539,15 @@ VecXr Simulation::primaryResidual() const
                 using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
 
                 // iterate through the particles involved in the constraint
-                const typename ConstraintType::ParticlePtrArray& particles = constraint->particles();
-                for (const auto& particle : particles)
+                const typename ConstraintType::OrientedParticlePtrArray& particles = constraint->particles();
+                typename ConstraintType::GradientMatType full_grad = constraint->gradient();
+                for (unsigned i = 0; i < particles.size(); i++)
                 {
+                    SimObject::OrientedParticle* particle = particles[i];
+
                     // compute delC^T * lambda for the constraint gradient w.r.t. this particle
-                    typename ConstraintType::SingleParticleGradientMatType grad = constraint->singleParticleGradient(particle);
+                    using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintType::ConstraintDim, 6>;
+                    SingleOrientedParticleGradientMatType grad = full_grad.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
                     Vec6r vec = grad.transpose() * Eigen::Map<const typename ConstraintType::ConstraintVecType>(constraint_and_lambda.lambda);
 
                     // add its contribution to the global delC^T * lambda vector
@@ -563,10 +567,15 @@ VecXr Simulation::primaryResidual() const
         using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
         using ConstraintType = typename ProjType::Constraint;
         
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
+        const typename ConstraintType::OrientedParticlePtrArray& particles = proj.constraint()->particles();
+        typename ConstraintType::GradientMatType full_grad = proj.constraint()->gradient();
+
+        for (unsigned i = 0; i < particles.size(); i++)
         {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
+            SimObject::OrientedParticle* particle = particles[i];
+
+            using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintType::ConstraintDim, 6>;
+            SingleOrientedParticleGradientMatType grad = full_grad.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
             Vec6r vec = grad.transpose() * proj.lambda();
             int index = _particle_ptr_to_index.at(particle);
 
@@ -731,8 +740,8 @@ void Simulation::_timeStep()
             }
             if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
             {
-                Real mu_s = 0.5*(collision.rb->staticFrictionCoeff() + collision.rod->staticFrictionCoeff());
-                Real mu_d = 0.5*(collision.rb->dynamicFrictionCoeff() + collision.rod->dynamicFrictionCoeff());
+                Real mu_s = 0.5*(collision.rb->staticFrictionCoeff() + collision.rod_mu_s);
+                Real mu_d = 0.5*(collision.rb->dynamicFrictionCoeff() + collision.rod_mu_d);
                 if (collision.rb->com().fixed)
                 {
                     using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;

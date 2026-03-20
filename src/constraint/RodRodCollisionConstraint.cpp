@@ -15,7 +15,7 @@ RodRodCollisionConstraint<Order1, Order2>::RodRodCollisionConstraint(
     const Vec3r& n,
     Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, Order1+1 + Order2+1>(concat_arrays(element1->nodes(), element2->nodes()),
+    : XPBDConstraint<1, Order1+1 + Order2+1,0>(concat_arrays(element1->nodes(), element2->nodes()),
      1e-10*AlphaVecType::Ones()),
     _element1(element1), _element2(element2),
     _s_hat1(s_hat1), _s_hat2(s_hat2),
@@ -41,20 +41,12 @@ RodRodCollisionConstraint<Order1, Order2>::evaluate() const
 
 template <int Order1, int Order2>
 typename RodRodCollisionConstraint<Order1, Order2>::GradientMatType
-RodRodCollisionConstraint<Order1, Order2>::gradient(bool /*update_cache*/) const
+RodRodCollisionConstraint<Order1, Order2>::gradient() const
 {
     GradientMatType grad;
     grad.template block<1, 6*(Order1+1)>(0,0) = -_n.transpose() * _element1->contactPointGradient(_s_hat1, _cp_local1);
     grad.template block<1, 6*(Order2+1)>(0,6*(Order1+1)) = _n.transpose() * _element2->contactPointGradient(_s_hat2, _cp_local2);
     return grad;
-}
-
-template <int Order1, int Order2>
-typename RodRodCollisionConstraint<Order1, Order2>::SingleParticleGradientMatType
-RodRodCollisionConstraint<Order1, Order2>::singleParticleGradient(const SimObject::OrientedParticle* /*node_ptr*/, bool /*use_cache*/) const
-{
-    throw std::runtime_error("singleParticleGradient not implemented for RodRodCollisionConstraint");
-    return SingleParticleGradientMatType::Zero();
 }
 
 template <int Order1, int Order2>
@@ -92,10 +84,10 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
     delC.template block<1, 6*(Order2+1)>(0,6*(Order1+1)) = tan_dir.transpose() * _element2->contactPointGradient(_s_hat2, _cp_local2);
 
     // std::cout << std::endl;
-    // std::cout << "  p1: " << _particles[0]->position.transpose() << std::endl;
-    // std::cout << "  p2: " << _particles[1]->position.transpose() << std::endl;
-    // std::cout << "  p3: " << _particles[2]->position.transpose() << std::endl;
-    // std::cout << "  p4: " << _particles[3]->position.transpose() << std::endl;
+    // std::cout << "  p1: " << _oriented_particles[0]->position.transpose() << std::endl;
+    // std::cout << "  p2: " << _oriented_particles[1]->position.transpose() << std::endl;
+    // std::cout << "  p3: " << _oriented_particles[2]->position.transpose() << std::endl;
+    // std::cout << "  p4: " << _oriented_particles[3]->position.transpose() << std::endl;
 
     // std::cout << "  dp_tan: " << dp_tan.transpose() << std::endl;
     // std::cout << "  ||dp_tan||: " << dp_tan.norm() << std::endl;
@@ -103,11 +95,11 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
     
 
     Eigen::Vector<Real, StateDim> inertia_inverse;
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
         inertia_inverse.template block<6,1>(6*i, 0) = 
-            Vec6r(1/_particles[i]->mass, 1/_particles[i]->mass, 1/_particles[i]->mass,
-                 1/_particles[i]->Ib[0], 1/_particles[i]->Ib[1], 1/_particles[i]->Ib[2]);
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
     }
 
     Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
@@ -145,12 +137,13 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
 
     // update nodes
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
-        SingleParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
+        using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim, 6>;
+        SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
         const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam_tan;
         // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
-        _particles[i]->positionUpdate(position_update);
+        _oriented_particles[i]->positionUpdate(position_update);
     }
 }
 

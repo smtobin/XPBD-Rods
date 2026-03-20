@@ -5,7 +5,7 @@
 namespace Constraint
 {
 
-class FixedJointConstraint : public XPBDConstraint<6, 2>
+class FixedJointConstraint : public XPBDConstraint<6, 2, 0>
 {
     public:
     FixedJointConstraint(
@@ -18,9 +18,7 @@ class FixedJointConstraint : public XPBDConstraint<6, 2>
     Vec3r bodyJointOffset2() const { return _r2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle*, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     private:
     Vec3r _r1;
@@ -33,7 +31,7 @@ class FixedJointConstraint : public XPBDConstraint<6, 2>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1>
+class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1, 0>
 {
     public:
     OneSidedFixedJointConstraint(
@@ -46,9 +44,7 @@ class OneSidedFixedJointConstraint : public XPBDConstraint<6, 1>
     Vec3r bodyJointOffset2() const { return Vec3r::Zero(); }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle*, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     const Vec3r& referencePosition() const { return _ref_position; }
     void setReferencePosition(const Vec3r& new_pos) { _ref_position = new_pos; }

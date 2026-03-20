@@ -6,7 +6,7 @@
 namespace Constraint
 {
 
-class PrismaticJointLimitConstraint : public XPBDConstraint<1, 2>
+class PrismaticJointLimitConstraint : public XPBDConstraint<1, 2, 0>
 {
 public:
     PrismaticJointLimitConstraint(const PrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
@@ -15,9 +15,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r1;
@@ -35,7 +33,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////
 
 
-class OneSidedPrismaticJointLimitConstraint : public XPBDConstraint<1, 1>
+class OneSidedPrismaticJointLimitConstraint : public XPBDConstraint<1, 1, 0>
 {
 public:
     OneSidedPrismaticJointLimitConstraint(const OneSidedPrismaticJointConstraint& rev_constraint, Real min_dist, Real max_dist, Real alpha=0);
@@ -44,9 +42,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r2;

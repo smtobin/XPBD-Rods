@@ -474,10 +474,10 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
             _alpha.template block<ConstraintType::ConstraintDim,1>(constraint_index,0) = constraint->alpha();
 
             // evaluate the gradient and put it in global delC matrix
-            if (std::is_same_v<ConstraintType, ElasticConstraintType)
+            if (std::is_same_v<ConstraintType, ElasticConstraintType>)
             {
                 typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumParticles; i++)
+                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
                 {
                     int particle_index = constraint->particles()[i] - _nodes.data();
                     _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
@@ -487,7 +487,7 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
             else
             {
                 typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumParticles; i++)
+                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
                 {
                     int particle_index = constraint->particles()[i] - _nodes.data();
                     _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 12*particle_index) = 

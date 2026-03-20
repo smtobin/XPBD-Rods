@@ -9,12 +9,12 @@
 template<typename ConstraintType>
 typename ConstraintType::GradientMatType numericalConstraintGradient(ConstraintType& constraint)
 {
-    const typename ConstraintType::ParticlePtrArray& particles = constraint.particles();
+    const typename ConstraintType::OrientedParticlePtrArray& particles = constraint.particles();
     typename ConstraintType::ConstraintVecType orig_C = constraint.evaluate();
 
     Real delta = 1e-8;
     typename ConstraintType::GradientMatType gradient;
-    for (int pi = 0; pi < ConstraintType::NumParticles; pi++)
+    for (int pi = 0; pi < ConstraintType::NumOrientedParticles; pi++)
     {
         SimObject::OrientedParticle* particle_i = particles[pi];
         for (int dof_i = 0; dof_i < 3; dof_i++)

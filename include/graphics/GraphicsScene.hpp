@@ -1,6 +1,5 @@
 #pragma once
 
-#include "simobject/rod/XPBDRod.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/group/XPBDObjectGroup_Base.hpp"
@@ -54,7 +53,6 @@ class GraphicsScene
         _renderer->AddActor(rod_go->actor());
         _graphics_objects.push_back(std::move(rod_go));
     }
-    void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config);

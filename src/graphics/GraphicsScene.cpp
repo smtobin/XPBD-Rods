@@ -251,14 +251,6 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<RodGraphicsObject> rod_go = std::make_unique<RodGraphicsObject>(rod, render_config);
-
-    _renderer->AddActor(rod_go->actor());
-    _graphics_objects.push_back(std::move(rod_go));
-}
-
 void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)
 {
     std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, render_config);

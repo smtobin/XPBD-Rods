@@ -42,8 +42,6 @@ public:
         addObject( (SimObject::XPBDRod_<SimObject::CubicHermiteRodElement>*)rod );
     }
 
-    void addObject(SimObject::XPBDRod* rod) {}
-
     void hashObjects();
 
     const CollisionPairSet& collisionPairs() const { return _collision_pairs; }

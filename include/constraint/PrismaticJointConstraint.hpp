@@ -5,7 +5,7 @@
 namespace Constraint
 {
 
-class PrismaticJointConstraint : public XPBDConstraint<5, 2>
+class PrismaticJointConstraint : public XPBDConstraint<5, 2, 0>
 {
 public:
     PrismaticJointConstraint(
@@ -13,8 +13,8 @@ public:
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1; }
-    Mat3r jointOrientation2() const { return _particles[1]->orientation * _or2; }
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1; }
+    Mat3r jointOrientation2() const { return _oriented_particles[1]->orientation * _or2; }
 
     const Vec3r& bodyJointOffset1() const { return _r1; }
     const Vec3r& bodyJointOffset2() const { return _r2; }
@@ -23,9 +23,7 @@ public:
     const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r1;
@@ -39,7 +37,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneSidedPrismaticJointConstraint : public XPBDConstraint<5, 1>
+class OneSidedPrismaticJointConstraint : public XPBDConstraint<5, 1, 0>
 {
 public:
     OneSidedPrismaticJointConstraint(
@@ -51,7 +49,7 @@ public:
     const Mat3r& baseOrientation() const { return _base_or; }
 
     Mat3r jointOrientation1() const { return _base_or; }
-    Mat3r jointOrientation2() const { return _particles[0]->orientation * _or2; }
+    Mat3r jointOrientation2() const { return _oriented_particles[0]->orientation * _or2; }
 
     Vec3r bodyJointOffset1() const { return Vec3r::Zero(); }
     const Vec3r& bodyJointOffset2() const { return _r2; }
@@ -60,9 +58,7 @@ public:
     const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _base_pos;
@@ -77,7 +73,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class NormedPrismaticJointConstraint : public XPBDConstraint<2, 2>
+class NormedPrismaticJointConstraint : public XPBDConstraint<2, 2, 0>
 {
 public:
     NormedPrismaticJointConstraint(
@@ -85,8 +81,8 @@ public:
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1; }
-    Mat3r jointOrientation2() const { return _particles[1]->orientation * _or2; }
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1; }
+    Mat3r jointOrientation2() const { return _oriented_particles[1]->orientation * _or2; }
 
     const Vec3r& bodyJointOffset1() const { return _r1; }
     const Vec3r& bodyJointOffset2() const { return _r2; }
@@ -95,9 +91,7 @@ public:
     const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r1;
@@ -112,7 +106,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class NormedOneSidedPrismaticJointConstraint : public XPBDConstraint<2, 1>
+class NormedOneSidedPrismaticJointConstraint : public XPBDConstraint<2, 1, 0>
 {
 public:
     NormedOneSidedPrismaticJointConstraint(
@@ -124,15 +118,13 @@ public:
     const Mat3r& baseOrientation() const { return _base_or; }
 
     Mat3r jointOrientation1() const { return _base_or; }
-    Mat3r jointOrientation2() const { return _particles[0]->orientation * _or2; }
+    Mat3r jointOrientation2() const { return _oriented_particles[0]->orientation * _or2; }
 
     Vec3r bodyJointOffset1() const { return Vec3r::Zero(); }
     const Vec3r& bodyJointOffset2() const { return _r2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _base_pos;

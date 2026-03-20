@@ -1,5 +1,4 @@
 #include "simulation/Simulation.hpp"
-#include "simulation/RodGraspingSimulation.hpp"
 
 
 int main(int argc, char **argv) 

@@ -158,7 +158,7 @@ class Simulation
     //     {
     //         const std::string var_name_0 = new_rod_ptr->name() + "_particle0";
     //         const std::string var_name_end = new_rod_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
-    //         _logger->addOutput(var_name_0, obj_particles[0]);
+    //         _logger->addOutput(var_name_0, obj_oriented_particles[0]);
     //         _logger->addOutput(var_name_end, obj_particles.back());   
     //     }
 

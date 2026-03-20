@@ -4,7 +4,7 @@ namespace Constraint
 {
 
 SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2,0>(sph_constraint.particles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -13,7 +13,7 @@ SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const Sph
 }
 
 SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const NormedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2,0>(sph_constraint.particles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -24,8 +24,8 @@ SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const Nor
 SphericalJointSwingLimitConstraint::ConstraintVecType SphericalJointSwingLimitConstraint::evaluate() const
 {
     // rotation vector between joint orientations: R1 - R2
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Mat3r joint_or2 = _particles[1]->orientation * _or2;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+    const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // swing angle = norm of first 2 components
@@ -41,13 +41,13 @@ SphericalJointSwingLimitConstraint::ConstraintVecType SphericalJointSwingLimitCo
     return C;
 }
 
-SphericalJointSwingLimitConstraint::GradientMatType SphericalJointSwingLimitConstraint::gradient(bool /* update_cache */) const
+SphericalJointSwingLimitConstraint::GradientMatType SphericalJointSwingLimitConstraint::gradient() const
 {
     GradientMatType grad;
 
     // rotation vector between joint orientations: R1 - R2
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
-    const Mat3r joint_or2 = _particles[1]->orientation * _or2;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+    const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
     // swing angle = norm of first 2 components
@@ -94,18 +94,12 @@ SphericalJointSwingLimitConstraint::GradientMatType SphericalJointSwingLimitCons
     return grad;
 }
 
-SphericalJointSwingLimitConstraint::SingleParticleGradientMatType SphericalJointSwingLimitConstraint::singleParticleGradient(const SimObject::OrientedParticle* /* node_ptr */, bool /* use_cache */) const
-{
-    throw std::runtime_error("SphericalJointSwingLimitConstraint has no singleParticleGradient");
-    return SingleParticleGradientMatType::Zero();
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
 OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitConstraint(
     const OneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -115,7 +109,7 @@ OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitCons
 
 OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitConstraint(
     const NormedOneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -126,7 +120,7 @@ OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitCons
 OneSidedSphericalJointSwingLimitConstraint::ConstraintVecType OneSidedSphericalJointSwingLimitConstraint::evaluate() const
 {
     // rotation vector between joint orientations: R1 - R2
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
     const Mat3r joint_or2 = _base_or;
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
@@ -146,12 +140,12 @@ OneSidedSphericalJointSwingLimitConstraint::ConstraintVecType OneSidedSphericalJ
     return C;
 }
 
-OneSidedSphericalJointSwingLimitConstraint::GradientMatType OneSidedSphericalJointSwingLimitConstraint::gradient(bool /* update_cache */) const
+OneSidedSphericalJointSwingLimitConstraint::GradientMatType OneSidedSphericalJointSwingLimitConstraint::gradient() const
 {
     GradientMatType grad;
 
     // rotation vector between joint orientations: R1 - R2
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
     const Mat3r joint_or2 = _base_or;
     const Vec3r dtheta = Math::Minus_SO3(joint_or1, joint_or2);
 
@@ -193,12 +187,6 @@ OneSidedSphericalJointSwingLimitConstraint::GradientMatType OneSidedSphericalJoi
     grad.block<1,3>(0,3) = dC_dR1;
 
     return grad;
-}
-
-OneSidedSphericalJointSwingLimitConstraint::SingleParticleGradientMatType OneSidedSphericalJointSwingLimitConstraint::singleParticleGradient(const SimObject::OrientedParticle* /* node_ptr */, bool /* use_cache */) const
-{
-    throw std::runtime_error("OneSidedSphericalJointSwingLimitConstraint has no singleParticleGradient");
-    return SingleParticleGradientMatType::Zero();
 }
 
 } // namespace Constraint

@@ -64,7 +64,6 @@ namespace SimObject
 {
     class XPBDObject_Base;
     class XPBDRigidBody_Base;
-    class XPBDRod;
 
     template<typename ElementType>
     class XPBDRod_;
@@ -86,7 +85,7 @@ namespace SimObject
 using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 /** TODO: automate this */
 using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>, std::unique_ptr<SimObject::XPBDPlane>>; 
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, 
+using XPBDObjects_TypeList = TypeList<
     SimObject::XPBDRod_<SimObject::RodElement<0>>, 
     SimObject::XPBDRod_<SimObject::RodElement<1>>, 
     SimObject::XPBDRod_<SimObject::RodElement<2>>,
@@ -129,8 +128,6 @@ namespace Constraint
     class PrismaticJointLimitConstraint;
     class OneSidedPrismaticJointLimitConstraint;
 
-    class RodElasticConstraint;
-
     template <typename ElementType>
     class RodElasticGaussPointConstraint;
 
@@ -172,7 +169,6 @@ using XPBDJointLimitConstraints_TypeList = TypeList<
 >;
 
 using XPBDRodConstraints_TypeList = TypeList<
-    Constraint::RodElasticConstraint,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<0>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<1>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>>,

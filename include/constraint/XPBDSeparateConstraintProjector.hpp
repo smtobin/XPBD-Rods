@@ -27,7 +27,7 @@ public:
     {
         Eigen::Vector<Real, Constraint::StateDim> inertia_inverse;
         // for (const auto& particle : _constraint->particles())
-        for (int i = 0; i < Constraint::NumParticles; i++)
+        for (int i = 0; i < Constraint::NumOrientedParticles; i++)
         {
             const SimObject::OrientedParticle* particle = _constraint->particles()[i];
             inertia_inverse.template block<6,1>(6*i, 0) = 
@@ -48,7 +48,7 @@ public:
                     continue;
             }
             
-            typename Constraint::GradientMatType delC = _constraint->gradient(true);
+            typename Constraint::GradientMatType delC = _constraint->gradient();
             // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
             Real RHS = -C[i] - _constraint->alpha()[i] * _lambda[i] / (_dt*_dt);
@@ -60,12 +60,11 @@ public:
             _lambda[i] += dlam;
 
             // update nodes
-            for (int j = 0; j < Constraint::NumParticles; j++)
+            for (int j = 0; j < Constraint::NumOrientedParticles; j++)
             {
+                using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
+                SingleOrientedParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
                 SimObject::OrientedParticle* particle_j = _constraint->particles()[j];
-                // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
-                typename Constraint::SingleParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
-                // std::cout << "grad_j.row(i).transpose(): " << grad_j.row(i).transpose() << std::endl;
                 const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * particle_j_grad.row(i).transpose() * dlam;
                 // std::cout << "Position update: " << position_update.transpose() << std::endl;
                 particle_j->positionUpdate(position_update);

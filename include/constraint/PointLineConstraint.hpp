@@ -5,16 +5,14 @@
 namespace Constraint
 {
 
-class PointLineConstraint : public XPBDConstraint<1,3>
+class PointLineConstraint : public XPBDConstraint<1, 3, 0>
 {
 
 public:
     PointLineConstraint(SimObject::OrientedParticle* point, SimObject::OrientedParticle* endpoint1, SimObject::OrientedParticle* endpoint2);
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool use_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 };
 

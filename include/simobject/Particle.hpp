@@ -13,7 +13,7 @@ namespace SimObject
  */
 struct Particle
 {
-    constexpr static int DOF = 6;
+    constexpr static int DOF = 3;
     Vec3r position;         // position (global frame) of the particle
     Vec3r velocity;     // translational velocity (global frame) of the particle
     Vec3r mass;              // mass of the particle

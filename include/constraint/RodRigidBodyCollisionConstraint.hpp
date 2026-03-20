@@ -5,7 +5,7 @@
 namespace Constraint
 {
 
-class RodRigidBodyCollisionConstraint : public XPBDConstraint<1, 3>
+class RodRigidBodyCollisionConstraint : public XPBDConstraint<1, 3, 0>
 {
 public:
     RodRigidBodyCollisionConstraint(
@@ -19,9 +19,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
 
@@ -50,7 +48,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneSidedRodRigidBodyCollisionConstraint : public XPBDConstraint<1, 2>
+class OneSidedRodRigidBodyCollisionConstraint : public XPBDConstraint<1, 2, 0>
 {
 public:
     OneSidedRodRigidBodyCollisionConstraint(
@@ -64,9 +62,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
 
