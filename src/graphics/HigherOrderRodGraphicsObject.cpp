@@ -22,8 +22,8 @@
 namespace Graphics
 {
 
-template<int Order>
-HigherOrderRodGraphicsObject<Order>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<Order>* rod, const Config::ObjectRenderConfig& render_config)
+template<typename ElementType>
+HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
     : GraphicsObject(render_config), _rod(rod), _render_config(render_config)
 {
     _vtk_poly_data = vtkSmartPointer<vtkPolyData>::New();
@@ -79,18 +79,17 @@ HigherOrderRodGraphicsObject<Order>::HigherOrderRodGraphicsObject(const SimObjec
 
 }
 
-template<int Order>
-void HigherOrderRodGraphicsObject<Order>::update()
+template<typename ElementType>
+void HigherOrderRodGraphicsObject<ElementType>::update()
 {
     _updatePolyData();
 
 }
 
-template<int Order>
-void HigherOrderRodGraphicsObject<Order>::_generateInitialPolyData()
+template<typename ElementType>
+void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
 {
-    const std::vector<SimObject::RodElement<Order>>& elements = _rod->elements();
-    _sample_points_per_element = std::max(1, static_cast<int>(Order * elements[0].restLength() / _rod->radius()));
+    const std::vector<ElementType>& elements = _rod->elements();
 
     const std::vector<SimObject::OrientedParticle>& nodes = _rod->nodes();
 
@@ -217,13 +216,13 @@ void HigherOrderRodGraphicsObject<Order>::_generateInitialPolyData()
     // _vtk_poly_data->GetPointData()->SetTCoords(textureCoords);
 }
 
-template<int Order>
-void HigherOrderRodGraphicsObject<Order>::_updatePolyData()
+template<typename ElementType>
+void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
 {
     // TODO: use vtkPoints::setData and vtkFloatArray? supposed to be faster
 
     const std::vector<SimObject::OrientedParticle>& nodes = _rod->nodes();
-    const std::vector<SimObject::RodElement<Order>>& elements = _rod->elements();
+    const std::vector<ElementType>& elements = _rod->elements();
 
     vtkPoints* points = _vtk_poly_data->GetPoints();
     for (int si = 0; si < _num_samples; si++)
@@ -251,8 +250,9 @@ void HigherOrderRodGraphicsObject<Order>::_updatePolyData()
     points->Modified();
 }
 
-template class HigherOrderRodGraphicsObject<0>;
-template class HigherOrderRodGraphicsObject<1>;
-template class HigherOrderRodGraphicsObject<2>;
+template class HigherOrderRodGraphicsObject<SimObject::RodElement<0>>;
+template class HigherOrderRodGraphicsObject<SimObject::RodElement<1>>;
+template class HigherOrderRodGraphicsObject<SimObject::RodElement<2>>;
+template class HigherOrderRodGraphicsObject<SimObject::CubicHermiteRodElement>;
 
 } // namespace Graphics

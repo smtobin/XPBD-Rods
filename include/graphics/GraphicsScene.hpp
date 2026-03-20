@@ -46,10 +46,10 @@ class GraphicsScene
 
     void update();
 
-    template <int Order>
-    void addObject(const SimObject::XPBDRod_<Order>* rod, const Config::ObjectRenderConfig& render_config)
+    template <typename ElementType>
+    void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
     {
-        std::unique_ptr<HigherOrderRodGraphicsObject<Order>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<Order>>(rod, render_config);
+        std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, render_config);
 
         _renderer->AddActor(rod_go->actor());
         _graphics_objects.push_back(std::move(rod_go));

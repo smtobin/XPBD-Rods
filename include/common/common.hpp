@@ -66,8 +66,14 @@ namespace SimObject
     class XPBDRigidBody_Base;
     class XPBDRod;
 
-    template<int Order>
+    template<typename ElementType>
     class XPBDRod_;
+
+    class XPBDCubicHermiteRod;
+
+    template <int Order>
+    class RodElement;
+    class CubicHermiteRodElement;
 
     class RodCollisionSegment;
     class XPBDRigidSphere;
@@ -80,7 +86,12 @@ namespace SimObject
 using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 /** TODO: automate this */
 using XPBDRigidBodies_UniquePtrTypeList = TypeList<std::unique_ptr<SimObject::XPBDRigidSphere>, std::unique_ptr<SimObject::XPBDRigidBox>, std::unique_ptr<SimObject::XPBDPlane>>; 
-using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, SimObject::XPBDRod_<0>, SimObject::XPBDRod_<1>, SimObject::XPBDRod_<2>, SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
+using XPBDObjects_TypeList = TypeList<SimObject::XPBDRod, 
+    SimObject::XPBDRod_<SimObject::RodElement<0>>, 
+    SimObject::XPBDRod_<SimObject::RodElement<1>>, 
+    SimObject::XPBDRod_<SimObject::RodElement<2>>,
+    SimObject::XPBDCubicHermiteRod,
+    SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
@@ -119,7 +130,8 @@ namespace Constraint
     class OneSidedPrismaticJointLimitConstraint;
 
     class RodElasticConstraint;
-    template <int Order>
+
+    template <typename ElementType>
     class RodElasticGaussPointConstraint;
 
     class PointLineConstraint;
@@ -161,9 +173,10 @@ using XPBDJointLimitConstraints_TypeList = TypeList<
 
 using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticConstraint,
-    Constraint::RodElasticGaussPointConstraint<0>,
-    Constraint::RodElasticGaussPointConstraint<1>,
-    Constraint::RodElasticGaussPointConstraint<2>,
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<0>>,
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<1>>,
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>>,
+    Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement>,
     Constraint::PointLineConstraint
 >;
 

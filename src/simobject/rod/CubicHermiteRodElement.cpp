@@ -30,22 +30,22 @@ std::array<Real, 4> CubicHermiteRodElement::lumpedMasses()
 
 Vec3r CubicHermiteRodElement::position(Real s_hat) const
 {
-    Vec3r p =  _bases[0](s_hat)*_nodes[0]->position + _bases[1](s_hat)*(*_dp_ds[0]) + 
-                _bases[2](s_hat)*_nodes[1]->position + _bases[3](s_hat)*(*_dp_ds[1]);
+    Vec3r p =  _bases[0](s_hat)*_nodes[0]->position + _bases[1](s_hat)*(_dp_ds[0]->position) + 
+                _bases[2](s_hat)*_nodes[1]->position + _bases[3](s_hat)*(_dp_ds[1]->position);
     return p;
 }
 
 Vec3r CubicHermiteRodElement::previousPosition(Real s_hat) const
 {
-    Vec3r p =  _bases_derivatives[0](s_hat)*_nodes[0]->prev_position + _bases_derivatives[1](s_hat) * (*_prev_dp_ds[0]) + 
-                _bases_derivatives[2](s_hat)*_nodes[1]->prev_position + _bases_derivatives[3](s_hat) * (*_prev_dp_ds[1]);
+    Vec3r p =  _bases_derivatives[0](s_hat)*_nodes[0]->prev_position + _bases_derivatives[1](s_hat) * (_dp_ds[0]->prev_position) + 
+                _bases_derivatives[2](s_hat)*_nodes[1]->prev_position + _bases_derivatives[3](s_hat) * (_dp_ds[1]->prev_position);
     return p;
 }
 
 Vec3r CubicHermiteRodElement::dposition_dshat(Real s_hat) const
 {
-    Vec3r dp =  _bases_derivatives[0](s_hat)*_nodes[0]->position + _bases_derivatives[1](s_hat)*(*_dp_ds[0]) + 
-                _bases_derivatives[2](s_hat)*_nodes[1]->position + _bases_derivatives[3](s_hat)*(*_dp_ds[1]);
+    Vec3r dp =  _bases_derivatives[0](s_hat)*_nodes[0]->position + _bases_derivatives[1](s_hat)*(_dp_ds[0]->position) + 
+                _bases_derivatives[2](s_hat)*_nodes[1]->position + _bases_derivatives[3](s_hat)*(_dp_ds[1]->position);
     return dp;
 }
 
@@ -54,7 +54,7 @@ Mat3r CubicHermiteRodElement::orientation(Real s_hat) const
     Vec3r R_diff = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
 
     // get interpolated relative rotation vector
-    Vec3r theta = _bases[1](s_hat)*(*_dR_ds[0]) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(*_dR_ds[1]);
+    Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
 
     // use exponential map to get interpolated rotation
     return Math::Plus_SO3(_nodes[0]->orientation, theta);
@@ -65,7 +65,7 @@ Mat3r CubicHermiteRodElement::previousOrientation(Real s_hat) const
     Vec3r R_diff = Math::Minus_SO3(_nodes[1]->prev_orientation, _nodes[0]->prev_orientation);
 
     // get interpolated relative rotation vector
-    Vec3r theta = _bases_derivatives[1](s_hat) * (*_prev_dR_ds[0]) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat) * (*_prev_dR_ds[1]);
+    Vec3r theta = _bases_derivatives[1](s_hat) * (_dR_ds[0]->prev_position) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat) * (_dR_ds[1]->prev_position);
 
     // use exponential map to get interpolated rotation
     return Math::Plus_SO3(_nodes[0]->prev_orientation, theta);
@@ -94,8 +94,8 @@ Vec3r CubicHermiteRodElement::bendingStrain(Real s_hat) const
 {
     Vec3r R_diff = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
 
-    Vec3r theta = _bases[1](s_hat)*(*_dR_ds[0]) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(*_dR_ds[1]);
-    Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(*_dR_ds[0]) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(*_dR_ds[1]) );
+    Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
+    Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(_dR_ds[0]->position) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(_dR_ds[1]->position) );
 
     Vec3r u = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
     return u;
@@ -126,8 +126,8 @@ CubicHermiteRodElement::StrainGradientMatType CubicHermiteRodElement::strainGrad
     std::array<Mat3r, 2> dthetaprime_dRprimei;
 
     // theta(s)
-    Vec3r theta = _bases[1](s_hat)*(*_dR_ds[0]) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(*_dR_ds[1]);
-    Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(*_dR_ds[0]) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(*_dR_ds[1]) );
+    Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
+    Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(_dR_ds[0]->position) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(_dR_ds[1]->position) );
 
     dtheta_dRi[0] = -_bases[2](s_hat) * gam_inv.transpose();
     dtheta_dRi[1] = _bases[2](s_hat) * gam_inv;

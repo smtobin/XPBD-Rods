@@ -3,6 +3,7 @@
 #include "common/common.hpp"
 #include "common/math.hpp"
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/Particle.hpp"
 #include "simobject/rod/RodElementBase.hpp"
 
 #include <array>
@@ -18,7 +19,7 @@ public:
     static constexpr int Order = 3;     // the order of the polynomial bases
 
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
-    using DerivativeArrayType = std::array<Vec3r*, NumNodes>;
+    using DerivativeArrayType = std::array<Particle*, NumNodes>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*NumNodes>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*NumNodes>;
 
@@ -46,8 +47,11 @@ public:
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const override;
 
-    /** Second arc length derivative w.r.t. reference coordiante s_hat of position. */
-    virtual Vec3r d2position_dshat2(Real s_hat) const override;
+    /** Second arc length derivative w.r.t. reference coordiante s_hat of position.
+     * 
+     * TODO: remove
+     */
+    virtual Vec3r d2position_dshat2(Real s_hat) const override { return Vec3r::Zero(); }
 
     virtual Real Ni(int shape_func_index, Real s_hat) const override;
     virtual Real dNi_dshat(int shape_func_index, Real s_hat) const override;
@@ -77,7 +81,6 @@ private:
      * so that it has the same units as p. This helps scaling/conditioning.
      */
     DerivativeArrayType _dp_ds;
-    DerivativeArrayType _prev_dp_ds;
 
     /** Array of pointers to R' for the element endpoints
      * This is stored in the rod class itself (since it is ahred by multiple elements)
@@ -86,7 +89,6 @@ private:
      * so that it has the same units as R. This helps scaling/conditioning.
      */
     DerivativeArrayType _dR_ds;
-    DerivativeArrayType _prev_dR_ds;
 
 
     /** Basis functions 

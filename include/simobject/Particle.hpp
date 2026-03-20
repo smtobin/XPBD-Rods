@@ -6,29 +6,25 @@
 namespace SimObject
 {
 
-/** Represents a general "particle" that has both position and orientation with some mass and rotational inertia.
- * This particle can be both a node in a discretized Cosserat rod, or a rigid body.
+/** Represents a general "particle" that has 3 DOF in a vector space (e.g. a particle with only positional DOF).
+ * This particle can be a node in a volumteric continuum, or a purely positional node in a rod,
+ *  or even some other expression of generalized coordinates.
  * 
  */
-struct OrientedParticle
+struct Particle
 {
     constexpr static int DOF = 6;
     Vec3r position;         // position (global frame) of the particle
-    Vec3r lin_velocity;     // translational velocity (global frame) of the particle
-    Mat3r orientation;      // orientation of the particle (w.r.t. global frame)
-    Vec3r ang_velocity;     // body angular velocity of the particle
-    Real mass;              // mass of the particle
-    Vec3r Ib;               // body rotational inertia of the particle (diagonal, so represented by a 3-vector)
+    Vec3r velocity;     // translational velocity (global frame) of the particle
+    Vec3r mass;              // mass of the particle
     Vec3r prev_position;    // previous position (at the end of the last time step) of the particle
-    Mat3r prev_orientation; // previous orientation (at the end of the last time step) of the particle
     bool fixed=false;             // if true, the particle is "fixed" and should not move
 
     /** Updates the particle based on its current velocity (in the absence of constraints) and applied external wrench.
      * @param dt - the time step
      * @param F_ext - external force
-     * @param T_ext - external torque
      */
-    void inertialUpdate(Real dt, const Vec3r& F_ext, const Vec3r& T_ext);
+    void inertialUpdate(Real dt, const Vec3r& F_ext);
 
     /** Updates the particle based on its current velocity (in the absence of constraints) with no applied external wrench.
      * @param dt - the time step
@@ -37,9 +33,8 @@ struct OrientedParticle
 
     /** Updates the particle given some change in position and orientiation.
      * @param dpos - the change in position (specified in global coordinates)
-     * @param dor - the change in orientation - a member of the Lie algebra so(3)
      */
-    void positionUpdate(const Vec3r& dpos, const Vec3r& dor);
+    void positionUpdate(const Vec3r& dpos);
 
     /** Updates the particle given some change in position and orientation.
      * @param dp - a 6-vector with the combined change in position (first 3 coords) and orientation (last 3 coords).

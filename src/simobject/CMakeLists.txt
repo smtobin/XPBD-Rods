@@ -15,8 +15,10 @@ set(SIMOBJECT_HEADERS
 
 set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/OrientedParticle.cpp
+    ${SIMOBJECT_SRC_DIR}/Particle.cpp
     ${SIMOBJECT_SRC_DIR}/rod/XPBDRod.cpp
     ${SIMOBJECT_SRC_DIR}/rod/XPBDHigherOrderRod.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/XPBDCubicHermiteRod.cpp
     ${SIMOBJECT_SRC_DIR}/rod/RodElement.cpp
     ${SIMOBJECT_SRC_DIR}/rod/CubicHermiteRodElement.cpp
     ${SIMOBJECT_SRC_DIR}/rod/RodCollisionSegment.cpp

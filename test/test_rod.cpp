@@ -174,7 +174,7 @@ int main()
         1000,
         1e7, 0.4
     );
-    SimObject::XPBDRod_<1> rod1(rod_config1);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod1(rod_config1);
     rod1.setup();
 
     Config::RodConfig rod_config2(
@@ -187,7 +187,7 @@ int main()
         1000,
         1e6, 0.4
     );
-    SimObject::XPBDRod_<1> rod2(rod_config2);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod2(rod_config2);
     rod2.setup();
 
     // create global particle list

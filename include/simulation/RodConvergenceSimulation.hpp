@@ -23,8 +23,8 @@ public:
     virtual int run() override;
 
 private:
-    template <int Order1, int Order2>
-    Real _energyNorm(SimObject::XPBDRod_<Order1>* rod1, SimObject::XPBDRod_<Order2>* rod2);
+    template <typename ElementType1, typename ElementType2>
+    Real _energyNorm(SimObject::XPBDRod_<ElementType1>* rod1, SimObject::XPBDRod_<ElementType2>* rod2);
     
     Real _rod_E;
     Real _rod_nu;
@@ -36,7 +36,7 @@ private:
     std::vector<int> _linear_rod_elements;
     std::vector<int> _quadratic_rod_elements;
 
-    SimObject::XPBDRod_<2>* _ground_truth;
+    SimObject::XPBDRod_<SimObject::RodElement<2>>* _ground_truth;
 };
 
 } // namespace Sim

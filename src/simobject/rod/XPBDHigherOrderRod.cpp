@@ -28,8 +28,8 @@ using base_type_t = typename base_type<T>::type;
 namespace SimObject
 {
 
-template <int Order>
-XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
+template <typename ElementType>
+XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     : XPBDObject_Base(config),
     _num_elements(config.elements()),
     _num_nodes(_num_elements * (NUM_EN - 2) + (_num_elements+1)),
@@ -77,12 +77,50 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         _nodes[i].prev_orientation = _nodes[i].orientation;
     }
 
+}
 
+template <typename ElementType>
+std::vector<const OrientedParticle*> XPBDRod_<ElementType>::particles() const
+{
+    std::vector<const OrientedParticle*> particles_vec;
+    particles_vec.reserve(_nodes.size());
+    for (const auto& node : _nodes)
+    {
+        particles_vec.push_back(&node);
+    }
+
+    return particles_vec;
+}
+
+template <typename ElementType>
+AABB XPBDRod_<ElementType>::boundingBox() const
+{
+    AABB bbox;
+    bbox.min = _nodes.front().position;
+    bbox.max = _nodes.front().position;
+
+    for (int i = 1; i < _num_nodes; i++)
+    {
+        bbox.min[0] = std::min(bbox.min[0], _nodes[i].position[0]);
+        bbox.min[1] = std::min(bbox.min[1], _nodes[i].position[1]);
+        bbox.min[2] = std::min(bbox.min[2], _nodes[i].position[2]);
+
+        bbox.max[0] = std::max(bbox.max[0], _nodes[i].position[0]);
+        bbox.max[1] = std::max(bbox.max[1], _nodes[i].position[1]);
+        bbox.max[2] = std::max(bbox.max[2], _nodes[i].position[2]);
+    }
+
+    return bbox;
+}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::setup()
+{
     /** Create elements */
     _elements.reserve(_num_elements);
 
     // lumped mass proportions
-    std::array<Real, NUM_EN> lumped_masses = RodElement<Order>::lumpedMasses();
+    auto lumped_masses = ElementType::lumpedMasses();
 
     for (int i = 0; i < _num_elements; i++)
     {
@@ -141,49 +179,10 @@ XPBDRod_<Order>::XPBDRod_(const Config::RodConfig& config)
         _collision_segments.emplace_back(seg_elements, _radius, _mu_s, _mu_d);
         cur_index += size;
     }
-
-}
-
-template <int Order>
-std::vector<const OrientedParticle*> XPBDRod_<Order>::particles() const
-{
-    std::vector<const OrientedParticle*> particles_vec;
-    particles_vec.reserve(_nodes.size());
-    for (const auto& node : _nodes)
-    {
-        particles_vec.push_back(&node);
-    }
-
-    return particles_vec;
-}
-
-template <int Order>
-AABB XPBDRod_<Order>::boundingBox() const
-{
-    AABB bbox;
-    bbox.min = _nodes.front().position;
-    bbox.max = _nodes.front().position;
-
-    for (int i = 1; i < _num_nodes; i++)
-    {
-        bbox.min[0] = std::min(bbox.min[0], _nodes[i].position[0]);
-        bbox.min[1] = std::min(bbox.min[1], _nodes[i].position[1]);
-        bbox.min[2] = std::min(bbox.min[2], _nodes[i].position[2]);
-
-        bbox.max[0] = std::max(bbox.max[0], _nodes[i].position[0]);
-        bbox.max[1] = std::max(bbox.max[1], _nodes[i].position[1]);
-        bbox.max[2] = std::max(bbox.max[2], _nodes[i].position[2]);
-    }
-
-    return bbox;
-}
-
-template <int Order>
-void XPBDRod_<Order>::setup()
-{
+    
     /** Create elastic constraints */
     // get a reference to the elastic constraints
-    std::vector<Constraint::RodElasticGaussPointConstraint<Order>>& elastic_constraints = _internal_constraints.template get<Constraint::RodElasticGaussPointConstraint<Order>>();
+    std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
 
     // stiffness
     Vec6r stiffness(_G*_area, _G*_area, _E*_area, _E*_Ix, _E*_Ix, _G*_Iz);
@@ -268,8 +267,12 @@ void XPBDRod_<Order>::setup()
     _solver.setNumDiagBlocks(_num_constraints);
 }
 
-template <int Order>
-void XPBDRod_<Order>::inertialUpdate(Real dt)
+template<>
+void XPBDRod_<CubicHermiteRodElement>::setup()
+{}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::inertialUpdate(Real dt)
 {
     for (int i = 0; i < _num_nodes; i++)
     {
@@ -281,8 +284,8 @@ void XPBDRod_<Order>::inertialUpdate(Real dt)
     }
 }
 
-template <int Order>
-void XPBDRod_<Order>::velocityUpdate(Real dt)
+template <typename ElementType>
+void XPBDRod_<ElementType>::velocityUpdate(Real dt)
 {
     for (unsigned i = 0; i < _nodes.size(); i++)
     {
@@ -292,8 +295,8 @@ void XPBDRod_<Order>::velocityUpdate(Real dt)
     _internal_lambda = VecXr::Zero(6*_num_constraints);
 }
 
-template <int Order>
-void XPBDRod_<Order>::internalConstraintSolve(Real dt)
+template <typename ElementType>
+void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 {
     // if we are not solving the system globally (i.e. using Gauss-Seidel or other iterative method instead),
     // don't do the internal constraint solve
@@ -302,7 +305,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
         return;
 
     // get a reference to the elastic constraints
-    std::vector<Constraint::RodElasticGaussPointConstraint<Order>>& elastic_constraints = _internal_constraints.template get<Constraint::RodElasticGaussPointConstraint<Order>>();
+    std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
 
     /** Assemble diagonal blocks for solver */
 
@@ -368,7 +371,7 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
             int this_ind = NUM_GP*i + j;
 
             // compute RHS
-            typename Constraint::RodElasticGaussPointConstraint<Order>::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
+            typename ElasticConstraintType::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
             _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
 
             // last constraint index that is still in this same element (element i)
@@ -565,8 +568,9 @@ void XPBDRod_<Order>::internalConstraintSolve(Real dt)
     }
 }
 
-template class XPBDRod_<0>;
-template class XPBDRod_<1>;
-template class XPBDRod_<2>;
+template class XPBDRod_<RodElement<0>>;
+template class XPBDRod_<RodElement<1>>;
+template class XPBDRod_<RodElement<2>>;
+template class XPBDRod_<CubicHermiteRodElement>;
 
 } // namespace SimObject

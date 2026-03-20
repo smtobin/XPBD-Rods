@@ -16,11 +16,11 @@
 namespace Graphics
 {
 
-template <int Order>
+template <typename ElementType>
 class HigherOrderRodGraphicsObject : public GraphicsObject
 {
 public:
-    explicit HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<Order>* rod, const Config::ObjectRenderConfig& render_config);
+    explicit HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config);
 
     virtual void update() override;
 
@@ -29,7 +29,7 @@ private:
     void _updatePolyData();
 
     private:
-    const SimObject::XPBDRod_<Order>* _rod;
+    const SimObject::XPBDRod_<ElementType>* _rod;
 
     vtkSmartPointer<vtkPolyData> _vtk_poly_data;
     vtkSmartPointer<vtkPolyDataNormals> _vtk_poly_data_normals;

@@ -12,6 +12,7 @@
 #include "config/SimulationRenderConfig.hpp"
 
 #include "simobject/rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDCubicHermiteRod.hpp"
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/group/XPBDPendulum.hpp"
@@ -180,8 +181,9 @@ class Simulation
 
             // new_obj_ptr = new_rod_ptr;
 
-            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<0>>>(std::make_unique<SimObject::XPBDRod_<0>>(rod_config));
-            SimObject::XPBDRod_<0>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<0>>>().back().get();
+            using ElementType = SimObject::RodElement<0>;
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>(std::make_unique<SimObject::XPBDRod_<ElementType>>(rod_config));
+            SimObject::XPBDRod_<ElementType>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>().back().get();
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
@@ -197,8 +199,9 @@ class Simulation
         }
         else if (rod_config.elementType() == Config::RodElementType::LINEAR)
         {  
-            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<1>>>(std::make_unique<SimObject::XPBDRod_<1>>(rod_config));
-            SimObject::XPBDRod_<1>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<1>>>().back().get();
+            using ElementType = SimObject::RodElement<1>;
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>(std::make_unique<SimObject::XPBDRod_<ElementType>>(rod_config));
+            SimObject::XPBDRod_<ElementType>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>().back().get();
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
@@ -214,8 +217,9 @@ class Simulation
         }
         else if (rod_config.elementType() == Config::RodElementType::QUADRATIC)
         {
-            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<2>>>(std::make_unique<SimObject::XPBDRod_<2>>(rod_config));
-            SimObject::XPBDRod_<2>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<2>>>().back().get();
+            using ElementType = SimObject::RodElement<2>;
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>(std::make_unique<SimObject::XPBDRod_<ElementType>>(rod_config));
+            SimObject::XPBDRod_<ElementType>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>().back().get();
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
@@ -226,6 +230,21 @@ class Simulation
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            new_obj_ptr = new_rod_ptr;
+        }
+        else if (rod_config.elementType() == Config::RodElementType::CUBIC)
+        {
+            // todo
+        }
+        else if (rod_config.elementType() == Config::RodElementType::CUBIC_HERMITE)
+        {
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDCubicHermiteRod>>(std::make_unique<SimObject::XPBDCubicHermiteRod>(rod_config));
+            SimObject::XPBDCubicHermiteRod* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDCubicHermiteRod>>().back().get();
+            new_rod_ptr->setup();
+
+            // add new rod to graphics scene to be visualized
+            _graphics_scene.addObject((SimObject::XPBDRod_<SimObject::CubicHermiteRodElement>*)new_rod_ptr, rod_config.renderConfig());
 
             new_obj_ptr = new_rod_ptr;
         }

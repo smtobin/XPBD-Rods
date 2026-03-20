@@ -134,17 +134,17 @@ int main()
     /** Rod Elastic Gauss Constraints */
     std::array<SimObject::OrientedParticle*, 2> o0_element_particles = {&particle1, &particle2};
     SimObject::RodElement<0> o0_element(o0_element_particles, 0.5);
-    Constraint::RodElasticGaussPointConstraint<0> o0_constraint(&o0_element, 0.5, Vec6r::Zero());
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<0>> o0_constraint(&o0_element, 0.5, Vec6r::Zero());
     testConstraint(o0_constraint);
 
     std::array<SimObject::OrientedParticle*, 2> o1_element_particles = {&particle1, &particle2};
     SimObject::RodElement<1> o1_element(o1_element_particles, 0.5);
-    Constraint::RodElasticGaussPointConstraint<1> o1_constraint(&o1_element, 0.5, Vec6r::Zero());
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<1>> o1_constraint(&o1_element, 0.5, Vec6r::Zero());
     testConstraint(o1_constraint);
 
     std::array<SimObject::OrientedParticle*, 3> o2_element_particles = {&particle1, &particle2, &particle3};
     SimObject::RodElement<2> o2_element(o2_element_particles, 0.5);
-    Constraint::RodElasticGaussPointConstraint<2> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
     testConstraint(o2_constraint);
 
     /** Test derivative of exponential map */

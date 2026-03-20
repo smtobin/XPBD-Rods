@@ -14,12 +14,15 @@
 namespace SimObject
 {
 
-template<int Order>
+template<typename ElementType_>
 class XPBDRod_ : public XPBDObject_Base
 {
 public:
-    constexpr static int NUM_EN = RodElement<Order>::NumNodes;
-    constexpr static int NUM_GP = NUM_EN-1;
+    using ElementType = ElementType_;
+    using ElasticConstraintType = Constraint::RodElasticGaussPointConstraint<ElementType>;
+
+    constexpr static int NUM_EN = ElementType::NumNodes;
+    constexpr static int NUM_GP = ElementType::NumGP;
 
     XPBDRod_(const Config::RodConfig& config);
 
@@ -47,14 +50,14 @@ public:
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
-    const std::vector<RodElement<Order>>& elements() const { return _elements; }
+    const std::vector<ElementType>& elements() const { return _elements; }
 
     const XPBDConstraints_Container& constraints() const { return _internal_constraints; }
 
     const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
     std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
 
-private:
+protected:
     /** Number of elements the rod is discretized into. */
     int _num_elements;
 
@@ -107,7 +110,7 @@ private:
 
 
     /** Element objects corresponding to each element in the rod. */
-    std::vector<RodElement<Order>> _elements;
+    std::vector<ElementType> _elements;
 
     /** Nodes of the rod (most current state) */
     std::vector<OrientedParticle> _nodes;
@@ -123,7 +126,7 @@ private:
     // std::vector<Constraint::RodElasticConstraint> _elastic_constraints;
 
     /** A buffer to store the gradients of all the elastic constraints. Avoids needless recomputation of gradients. */
-    std::vector<typename Constraint::RodElasticGaussPointConstraint<Order>::GradientMatType> _gradient_buffer;
+    std::vector<typename ElasticConstraintType::GradientMatType> _gradient_buffer;
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;

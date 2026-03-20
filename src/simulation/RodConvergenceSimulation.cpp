@@ -69,7 +69,7 @@ void RodConvergenceSimulation::setup()
     );
     _addObjectFromConfig(ground_truth_config);
 
-    _ground_truth = _objects.get<std::unique_ptr<SimObject::XPBDRod_<2>>>().back().get();
+    _ground_truth = _objects.get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>>().back().get();
 
 }
 
@@ -81,13 +81,21 @@ void RodConvergenceSimulation::update()
     // compute the energy norm between each rod and the final rod
 
     std::cout << "\n=== Energy Norms ===" << std::endl;
-    _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<0>>, std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
+    _objects.for_each_element<
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>
+        >([&] (auto& obj)
     {
         std::cout << "Energy norm for " << obj->name() << ": " << _energyNorm(obj.get(), _ground_truth) << std::endl;
     });
 
     std::cout << "\n\n=== Position Norms ===" << std::endl;
-    _objects.for_each_element<std::unique_ptr<SimObject::XPBDRod_<0>>, std::unique_ptr<SimObject::XPBDRod_<1>>, std::unique_ptr<SimObject::XPBDRod_<2>>>([&] (auto& obj)
+    _objects.for_each_element<
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>
+        >([&] (auto& obj)
     {
         Vec3r gt_tip = _ground_truth->nodes().back().position;
         std::cout << "Position norm for " << obj->name() << ": " << (obj->nodes().back().position - gt_tip).norm() << std::endl;
@@ -111,8 +119,8 @@ int RodConvergenceSimulation::run()
     _graphics_scene.interactorStart();
 }
 
-template <int Order1, int Order2>
-Real RodConvergenceSimulation::_energyNorm(SimObject::XPBDRod_<Order1>* rod1, SimObject::XPBDRod_<Order2>* rod2)
+template <typename ElementType1, typename ElementType2>
+Real RodConvergenceSimulation::_energyNorm(SimObject::XPBDRod_<ElementType1>* rod1, SimObject::XPBDRod_<ElementType2>* rod2)
 {
     // take rod2 to be the master rod that we are comparing against
 
@@ -138,8 +146,8 @@ Real RodConvergenceSimulation::_energyNorm(SimObject::XPBDRod_<Order1>* rod1, Si
     // iterate through rod1's elements and compare strains at Gauss points
     Real total_energy_norm = 0;
 
-    auto points = GaussQuadratureHelper<SimObject::XPBDRod_<Order1>::NUM_GP>::points();
-    auto weights = GaussQuadratureHelper<SimObject::XPBDRod_<Order1>::NUM_GP>::weights();
+    auto points = GaussQuadratureHelper<ElementType1::NumGP>::points();
+    auto weights = GaussQuadratureHelper<ElementType2::NumGP>::weights();
     for (unsigned i = 0; i < rod1_elements.size(); i++)
     {
         

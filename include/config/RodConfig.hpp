@@ -9,13 +9,17 @@ enum class RodElementType
 {
     RIGID_BODY,
     LINEAR,
-    QUADRATIC
+    QUADRATIC,
+    CUBIC,
+    CUBIC_HERMITE
 };
 static std::map<std::string, RodElementType> ROD_ELEMENT_TYPE_OPTIONS()
 {
     static std::map<std::string, RodElementType> rod_element_options{{"Rigid Body", RodElementType::RIGID_BODY},
                                                                     {"Linear", RodElementType::LINEAR},
-                                                                    {"Quadratic", RodElementType::QUADRATIC}};
+                                                                    {"Quadratic", RodElementType::QUADRATIC},
+                                                                    {"Cubic", RodElementType::CUBIC},
+                                                                    {"Cubic Hermite", RodElementType::CUBIC_HERMITE}};
     return rod_element_options;
 }
 

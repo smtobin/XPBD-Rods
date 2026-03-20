@@ -6,6 +6,7 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 #include "simobject/rod/XPBDHigherOrderRod.hpp"
+#include "simobject/rod/XPBDCubicHermiteRod.hpp"
 #include "simobject/rigidbody/XPBDPlane.hpp"
 
 // #include "simobject/group/XPBDConcentricTubeRobot.hpp"
