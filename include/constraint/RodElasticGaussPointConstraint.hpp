@@ -8,10 +8,11 @@ namespace Constraint
 {
 
 template<class ElementType>
-class RodElasticGaussPointConstraint : public XPBDConstraint<6, ElementType::NumNodes, 0>
+class RodElasticGaussPointConstraint : public XPBDConstraint<6, ElementType::NumNodes, 2*ElementType::NumNodeDerivatives>
 {
 public:
-    using BaseConstraintType = XPBDConstraint<6, ElementType::NumNodes, 0>;
+    using BaseConstraintType = XPBDConstraint<6, ElementType::NumNodes, 2*ElementType::NumNodeDerivatives>;
+    
     constexpr static int NumNodes = ElementType::NumNodes;
     using AlphaVecType = typename BaseConstraintType::AlphaVecType;
     using ConstraintVecType = typename BaseConstraintType::ConstraintVecType;

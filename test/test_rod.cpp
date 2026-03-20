@@ -45,7 +45,7 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
 
             for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
-                SimObject::OrientedParticle* particle_i = const_cast<SimObject::OrientedParticle*>(constraint->particles()[i]); // cast away constness - gross! but necessary for now
+                SimObject::OrientedParticle* particle_i = const_cast<SimObject::OrientedParticle*>(constraint->orientedParticles()[i]); // cast away constness - gross! but necessary for now
                 particle_to_index.insert({particle_i, particle_to_index.size()});   // insert if the particle not already accounted for
             }
         },
@@ -83,7 +83,7 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
                 typename ConstraintType::GradientMatType gradient = constraint->gradient();
                 for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
                 {
-                    int particle_index = particle_to_index[constraint->particles()[i]];
+                    int particle_index = particle_to_index[constraint->orientedParticles()[i]];
                     delC.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
                         gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
                 }
@@ -229,7 +229,7 @@ int main()
     }
 
     std::cout << "Collision constraint before solve: " << collision_constraints[0].evaluate() << std::endl;
-    const auto& particles_in_collision = collision_constraints[0].particles();
+    const auto& particles_in_collision = collision_constraints[0].orientedParticles();
     for (const auto& particle : particles_in_collision)
     {
         std::cout << "Original position for particle " << particle << ": " << particle->position.transpose() << std::endl;

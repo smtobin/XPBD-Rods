@@ -539,7 +539,7 @@ VecXr Simulation::primaryResidual() const
                 using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
 
                 // iterate through the particles involved in the constraint
-                const typename ConstraintType::OrientedParticlePtrArray& particles = constraint->particles();
+                const typename ConstraintType::OrientedParticlePtrArray& particles = constraint->orientedParticles();
                 typename ConstraintType::GradientMatType full_grad = constraint->gradient();
                 for (unsigned i = 0; i < particles.size(); i++)
                 {
@@ -567,7 +567,7 @@ VecXr Simulation::primaryResidual() const
         using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
         using ConstraintType = typename ProjType::Constraint;
         
-        const typename ConstraintType::OrientedParticlePtrArray& particles = proj.constraint()->particles();
+        const typename ConstraintType::OrientedParticlePtrArray& particles = proj.constraint()->orientedParticles();
         typename ConstraintType::GradientMatType full_grad = proj.constraint()->gradient();
 
         for (unsigned i = 0; i < particles.size(); i++)

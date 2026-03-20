@@ -222,8 +222,12 @@ void XPBDCubicHermiteRod::setup()
 
 void XPBDCubicHermiteRod::inertialUpdate(Real dt)
 {
+    std::cout << "\n\n" << std::endl;
     for (int i = 0; i < _num_nodes; i++)
     {
+        std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+
         auto& node = _nodes[i];
 
         Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
@@ -235,8 +239,20 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
          * 
          * Need to look at virtual work derivations to see if this is correct.
          */
-        _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
+        if (i == _num_nodes-1 && !_tip_fixed)
+        {
+            Vec3r F_ext = node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
+            _dp_DOF[i].inertialUpdate(dt, F_ext);
+        }
+        else
+        {
+            _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
+        }
+        
         _dR_DOF[i].inertialUpdate(dt, Vec3r::Zero());
+
+        std::cout << "dp " << i << " after inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        std::cout << "dR " << i << " after inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
     }
 
     
@@ -474,25 +490,38 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
             _alpha.template block<ConstraintType::ConstraintDim,1>(constraint_index,0) = constraint->alpha();
 
             // evaluate the gradient and put it in global delC matrix
-            if (std::is_same_v<ConstraintType, ElasticConstraintType>)
+            typename ConstraintType::GradientMatType gradient = constraint->gradient();
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
-                typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
-                {
-                    int particle_index = constraint->particles()[i] - _nodes.data();
-                    _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
-                        gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
-                }
+                int particle_index = constraint->orientedParticles()[i] - _nodes.data();
+                _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 12*particle_index) = 
+                    gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
             }
-            else
+            for (int i = 0; i < ConstraintType::NumParticles; i++)
             {
-                typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
+                std::cout << "constraint->particles()[i]: " << constraint->particles()[i] << std::endl;
+                std::cout << "_dp_DOF.data(): " << _dp_DOF.data() << std::endl;
+                std::cout << "_dR_DOF.data(): " << _dR_DOF.data() << std::endl;
+                int particle_index_dp = constraint->particles()[i] - _dp_DOF.data();
+                int particle_index_dR = constraint->particles()[i] - _dR_DOF.data();
+                int particle_index;
+                int DOF_index;
+                if (particle_index_dp >= 0 && particle_index_dp < _num_nodes)
                 {
-                    int particle_index = constraint->particles()[i] - _nodes.data();
-                    _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 12*particle_index) = 
-                        gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
+                    particle_index = particle_index_dp;
+                    DOF_index = 12*particle_index + 6;
                 }
+                else
+                {
+                    particle_index = particle_index_dR;
+                    DOF_index = 12*particle_index + 9;
+                }
+                
+                std::cout << "particle index: " << particle_index << std::endl;
+                std::cout << "global DOF index start: " << DOF_index << std::endl;
+
+                _delC_mat.template block<ConstraintType::ConstraintDim, 3>(constraint_index, DOF_index) = 
+                    gradient.template block<ConstraintType::ConstraintDim, 3>(0, 6*ConstraintType::NumOrientedParticles+3*i);
             }
 
             constraint_index += ConstraintType::ConstraintDim;

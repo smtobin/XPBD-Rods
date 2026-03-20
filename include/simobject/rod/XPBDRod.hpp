@@ -178,8 +178,8 @@
 //         template<typename ConstraintType1, typename ConstraintType2>
 //         Mat6r operator()(const ConstraintType1* constraint1, const ConstraintType2* constraint2)
 //         {
-//             typename ConstraintType1::OrientedParticlePtrArray node_ptrs1 = constraint1->particles();
-//             typename ConstraintType2::OrientedParticlePtrArray node_ptrs2 = constraint2->particles();
+//             typename ConstraintType1::OrientedParticlePtrArray node_ptrs1 = constraint1->orientedParticles();
+//             typename ConstraintType2::OrientedParticlePtrArray node_ptrs2 = constraint2->orientedParticles();
 
 //             // find if nodes overlap (assuming that node ptrs are sorted and there are no duplicates)
 //             unsigned ind1 = 0;
@@ -242,7 +242,7 @@
 //         void operator()(const ConstraintType* constraint)
 //         {
 //             // go through all the nodes affected by this constraint and add this constraint's contribution to the position update
-//             typename ConstraintType::OrientedParticlePtrArray node_ptrs = constraint->particles();
+//             typename ConstraintType::OrientedParticlePtrArray node_ptrs = constraint->orientedParticles();
 //             for (const auto& node_ptr : node_ptrs)
 //             {
 //                 size_t node_index = node_ptr - _first_node_ptr;

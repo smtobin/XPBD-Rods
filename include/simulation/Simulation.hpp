@@ -144,7 +144,7 @@ class Simulation
     //     _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
 
     //     // assign global indices to the rod's nodes
-    //     std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod_ptr->particles();
+    //     std::vector<const SimObject::OrientedParticle*> obj_particles = new_rod_ptr->orientedParticles();
     //     for (const auto& particle : obj_particles)
     //     {
     //         _particle_ptr_to_index.insert({particle, _particle_ptr_to_index.size()});

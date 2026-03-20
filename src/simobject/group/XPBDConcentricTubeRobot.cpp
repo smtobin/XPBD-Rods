@@ -163,7 +163,7 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         // std::cout << "Fixed base constraint: " << C.transpose() << std::endl;
 
         Constraint::OneSidedFixedJointConstraint::GradientMatType grad = constraint.gradient();
-        int pos_index = _particle_ptr_to_index.at(constraint.particles()[0]);
+        int pos_index = _particle_ptr_to_index.at(constraint.orientedParticles()[0]);
         _delC_mat.block<6,6>(row_offset, pos_index*6) = grad;
 
         _alpha.block<6,1>(row_offset,0) = constraint.alpha();
@@ -180,8 +180,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         // std::cout << "Outer rod constraint: " << C.transpose() << std::endl;
 
         ElasticConstraintType::GradientMatType grad = constraint.gradient();
-        int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
-        int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
+        int pos1_index = _particle_ptr_to_index.at(constraint.orientedParticles()[0]);
+        int pos2_index = _particle_ptr_to_index.at(constraint.orientedParticles()[1]);
         _delC_mat.block<6,6>(row_offset, pos1_index*6) = grad.block<6,6>(0,0);
         _delC_mat.block<6,6>(row_offset, pos2_index*6) = grad.block<6,6>(0,6);
 
@@ -198,8 +198,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         // std::cout << "Inner rod constraint: " << C.transpose() << std::endl;
 
         ElasticConstraintType::GradientMatType grad = constraint.gradient();
-        int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
-        int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
+        int pos1_index = _particle_ptr_to_index.at(constraint.orientedParticles()[0]);
+        int pos2_index = _particle_ptr_to_index.at(constraint.orientedParticles()[1]);
         _delC_mat.block<6,6>(row_offset, pos1_index*6) = grad.block<6,6>(0,0);
         _delC_mat.block<6,6>(row_offset, pos2_index*6) = grad.block<6,6>(0,6);
 
@@ -216,9 +216,9 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         // std::cout << "Point on line constraint: " << C << std::endl;
 
         Constraint::PointLineConstraint::GradientMatType grad = constraint.gradient();
-        int pos1_index = _particle_ptr_to_index.at(constraint.particles()[0]);
-        int pos2_index = _particle_ptr_to_index.at(constraint.particles()[1]);
-        int pos3_index = _particle_ptr_to_index.at(constraint.particles()[2]);
+        int pos1_index = _particle_ptr_to_index.at(constraint.orientedParticles()[0]);
+        int pos2_index = _particle_ptr_to_index.at(constraint.orientedParticles()[1]);
+        int pos3_index = _particle_ptr_to_index.at(constraint.orientedParticles()[2]);
         _delC_mat.block<1,6>(row_offset, pos1_index*6) = grad.block<1,6>(0,0);
         _delC_mat.block<1,6>(row_offset, pos2_index*6) = grad.block<1,6>(0,6);
         _delC_mat.block<1,6>(row_offset, pos3_index*6) = grad.block<1,6>(0,12);

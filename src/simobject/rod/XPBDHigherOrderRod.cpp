@@ -519,7 +519,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     //         typename ConstraintType::GradientMatType gradient = constraint->gradient();
     //         for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
     //         {
-    //             int particle_index = constraint->particles()[i] - _nodes.data();
+    //             int particle_index = constraint->orientedParticles()[i] - _nodes.data();
     //             _delC_mat.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
     //                 gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
     //         }
@@ -567,6 +567,10 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
         _nodes[i].positionUpdate(dp, dor);
     }
 }
+
+template<>
+void XPBDRod_<CubicHermiteRodElement>::internalConstraintSolve(Real /* dt */)
+{}
 
 template class XPBDRod_<RodElement<0>>;
 template class XPBDRod_<RodElement<1>>;

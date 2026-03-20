@@ -5,7 +5,7 @@ namespace Constraint
 {
 
 RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const RevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2, 0>(rev_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(rev_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(rev_constraint.bodyJointOrientationOffset1()),
     _or2(rev_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -14,7 +14,7 @@ RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const RevoluteJointCo
 }
 
 RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const NormedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2, 0>(rev_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(rev_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(rev_constraint.bodyJointOrientationOffset1()),
     _or2(rev_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -23,7 +23,7 @@ RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const NormedRevoluteJ
 }
 
 RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -32,7 +32,7 @@ RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const SphericalJointC
 }
 
 RevoluteJointLimitConstraint::RevoluteJointLimitConstraint(const NormedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -99,7 +99,7 @@ RevoluteJointLimitConstraint::GradientMatType RevoluteJointLimitConstraint::grad
 ///////////////////////////////////////////////////////////////////////////////////////
 
 OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const OneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(rev_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(rev_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(rev_constraint.bodyJointOrientationOffset1()),
     _base_or(rev_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -108,7 +108,7 @@ OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const
 }
 
 OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const NormedOneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(rev_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(rev_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(rev_constraint.bodyJointOrientationOffset1()),
     _base_or(rev_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -117,7 +117,7 @@ OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const
 }
 
 OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const OneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -126,7 +126,7 @@ OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const
 }
 
 OneSidedRevoluteJointLimitConstraint::OneSidedRevoluteJointLimitConstraint(const NormedOneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)

@@ -3,6 +3,7 @@
 #include "common/common.hpp"
 #include "common/math.hpp"
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/Particle.hpp"
 #include "simobject/rod/RodElementBase.hpp"
 
 #include <array>
@@ -32,6 +33,7 @@ public:
     virtual OrientedParticle* firstNode() const override { return _nodes.front(); }
     virtual OrientedParticle* lastNode() const override { return _nodes.back(); }
     const NodeArrayType& nodes() const { return _nodes; }
+    std::array<Particle*, 0> nodeDerivatives() const { return {}; }
 
     virtual Real restLength() const override { return _rest_length; }
 

@@ -26,10 +26,10 @@ public:
     virtual void project() override
     {
         Eigen::Vector<Real, Constraint::StateDim> inertia_inverse;
-        // for (const auto& particle : _constraint->particles())
+        // for (const auto& particle : _constraint->orientedParticles())
         for (int i = 0; i < Constraint::NumOrientedParticles; i++)
         {
-            const SimObject::OrientedParticle* particle = _constraint->particles()[i];
+            const SimObject::OrientedParticle* particle = _constraint->orientedParticles()[i];
             inertia_inverse.template block<6,1>(6*i, 0) = 
                 Vec6r(1/particle->mass, 1/particle->mass, 1/particle->mass, 1/particle->Ib[0], 1/particle->Ib[1], 1/particle->Ib[2]);
         }
@@ -64,7 +64,7 @@ public:
             {
                 using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
                 SingleOrientedParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
-                SimObject::OrientedParticle* particle_j = _constraint->particles()[j];
+                SimObject::OrientedParticle* particle_j = _constraint->orientedParticles()[j];
                 const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * particle_j_grad.row(i).transpose() * dlam;
                 // std::cout << "Position update: " << position_update.transpose() << std::endl;
                 particle_j->positionUpdate(position_update);

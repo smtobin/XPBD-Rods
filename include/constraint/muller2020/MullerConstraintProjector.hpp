@@ -28,7 +28,7 @@ struct Muller2020ConstraintHelper
     template<typename Constraint>
     static Real positionalW1(const ConstVectorHandle<Constraint>& constraint)
     {   
-        const SimObject::OrientedParticle* particle1 = constraint->particles()[0];
+        const SimObject::OrientedParticle* particle1 = constraint->orientedParticles()[0];
         Vec3r dp = positionalCorrection(constraint);
         Vec3r dp_local = particle1->orientation.transpose() * dp;    // put dp from global to local frame
         Vec3r n = dp_local/dp_local.norm();
@@ -48,7 +48,7 @@ struct Muller2020ConstraintHelper
         }
         else
         {
-            const SimObject::OrientedParticle* particle2 = constraint->particles()[1];
+            const SimObject::OrientedParticle* particle2 = constraint->orientedParticles()[1];
             Vec3r dp = positionalCorrection(constraint);
             Vec3r dp_local = particle2->orientation.transpose() * dp;    // put dp from global to local frame
             Vec3r n = dp_local/dp_local.norm();
@@ -63,7 +63,7 @@ struct Muller2020ConstraintHelper
     template<typename Constraint>
     static Real angularW1(const ConstVectorHandle<Constraint>& constraint)
     {
-        const SimObject::OrientedParticle* particle1 = constraint->particles()[0];
+        const SimObject::OrientedParticle* particle1 = constraint->orientedParticles()[0];
         Vec3r dor = angularCorrection(constraint);
         Vec3r n = dor / dor.norm();
 
@@ -80,7 +80,7 @@ struct Muller2020ConstraintHelper
         }
         else
         {
-            const SimObject::OrientedParticle* particle2 = constraint->particles()[1];
+            const SimObject::OrientedParticle* particle2 = constraint->orientedParticles()[1];
             Vec3r dor = angularCorrection(constraint);
             Vec3r n = dor / dor.norm();
 
@@ -175,7 +175,7 @@ public:
         // compute position and orientation update for each particle
 
         // particle 1 position
-        SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
+        SimObject::OrientedParticle* particle1 = _constraint->orientedParticles()[0];
         Vec3r p1_update = -n * dlam / particle1->mass;
         // particle 1 orientation
         Vec3r r1 = _constraint->bodyJointOffset1();
@@ -187,7 +187,7 @@ public:
         // particle 2 (if applicable)
         if (Constraint::NumOrientedParticles == 2)
         {
-            SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
+            SimObject::OrientedParticle* particle2 = _constraint->orientedParticles()[1];
             Vec3r p2_update = dlam * n / particle2->mass;
 
             Vec3r r2 = _constraint->bodyJointOffset2();
@@ -213,7 +213,7 @@ public:
 
         Vec3r n = dor / theta;
 
-        // std::cout << "n local p1: " << (_constraint->particles()[0]->orientation.transpose() * n).transpose() << std::endl;
+        // std::cout << "n local p1: " << (_constraint->orientedParticles()[0]->orientation.transpose() * n).transpose() << std::endl;
 
         // get denominator weights from helper
         Real w1 = Muller2020ConstraintHelper::angularW1(_constraint);
@@ -227,7 +227,7 @@ public:
         _angular_lambda += dlam;
 
         // compute orientation update for each particle
-        SimObject::OrientedParticle* particle1 = _constraint->particles()[0];
+        SimObject::OrientedParticle* particle1 = _constraint->orientedParticles()[0];
         Vec3r p1_Ib_inv = 1/particle1->Ib.array();
         Vec3r or1_update = p1_Ib_inv.asDiagonal() * (-dlam * particle1->orientation.transpose() * n);
         std::cout << "p1 Orientation update: " << or1_update.transpose() << std::endl;
@@ -235,7 +235,7 @@ public:
 
         if (Constraint::NumOrientedParticles == 2)
         {
-            SimObject::OrientedParticle* particle2 = _constraint->particles()[1];
+            SimObject::OrientedParticle* particle2 = _constraint->orientedParticles()[1];
             Vec3r p2_Ib_inv = 1/particle2->Ib.array();
             Vec3r or2_update = p2_Ib_inv.asDiagonal() * (dlam * particle2->orientation.transpose() * n);
             // std::cout << "p2 Orientation update: " << or2_update.transpose() << std::endl;

@@ -15,12 +15,13 @@ class CubicHermiteRodElement : public RodElement_Base
 {
 public:
     static constexpr int NumNodes = 2;  // number of nodes in the element
-    static constexpr int NumGP = 2;     // number of Gauss points per element
+    static constexpr int NumNodeDerivatives = 2; // number of nodal DOF derivatives incorporated in rod element
+    static constexpr int NumGP = 3;     // number of Gauss points per element
     static constexpr int Order = 3;     // the order of the polynomial bases
 
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
     using DerivativeArrayType = std::array<Particle*, NumNodes>;
-    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*NumNodes>;
+    using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*NumNodes + 6*NumNodeDerivatives>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*NumNodes>;
 
     CubicHermiteRodElement(const NodeArrayType& nodes_list, 
@@ -35,6 +36,10 @@ public:
     virtual OrientedParticle* firstNode() const override { return _nodes.front(); }
     virtual OrientedParticle* lastNode() const override { return _nodes.back(); }
     const NodeArrayType& nodes() const { return _nodes; }
+    const std::array<Particle*, 2*NumNodeDerivatives> nodeDerivatives() const { return {_dp_ds[0], _dR_ds[0], _dp_ds[1], _dR_ds[1]}; }
+
+    const DerivativeArrayType& dpDOF() const { return _dp_ds; }
+    const DerivativeArrayType& dRDOF() const { return _dR_ds; }
 
     virtual Real restLength() const override { return _rest_length; }
 

@@ -4,7 +4,7 @@ namespace Constraint
 {
 
 SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2,0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2,0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -13,7 +13,7 @@ SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const Sph
 }
 
 SphericalJointSwingLimitConstraint::SphericalJointSwingLimitConstraint(const NormedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 2,0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2,0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _or2(sph_constraint.bodyJointOrientationOffset2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -99,7 +99,7 @@ SphericalJointSwingLimitConstraint::GradientMatType SphericalJointSwingLimitCons
 
 OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitConstraint(
     const OneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)
@@ -109,7 +109,7 @@ OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitCons
 
 OneSidedSphericalJointSwingLimitConstraint::OneSidedSphericalJointSwingLimitConstraint(
     const NormedOneSidedSphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha)
-    : XPBDConstraint<1, 1, 0>(sph_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(sph_constraint.orientedParticles(), AlphaVecType(alpha)),
     _or1(sph_constraint.bodyJointOrientationOffset1()),
     _base_or(sph_constraint.jointOrientation2()),
     _min_angle(min_angle), _max_angle(max_angle)

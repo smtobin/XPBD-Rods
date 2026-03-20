@@ -16,6 +16,10 @@ namespace SimObject
 class RodElement_Base
 {
 public:
+    static constexpr int NumNodes = 0;
+    static constexpr int NumNodeDerivatives = 0;
+    static constexpr int NumGP = 0;
+
     RodElement_Base(Real rest_length)
         : _rest_length(rest_length), _inv_rest_length(1.0/rest_length)
     {}

@@ -15,28 +15,28 @@ create-skybox: True
 ground-plane: False
 
 objects:
-  # - 
-  #   type: "Rod"
-  #   name: "rod1"
-  #   element-type: "Linear"
-  #   initial-position: [0, 1, 0.0]
-  #   initial-rotation: [0, 0, 0]
-  #   E: 1e6
-  #   nu: 0.4
-  #   diameter: 0.1
-  #   length: 1
-  #   density: 1000
-  #   elements: 40
-  #   base-fixed: True
-  #   tip-fixed: False
-  #   collisions: False
-  #   log-particles: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.0
-  #   roughness: 0.5
-  #   color: [1.0, 0, 0]
+  - 
+    type: "Rod"
+    name: "rod1"
+    element-type: "Linear"
+    initial-position: [0, 1, 0.0]
+    initial-rotation: [0, 0, 0]
+    E: 5e6
+    nu: 0.4
+    diameter: 0.1
+    length: 1
+    density: 1000
+    elements: 100
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [1.0, 0, 0]
 
   # - 
   #   type: "Rod"
@@ -68,12 +68,12 @@ objects:
     element-type: "Cubic Hermite"
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    E: 1e6
+    E: 5e6
     nu: 0.4
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 1
+    elements: 3
     global-solve: True
     base-fixed: True
     tip-fixed: False

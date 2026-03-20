@@ -4,7 +4,7 @@ namespace Constraint
 {
 
 PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const PrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 2, 0>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r1(pr_constraint.bodyJointOffset1()),
     _or1(pr_constraint.bodyJointOrientationOffset1()),
     _r2(pr_constraint.bodyJointOffset2()),
@@ -14,7 +14,7 @@ PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const PrismaticJoin
 }
 
 PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const NormedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 2, 0>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r1(pr_constraint.bodyJointOffset1()),
     _or1(pr_constraint.bodyJointOrientationOffset1()),
     _r2(pr_constraint.bodyJointOffset2()),
@@ -103,7 +103,7 @@ PrismaticJointLimitConstraint::GradientMatType PrismaticJointLimitConstraint::gr
 
 OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
     const OneSidedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 1, 0>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r2(pr_constraint.bodyJointOffset2()),
     _base_pos(pr_constraint.basePosition()),
     _base_or(pr_constraint.baseOrientation()),
@@ -114,7 +114,7 @@ OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
 
 OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
     const NormedOneSidedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 1, 0>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r2(pr_constraint.bodyJointOffset2()),
     _base_pos(pr_constraint.basePosition()),
     _base_or(pr_constraint.baseOrientation()),

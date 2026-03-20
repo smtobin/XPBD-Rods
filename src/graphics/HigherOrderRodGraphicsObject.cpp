@@ -235,6 +235,9 @@ void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
         Real s_hat = s * elements.size() - (Real)elem_ind;
 
         Vec3r position = elements[elem_ind].position(s_hat);
+
+        // std::cout << "Centerline position " << si << ": " << position.transpose() << std::endl;
+
         Mat3r orientation = elements[elem_ind].orientation(s_hat);
         // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
         for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)

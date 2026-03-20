@@ -9,14 +9,15 @@
 template<typename ConstraintType>
 typename ConstraintType::GradientMatType numericalConstraintGradient(ConstraintType& constraint)
 {
-    const typename ConstraintType::OrientedParticlePtrArray& particles = constraint.particles();
+    const typename ConstraintType::OrientedParticlePtrArray& orientedParticles = constraint.orientedParticles();
+    const typename ConstraintType::ParticlePtrArray& particles = constraint.particles();
     typename ConstraintType::ConstraintVecType orig_C = constraint.evaluate();
 
     Real delta = 1e-8;
     typename ConstraintType::GradientMatType gradient;
     for (int pi = 0; pi < ConstraintType::NumOrientedParticles; pi++)
     {
-        SimObject::OrientedParticle* particle_i = particles[pi];
+        SimObject::OrientedParticle* particle_i = orientedParticles[pi];
         for (int dof_i = 0; dof_i < 3; dof_i++)
         {
             particle_i->position[dof_i] += delta;
@@ -33,6 +34,17 @@ typename ConstraintType::GradientMatType numericalConstraintGradient(ConstraintT
             typename ConstraintType::ConstraintVecType new_C = constraint.evaluate();
             gradient.col(6*pi + 3 + dof_i) = (new_C - orig_C) / delta;
             particle_i->orientation = orig_or;
+        }
+    }
+    for (int pi = 0; pi < ConstraintType::NumParticles; pi++)
+    {
+        SimObject::Particle* particle_i = particles[pi];
+        for (int dof_i = 0; dof_i < 3; dof_i++)
+        {
+            particle_i->position[dof_i] += delta;
+            typename ConstraintType::ConstraintVecType new_C = constraint.evaluate();
+            gradient.col(6*ConstraintType::NumOrientedParticles+3*pi+dof_i) = (new_C - orig_C) / delta;
+            particle_i->position[dof_i] -= delta;
         }
     }
 
@@ -68,6 +80,14 @@ SimObject::OrientedParticle randomParticle()
     particle.position = pos;
     particle.orientation = Math::Exp_so3(R_vec);
 
+    return particle;
+}
+
+SimObject::Particle randomPositionalParticle()
+{
+    Vec3r pos = Vec3r::Random();
+    SimObject::Particle particle;
+    particle.position = pos;
     return particle;
 }
 
@@ -146,6 +166,18 @@ int main()
     SimObject::RodElement<2> o2_element(o2_element_particles, 0.5);
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
     testConstraint(o2_constraint);
+
+    std::array<SimObject::OrientedParticle*, 2> cubic_hermite_element_particles = {&particle1, &particle2};
+    SimObject::Particle pos1 = randomPositionalParticle();
+    SimObject::Particle pos2 = randomPositionalParticle();
+    SimObject::Particle pos3 = randomPositionalParticle();
+    SimObject::Particle pos4 = randomPositionalParticle();
+    std::array<SimObject::Particle*, 2> dp_DOF = {&pos1, &pos2};
+    std::array<SimObject::Particle*, 2> dR_DOF = {&pos3, &pos4};
+    SimObject::CubicHermiteRodElement hermite_element(cubic_hermite_element_particles, dp_DOF, dR_DOF, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement> hermite_constraint(&hermite_element, 0.3, Vec6r::Zero());
+    testConstraint(hermite_constraint);
+    
 
     /** Test derivative of exponential map */
     Real l = 0.1;
