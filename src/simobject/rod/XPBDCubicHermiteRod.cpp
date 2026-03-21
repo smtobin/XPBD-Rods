@@ -161,12 +161,20 @@ void XPBDCubicHermiteRod::setup()
         _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes[0].position, _nodes[0].orientation, &_nodes[0], Vec3r::Zero(), Mat3r::Identity()
         );
+
+        _internal_constraints.template emplace_back<Constraint::OneSidedFixedParticleConstraint>(
+            _dp_DOF[0].position, &_dp_DOF[0], Vec3r::Zero()
+        );
     }
 
     if(_tip_fixed)
     {
         _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes.back().position, _nodes.back().orientation, &_nodes.back(), Vec3r::Zero(), Mat3r::Identity()
+        );
+
+        _internal_constraints.template emplace_back<Constraint::OneSidedFixedParticleConstraint>(
+            _dp_DOF.back().position, &_dp_DOF.back(), Vec3r::Zero()
         );
     }
 
@@ -179,23 +187,29 @@ void XPBDCubicHermiteRod::setup()
     if (_base_fixed)
     {
         _ordered_constraints.emplace(_ordered_constraints.begin(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedParticleConstraint>().front());
+
+        _ordered_constraints.emplace(_ordered_constraints.begin(),
             &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().front());
     }
     if (_tip_fixed)
     {
         _ordered_constraints.emplace(_ordered_constraints.end(),
             &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().back());
+
+        _ordered_constraints.emplace(_ordered_constraints.end(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedParticleConstraint>().back());
     }
 
-    _num_constraints = elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed;
+    _num_constraints = 6*elastic_constraints.size() + 9*(int)_base_fixed + 9*(int)_tip_fixed;
 
     /** Allocate space */
-    _RHS_vec = VecXr::Zero(6*_num_constraints);
-    _alpha.conservativeResize(6*_num_constraints);
-    _internal_lambda = VecXr::Zero(6*_num_constraints);
-    _dlam = VecXr::Zero(6*_num_constraints);
+    _RHS_vec = VecXr::Zero(_num_constraints);
+    _alpha.conservativeResize(_num_constraints);
+    _internal_lambda = VecXr::Zero(_num_constraints);
+    _dlam = VecXr::Zero(_num_constraints);
     _dx.conservativeResize(12*_num_nodes);
-    _delC_mat = MatXr::Zero(6*_num_constraints, 12*_num_nodes);
+    _delC_mat = MatXr::Zero(_num_constraints, 12*_num_nodes);
 
     /** Assemble global inertia vector */
     _inertia_mat_inv = VecXr::Zero(12*_num_nodes);
@@ -239,9 +253,14 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
          * 
          * Need to look at virtual work derivations to see if this is correct.
          */
-        if (i == _num_nodes-1 && !_tip_fixed)
+        if (i == 0)
         {
-            Vec3r F_ext = node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
+            Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, G_ACCEL/12.0, 0);
+            _dp_DOF[i].inertialUpdate(dt, F_ext);
+        }
+        else if (i == _num_nodes-1)
+        {
+            Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
             _dp_DOF[i].inertialUpdate(dt, F_ext);
         }
         else
@@ -267,7 +286,7 @@ void XPBDCubicHermiteRod::velocityUpdate(Real dt)
         _dR_DOF[i].velocityUpdate(dt);
     }
 
-    _internal_lambda = VecXr::Zero(6*_num_constraints);
+    _internal_lambda = VecXr::Zero(_num_constraints);
 }
 
 void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
@@ -499,9 +518,9 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
             }
             for (int i = 0; i < ConstraintType::NumParticles; i++)
             {
-                std::cout << "constraint->particles()[i]: " << constraint->particles()[i] << std::endl;
-                std::cout << "_dp_DOF.data(): " << _dp_DOF.data() << std::endl;
-                std::cout << "_dR_DOF.data(): " << _dR_DOF.data() << std::endl;
+                // std::cout << "constraint->particles()[i]: " << constraint->particles()[i] << std::endl;
+                // std::cout << "_dp_DOF.data(): " << _dp_DOF.data() << std::endl;
+                // std::cout << "_dR_DOF.data(): " << _dR_DOF.data() << std::endl;
                 int particle_index_dp = constraint->particles()[i] - _dp_DOF.data();
                 int particle_index_dR = constraint->particles()[i] - _dR_DOF.data();
                 int particle_index;
@@ -517,8 +536,8 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
                     DOF_index = 12*particle_index + 9;
                 }
                 
-                std::cout << "particle index: " << particle_index << std::endl;
-                std::cout << "global DOF index start: " << DOF_index << std::endl;
+                // std::cout << "particle index: " << particle_index << std::endl;
+                // std::cout << "global DOF index start: " << DOF_index << std::endl;
 
                 _delC_mat.template block<ConstraintType::ConstraintDim, 3>(constraint_index, DOF_index) = 
                     gradient.template block<ConstraintType::ConstraintDim, 3>(0, 6*ConstraintType::NumOrientedParticles+3*i);
