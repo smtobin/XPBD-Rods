@@ -16,7 +16,8 @@ RodConvergenceSimulation::RodConvergenceSimulation(const Config::RodConvergenceS
      _rod_dia(config.rodDia()), _rod_length(config.rodLength()),
     _rigid_body_elements(config.rigidBodyRodElements()),
     _linear_rod_elements(config.linearRodElements()),
-    _quadratic_rod_elements(config.quadraticRodElements())
+    _quadratic_rod_elements(config.quadraticRodElements()),
+    _cubic_hermite_rod_elements(config.cubicHermiteElements())
 {
 
 }
@@ -61,6 +62,17 @@ void RodConvergenceSimulation::setup()
         _addObjectFromConfig(config);
     }
 
+    for (const auto& num_elem : _cubic_hermite_rod_elements)
+    {
+        std::string name = "cubic_hermite_rod" + std::to_string(num_elem);
+        Config::RodConfig config(
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            Config::RodElementType::CUBIC_HERMITE, true, false, true,
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+        );
+        _addObjectFromConfig(config);
+    }
+
     // create ground truth rod
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
@@ -80,21 +92,22 @@ void RodConvergenceSimulation::update()
     // after the sim is finished, we assume that we've reached steady state
     // compute the energy norm between each rod and the final rod
 
-    std::cout << "\n=== Energy Norms ===" << std::endl;
-    _objects.for_each_element<
-        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
-        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
-        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>
-        >([&] (auto& obj)
-    {
-        std::cout << "Energy norm for " << obj->name() << ": " << _energyNorm(obj.get(), _ground_truth) << std::endl;
-    });
+    // std::cout << "\n=== Energy Norms ===" << std::endl;
+    // _objects.for_each_element<
+    //     std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
+    //     std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
+    //     std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>
+    //     >([&] (auto& obj)
+    // {
+    //     std::cout << "Energy norm for " << obj->name() << ": " << _energyNorm(obj.get(), _ground_truth) << std::endl;
+    // });
 
     std::cout << "\n\n=== Position Norms ===" << std::endl;
     _objects.for_each_element<
         std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
         std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
-        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>,
+        std::unique_ptr<SimObject::XPBDCubicHermiteRod>
         >([&] (auto& obj)
     {
         Vec3r gt_tip = _ground_truth->nodes().back().position;
