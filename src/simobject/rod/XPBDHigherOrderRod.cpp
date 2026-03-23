@@ -278,11 +278,11 @@ void XPBDRod_<ElementType>::inertialUpdate(Real dt)
     {
         auto& node = _nodes[i];
 
-        // Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
-        Vec3r F_ext = Vec3r::Zero();
+        Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
+        // Vec3r F_ext = Vec3r::Zero();
         Vec3r T_ext = Vec3r::Zero();
-        if (i == _num_nodes-1)
-            T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
+        // if (i == _num_nodes-1)
+        //     T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
         node.inertialUpdate(dt, F_ext, T_ext);
     }
 }

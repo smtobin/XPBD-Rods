@@ -320,13 +320,18 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
     VecXr global_a = _inertia_mat_global_inv * global_F;
     for (int i = 0; i < _num_nodes; i++)
     {
-        Vec3r a_p = global_a.block<3,1>(12*i,0);
-        Vec3r a_R = global_a.block<3,1>(12*i+3,0);
-        Vec3r a_pp = global_a.block<3,1>(12*i+6,0);
-        Vec3r a_Rp = global_a.block<3,1>(12*i+9,0);
-        _nodes[i].inertialUpdateAccelerations(dt, a_p, a_R);
-        _dp_DOF[i].inertialUpdateAcceleration(dt, a_pp);
-        _dR_DOF[i].inertialUpdateAcceleration(dt, a_Rp);
+        // Vec3r a_p = global_a.block<3,1>(12*i,0);
+        // Vec3r a_R = global_a.block<3,1>(12*i+3,0);
+        // Vec3r a_pp = global_a.block<3,1>(12*i+6,0);
+        // Vec3r a_Rp = global_a.block<3,1>(12*i+9,0);
+        // _nodes[i].inertialUpdateAccelerations(dt, a_p, a_R);
+        // _dp_DOF[i].inertialUpdateAcceleration(dt, a_pp);
+        // _dR_DOF[i].inertialUpdateAcceleration(dt, a_Rp);
+
+        // gravity loading
+        _nodes[i].inertialUpdateAccelerations(dt, Vec3r(0, -G_ACCEL, 0), Vec3r::Zero());
+        _dp_DOF[i].inertialUpdateAcceleration(dt, Vec3r::Zero());
+        _dR_DOF[i].inertialUpdateAcceleration(dt, Vec3r::Zero());
     }
 
     
