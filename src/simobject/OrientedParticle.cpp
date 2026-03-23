@@ -23,6 +23,20 @@ void OrientedParticle::inertialUpdate(Real dt)
     inertialUpdate(dt, Vec3r::Zero(), Vec3r::Zero());
 }
 
+void OrientedParticle::inertialUpdateAccelerations(Real dt, const Vec3r& a_trans, const Vec3r& a_rot)
+{
+    if (fixed)
+        return;
+    
+    // positional update
+    position += dt*lin_velocity + dt*dt*a_trans;
+
+    // rotational update
+    Vec3r Ib_inv = 1.0/Ib.array();
+    Vec3r so3_update = dt*ang_velocity + dt*dt*(a_rot - Ib_inv.asDiagonal()*ang_velocity.cross(Ib.asDiagonal()*ang_velocity));
+    orientation = Math::Plus_SO3(orientation, so3_update);
+}
+
 void OrientedParticle::positionUpdate(const Vec3r& dpos, const Vec3r& dor)
 {
     if (fixed)

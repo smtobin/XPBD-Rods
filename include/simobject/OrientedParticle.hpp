@@ -35,6 +35,8 @@ struct OrientedParticle
      */
     void inertialUpdate(Real dt);
 
+    void inertialUpdateAccelerations(Real dt, const Vec3r& a_trans, const Vec3r& a_rot);
+
     /** Updates the particle given some change in position and orientiation.
      * @param dpos - the change in position (specified in global coordinates)
      * @param dor - the change in orientation - a member of the Lie algebra so(3)

@@ -46,6 +46,9 @@ private:
     /** "Particles" that correspond to the derivative DOF in the Hermite formulation. */
     std::vector<Particle> _dp_DOF;
     std::vector<Particle> _dR_DOF;
+
+    MatXr _inertia_mat_global;
+    MatXr _inertia_mat_global_inv;
 };
 
 } // namespace SimObject

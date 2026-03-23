@@ -92,6 +92,33 @@ void XPBDCubicHermiteRod::setup()
         _node_inverse_inertias[i] = Vec6r(1.0/_nodes[i].mass, 1.0/_nodes[i].mass, 1.0/_nodes[i].mass, 1.0/_nodes[i].Ib[0], 1.0/_nodes[i].Ib[1], 1.0/_nodes[i].Ib[2]);
     }
 
+    _inertia_mat_global = MatXr::Zero(12*_num_nodes, 12*_num_nodes);
+    _inertia_mat_global_inv = MatXr::Zero(12*_num_nodes, 12*_num_nodes);
+    Mat4r M_e;
+    M_e << 156, 22, 54, -13,
+            22, 4, 13, -3,
+            54, 13, 156, -22,
+            -13, -3, -22, 4;
+    M_e *= 1.0 / 420.0;
+
+    // assemble global matrix
+    Vec3r J_vec(_Ix, _Ix, _Iz);
+    for (int i = 0; i < _num_elements; i++)
+    {
+        for (int k1 = 0; k1 < 4; k1++)
+        {
+            for (int k2 = 0; k2 < 4; k2++)
+            {
+                _inertia_mat_global.block<3,3>(12*i+6*k1, 12*i+6*k2) += M_e(k1, k2) * _density * _area * _element_rest_length * Mat3r::Identity();
+                _inertia_mat_global.block<3,3>(12*i+6*k1+3, 12*i+6*k2+3) += M_e(k1,k2) * _density * _element_rest_length * J_vec.asDiagonal(); 
+            }
+        }
+    }
+    _inertia_mat_global_inv = _inertia_mat_global.inverse();
+
+    std::cout << "Inertia mat:\n" << _inertia_mat_global << std::endl;
+    std::cout << "Inertia mat inverse:\n" << _inertia_mat_global_inv << std::endl;
+
     /** Create elements */
     for (int i = 0; i < _num_elements; i++)
     {
@@ -137,6 +164,9 @@ void XPBDCubicHermiteRod::setup()
 
     // stiffness
     Vec6r stiffness(_G*_area, _G*_area, _E*_area, _E*_Ix, _E*_Ix, _G*_Iz);
+
+    std::cout << "EI = " << _E*_Ix << std::endl;
+    std::cout << "GJ = " << _G*_Iz << std::endl;
 
     // create (# Gauss points) constraints per element
     std::array<Real, NUM_GP> gauss_points = GaussQuadratureHelper<NUM_GP>::points();
@@ -221,6 +251,8 @@ void XPBDCubicHermiteRod::setup()
         _inertia_mat_inv.block<3,1>(12*i+9, 0) = 1/_dR_DOF[i].mass.array();
     }
 
+    std::cout << "diagonal inverse inertia:\n" << _inertia_mat_inv.asDiagonal() << std::endl;
+
     /** Ensure proper setup of block banded solver */
     int bandwidth = 2*NUM_GP - 1;
     _gradient_buffer.reserve(elastic_constraints.size());
@@ -236,21 +268,27 @@ void XPBDCubicHermiteRod::setup()
 
 void XPBDCubicHermiteRod::inertialUpdate(Real dt)
 {
+    VecXr global_F = VecXr::Zero(12*_num_nodes);
     // std::cout << "\n\n" << std::endl;
     for (int i = 0; i < _num_nodes; i++)
     {
-        // std::cout << "p " << i << " before inertial update: " << _nodes[i].position.transpose() << std::endl;
-        // std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
-        // std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+        std::cout << "p " << i << " before inertial update: " << _nodes[i].position.transpose() << std::endl;
+        std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
 
         auto& node = _nodes[i];
 
-        Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
-        // Vec3r F_ext = Vec3r::Zero();
-        // if (i == _num_nodes-1)
-            // F_ext = Vec3r(0, 0, 10000);
+        // Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
+        Vec3r F_ext = Vec3r::Zero();
         Vec3r T_ext = Vec3r(0,0,0);
-        node.inertialUpdate(dt, F_ext, T_ext);
+        if (i == _num_nodes-1)
+            T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
+            // F_ext = Vec3r(0,0,10000);
+        
+        global_F.block<3,1>(12*i,0) = F_ext;
+        global_F.block<3,1>(12*i+3,0) = T_ext;
+
+        // node.inertialUpdate(dt, F_ext, T_ext);
 
 
         /** FOR NOW, NO APPLIED FORCE TO DERIVATIVE DOF
@@ -269,14 +307,26 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
         // }
         // else
         {
-            _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
+            // _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
         }
         
-        _dR_DOF[i].inertialUpdate(dt, Vec3r::Zero());
+        // _dR_DOF[i].inertialUpdate(dt, Vec3r::Zero());
 
         // std::cout << "p " << i << " after inertial update: " << _nodes[i].position.transpose() << std::endl;
         // std::cout << "dp " << i << " after inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
         // std::cout << "dR " << i << " after inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+    }
+
+    VecXr global_a = _inertia_mat_global_inv * global_F;
+    for (int i = 0; i < _num_nodes; i++)
+    {
+        Vec3r a_p = global_a.block<3,1>(12*i,0);
+        Vec3r a_R = global_a.block<3,1>(12*i+3,0);
+        Vec3r a_pp = global_a.block<3,1>(12*i+6,0);
+        Vec3r a_Rp = global_a.block<3,1>(12*i+9,0);
+        _nodes[i].inertialUpdateAccelerations(dt, a_p, a_R);
+        _dp_DOF[i].inertialUpdateAcceleration(dt, a_pp);
+        _dR_DOF[i].inertialUpdateAcceleration(dt, a_Rp);
     }
 
     
@@ -565,7 +615,10 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     // std::cout << "RHS: " << _RHS_vec.transpose() << std::endl;
     // std::cout << "inertia mat inv: " << _inertia_mat_inv.transpose() << std::endl;
     // std::cout << "DelC mat:\n" << _delC_mat << std::endl;
-    MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
+
+    // MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
+    MatXr LHS_mat = _delC_mat * _inertia_mat_global_inv * _delC_mat.transpose();
+
     LHS_mat.diagonal() += alpha_tilde;
     // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
 
@@ -578,7 +631,10 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     //     std::cerr << "Matrix is not positive definite!" << std::endl;
     // }
     VecXr dlam = llt.solve(_RHS_vec);
-    _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
+    // _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
+    _dx = _inertia_mat_global_inv * _delC_mat.transpose() * dlam;
+
+
     // std::cout << "dlam global: " << dlam.transpose() << std::endl;
     // std::cout << "dx global: " << _dx.transpose() << std::endl;
 

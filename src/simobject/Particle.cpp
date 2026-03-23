@@ -17,6 +17,15 @@ void Particle::inertialUpdate(Real dt)
     inertialUpdate(dt, Vec3r::Zero());
 }
 
+void Particle::inertialUpdateAcceleration(Real dt, const Vec3r& a)
+{
+    if (fixed)
+        return;
+
+    // positional update
+    position += dt*velocity + dt*dt*a;
+}
+
 void Particle::positionUpdate(const Vec3r& dpos)
 {
     if (fixed)

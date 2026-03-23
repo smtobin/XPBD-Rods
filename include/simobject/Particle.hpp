@@ -31,6 +31,8 @@ struct Particle
      */
     void inertialUpdate(Real dt);
 
+    void inertialUpdateAcceleration(Real dt, const Vec3r& a);
+
     /** Updates the particle given some change in position and orientiation.
      * @param dpos - the change in position (specified in global coordinates)
      */
