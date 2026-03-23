@@ -162,9 +162,9 @@ void XPBDCubicHermiteRod::setup()
             _nodes[0].position, _nodes[0].orientation, &_nodes[0], Vec3r::Zero(), Mat3r::Identity()
         );
 
-        _internal_constraints.template emplace_back<Constraint::OneSidedFixedParticleConstraint>(
-            _dp_DOF[0].position, &_dp_DOF[0], Vec3r::Zero()
-        );
+        // _internal_constraints.template emplace_back<Constraint::OneSidedFixedParticleConstraint>(
+        //     _dp_DOF[0].position, &_dp_DOF[0], Vec3r::Zero()
+        // );
     }
 
     if(_tip_fixed)
@@ -186,8 +186,8 @@ void XPBDCubicHermiteRod::setup()
 
     if (_base_fixed)
     {
-        _ordered_constraints.emplace(_ordered_constraints.begin(),
-            &_internal_constraints.template get<Constraint::OneSidedFixedParticleConstraint>().front());
+        // _ordered_constraints.emplace(_ordered_constraints.begin(),
+        //     &_internal_constraints.template get<Constraint::OneSidedFixedParticleConstraint>().front());
 
         _ordered_constraints.emplace(_ordered_constraints.begin(),
             &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().front());
@@ -201,7 +201,7 @@ void XPBDCubicHermiteRod::setup()
             &_internal_constraints.template get<Constraint::OneSidedFixedParticleConstraint>().back());
     }
 
-    _num_constraints = 6*elastic_constraints.size() + 9*(int)_base_fixed + 9*(int)_tip_fixed;
+    _num_constraints = 6*elastic_constraints.size() + 6*(int)_base_fixed + 9*(int)_tip_fixed;
 
     /** Allocate space */
     _RHS_vec = VecXr::Zero(_num_constraints);
@@ -236,15 +236,19 @@ void XPBDCubicHermiteRod::setup()
 
 void XPBDCubicHermiteRod::inertialUpdate(Real dt)
 {
-    std::cout << "\n\n" << std::endl;
+    // std::cout << "\n\n" << std::endl;
     for (int i = 0; i < _num_nodes; i++)
     {
-        std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
-        std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+        // std::cout << "p " << i << " before inertial update: " << _nodes[i].position.transpose() << std::endl;
+        // std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        // std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
 
         auto& node = _nodes[i];
 
         Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
+        // Vec3r F_ext = Vec3r::Zero();
+        // if (i == _num_nodes-1)
+            // F_ext = Vec3r(0, 0, 10000);
         Vec3r T_ext = Vec3r(0,0,0);
         node.inertialUpdate(dt, F_ext, T_ext);
 
@@ -253,25 +257,26 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
          * 
          * Need to look at virtual work derivations to see if this is correct.
          */
-        if (i == 0)
-        {
-            Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, G_ACCEL/12.0, 0);
-            _dp_DOF[i].inertialUpdate(dt, F_ext);
-        }
-        else if (i == _num_nodes-1)
-        {
-            Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
-            _dp_DOF[i].inertialUpdate(dt, F_ext);
-        }
-        else
+        // if (i == 0)
+        // {
+        //     Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, G_ACCEL/12.0, 0);
+        //     _dp_DOF[i].inertialUpdate(dt, F_ext);
+        // }
+        // else if (i == _num_nodes-1)
+        // {
+        //     Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
+        //     _dp_DOF[i].inertialUpdate(dt, F_ext);
+        // }
+        // else
         {
             _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
         }
         
         _dR_DOF[i].inertialUpdate(dt, Vec3r::Zero());
 
-        std::cout << "dp " << i << " after inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
-        std::cout << "dR " << i << " after inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+        // std::cout << "p " << i << " after inertial update: " << _nodes[i].position.transpose() << std::endl;
+        // std::cout << "dp " << i << " after inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        // std::cout << "dR " << i << " after inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
     }
 
     
@@ -575,7 +580,7 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     VecXr dlam = llt.solve(_RHS_vec);
     _dx = _inertia_mat_inv.asDiagonal() * _delC_mat.transpose() * dlam;
     // std::cout << "dlam global: " << dlam.transpose() << std::endl;
-    std::cout << "dx global: " << _dx.transpose() << std::endl;
+    // std::cout << "dx global: " << _dx.transpose() << std::endl;
 
     _internal_lambda += _dlam;
 

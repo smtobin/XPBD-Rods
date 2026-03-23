@@ -279,6 +279,9 @@ void XPBDRod_<ElementType>::inertialUpdate(Real dt)
         auto& node = _nodes[i];
 
         Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
+        // Vec3r F_ext = Vec3r::Zero();
+        // if (i == _num_nodes-1)
+            // F_ext = Vec3r(0,0,10000);
         Vec3r T_ext = Vec3r(0,0,0);
         node.inertialUpdate(dt, F_ext, T_ext);
     }

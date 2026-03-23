@@ -20,7 +20,7 @@ static std::array<Real, N> points()
     }
     else if constexpr (N == 3)
     {
-        return {0.5 - std::sqrt(3.0/5.0), 0.5, 0.5 + std::sqrt(3.0/5.0)};
+        return {0.5 - 0.5*std::sqrt(3.0/5.0), 0.5, 0.5 + 0.5*std::sqrt(3.0/5.0)};
     }
     else
     {

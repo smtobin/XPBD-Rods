@@ -172,9 +172,9 @@ int main()
     SimObject::Particle pos2 = randomPositionalParticle();
     SimObject::Particle pos3 = randomPositionalParticle();
     SimObject::Particle pos4 = randomPositionalParticle();
-    std::array<SimObject::Particle*, 2> dp_DOF = {&pos1, &pos2};
-    std::array<SimObject::Particle*, 2> dR_DOF = {&pos3, &pos4};
-    SimObject::CubicHermiteRodElement hermite_element(cubic_hermite_element_particles, dp_DOF, dR_DOF, 0.5);
+    std::array<SimObject::Particle*, 2> dp_DOF = {&pos1, &pos3};
+    std::array<SimObject::Particle*, 2> dR_DOF = {&pos2, &pos4};
+    SimObject::CubicHermiteRodElement hermite_element(cubic_hermite_element_particles, dp_DOF, dR_DOF, 2.5);
     Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement> hermite_constraint(&hermite_element, 0.3, Vec6r::Zero());
     testConstraint(hermite_constraint);
     
