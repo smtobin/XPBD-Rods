@@ -35,6 +35,7 @@ private:
     std::vector<int> _rigid_body_elements;
     std::vector<int> _linear_rod_elements;
     std::vector<int> _quadratic_rod_elements;
+    std::vector<int> _cubic_elements;
     std::vector<int> _cubic_hermite_rod_elements;
 
     SimObject::XPBDRod_<SimObject::RodElement<2>>* _ground_truth;

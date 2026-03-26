@@ -17,6 +17,7 @@ RodConvergenceSimulation::RodConvergenceSimulation(const Config::RodConvergenceS
     _rigid_body_elements(config.rigidBodyRodElements()),
     _linear_rod_elements(config.linearRodElements()),
     _quadratic_rod_elements(config.quadraticRodElements()),
+    _cubic_elements(config.cubicElements()),
     _cubic_hermite_rod_elements(config.cubicHermiteElements())
 {
 
@@ -57,6 +58,17 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::QUADRATIC, true, false, true,
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+        );
+        _addObjectFromConfig(config);
+    }
+
+    for (const auto& num_elem : _cubic_elements)
+    {
+        std::string name = "cubic_rod" + std::to_string(num_elem);
+        Config::RodConfig config(
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            Config::RodElementType::CUBIC, true, false, true,
             _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
         );
         _addObjectFromConfig(config);
@@ -107,6 +119,7 @@ void RodConvergenceSimulation::update()
         std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
         std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
         std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>,
+        std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<3>>>,
         std::unique_ptr<SimObject::XPBDCubicHermiteRod>
         >([&] (auto& obj)
     {

@@ -23,6 +23,7 @@ public:
         _extractParameter("rigid-body-rod-elements", node, _rigid_body_rod_elements);
         _extractParameter("linear-rod-elements", node, _linear_rod_elements);
         _extractParameter("quadratic-rod-elements", node, _quadratic_rod_elements);
+        _extractParameter("cubic-rod-elements", node, _cubic_elements);
         _extractParameter("cubic-hermite-rod-elements", node, _cubic_hermite_elements);
     }
 
@@ -35,6 +36,7 @@ public:
     std::vector<int> rigidBodyRodElements() const { return _rigid_body_rod_elements.value; }
     std::vector<int> linearRodElements() const { return _linear_rod_elements.value; }
     std::vector<int> quadraticRodElements() const { return _quadratic_rod_elements.value; }
+    std::vector<int> cubicElements() const { return _cubic_elements.value; }
     std::vector<int> cubicHermiteElements() const { return _cubic_hermite_elements.value; }
 
 private:
@@ -47,6 +49,7 @@ private:
     ConfigParameter<std::vector<int>> _rigid_body_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
     ConfigParameter<std::vector<int>> _linear_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
     ConfigParameter<std::vector<int>> _quadratic_rod_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
+    ConfigParameter<std::vector<int>> _cubic_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
     ConfigParameter<std::vector<int>> _cubic_hermite_elements = ConfigParameter<std::vector<int>>(std::vector<int>{});
 };
 
