@@ -25,8 +25,8 @@ CubicHermiteRodElement::CubicHermiteRodElement(
 
 std::array<Real, 4> CubicHermiteRodElement::lumpedMasses()
 {
-    // return {156.0/320.0, 4.0/320.0, 156.0/320.0, 4.0/320.0};
-    return {158.0/320.0, 2.0/320.0, 158.0/320.0, 2.0/320.0};
+    // HRZ lumping (not used - the full mass matrix is used instead)
+    return {156.0/320.0, 4.0/320.0, 156.0/320.0, 4.0/320.0};
 }
 
 Vec3r CubicHermiteRodElement::position(Real s_hat) const

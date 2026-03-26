@@ -235,7 +235,21 @@ class Simulation
         }
         else if (rod_config.elementType() == Config::RodElementType::CUBIC)
         {
-            // todo
+            using ElementType = SimObject::RodElement<3>;
+            _objects.template push_back<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>(std::make_unique<SimObject::XPBDRod_<ElementType>>(rod_config));
+            SimObject::XPBDRod_<ElementType>* new_rod_ptr = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<ElementType>>>().back().get();
+            new_rod_ptr->setup();
+
+            // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
+            if (!new_rod_ptr->globalSolve())
+            {
+                _addConstraintsFromObject(new_rod_ptr);
+            }
+
+            // add new rod to graphics scene to be visualized
+            _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
+
+            new_obj_ptr = new_rod_ptr;
         }
         else if (rod_config.elementType() == Config::RodElementType::CUBIC_HERMITE)
         {

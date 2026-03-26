@@ -29,6 +29,7 @@ typename RodElasticGaussPointConstraint<ElementType>::GradientMatType RodElastic
 template class RodElasticGaussPointConstraint<SimObject::RodElement<0>>;
 template class RodElasticGaussPointConstraint<SimObject::RodElement<1>>;
 template class RodElasticGaussPointConstraint<SimObject::RodElement<2>>;
+template class RodElasticGaussPointConstraint<SimObject::RodElement<3>>;
 template class RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement>;
 
 } // namespace Constraint

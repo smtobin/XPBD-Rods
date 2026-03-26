@@ -20,6 +20,15 @@ Real d2quadraticN1(Real /* s_hat */) { return 4; }
 Real d2quadraticN2(Real /* s_hat */) { return -8; }
 Real d2quadraticN3(Real /* s_hat */) { return 4; }
 
+Real cubicN1(Real s_hat) { return -9.0/2.0 * (s_hat - 1.0/3.0) * (s_hat - 2.0/3.0) * (s_hat - 1); }
+Real cubicN2(Real s_hat) { return 27.0/2.0 * s_hat * (s_hat - 2.0/3.0) * (s_hat - 1); }
+Real cubicN3(Real s_hat) { return -27.0/2.0 * s_hat * (s_hat - 1.0/3.0) * (s_hat - 1); }
+Real cubicN4(Real s_hat) { return 9.0/2.0 * s_hat * (s_hat - 1.0/3.0) * (s_hat - 2.0/3.0); }
+Real dcubicN1(Real s_hat) { return -27.0/2.0*s_hat*s_hat + 18*s_hat - 11.0/2.0; }
+Real dcubicN2(Real s_hat) { return 81.0/2.0*s_hat*s_hat - 45*s_hat + 9; }
+Real dcubicN3(Real s_hat) { return -81.0/2.0*s_hat*s_hat + 36*s_hat - 9.0/2.0; }
+Real dcubicN4(Real s_hat) { return 27.0/2.0*s_hat*s_hat - 9*s_hat + 1; }
+
 template<int Order>
 RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
     : RodElement_Base(rest_length), _nodes(nodes_list), _bases{}, _bases_derivatives{}
@@ -41,6 +50,11 @@ RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
         _bases_derivatives = {dquadraticN1, dquadraticN2, dquadraticN3};
         _bases_derivatives2 = {d2quadraticN1, d2quadraticN2, d2quadraticN3};
     }
+    else if constexpr (Order == 3)
+    {
+        _bases = {cubicN1, cubicN2, cubicN3, cubicN4};
+        _bases_derivatives = {dcubicN1, dcubicN2, dcubicN3, dcubicN4};
+    }
     else
     {
         static_assert(0);
@@ -61,6 +75,10 @@ std::array<Real, RodElement<Order>::NumNodes> RodElement<Order>::lumpedMasses()
     else if constexpr (Order == 2)
     {
         return {1.0/6.0, 2.0/3.0, 1.0/6.0};
+    }
+    else if constexpr (Order == 3)
+    {
+        return {1.0/8.0, 3.0/8.0, 3.0/8.0, 1.0/8.0};
     }
     else
     {
@@ -848,5 +866,6 @@ typename RodElement<0>::ContactPointGradientMatType RodElement<0>::contactPointG
 template class RodElement<0>;
 template class RodElement<1>;
 template class RodElement<2>;
+template class RodElement<3>;
 
 } // namespace SimObject

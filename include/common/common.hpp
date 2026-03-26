@@ -89,6 +89,7 @@ using XPBDObjects_TypeList = TypeList<
     SimObject::XPBDRod_<SimObject::RodElement<0>>, 
     SimObject::XPBDRod_<SimObject::RodElement<1>>, 
     SimObject::XPBDRod_<SimObject::RodElement<2>>,
+    SimObject::XPBDRod_<SimObject::RodElement<3>>,
     SimObject::XPBDCubicHermiteRod,
     SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
@@ -174,6 +175,7 @@ using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<0>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<1>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>>,
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement>,
     Constraint::PointLineConstraint
 >;

@@ -578,6 +578,7 @@ void XPBDRod_<CubicHermiteRodElement>::internalConstraintSolve(Real /* dt */)
 template class XPBDRod_<RodElement<0>>;
 template class XPBDRod_<RodElement<1>>;
 template class XPBDRod_<RodElement<2>>;
+template class XPBDRod_<RodElement<3>>;
 template class XPBDRod_<CubicHermiteRodElement>;
 
 } // namespace SimObject

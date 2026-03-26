@@ -104,6 +104,7 @@ int main()
     SimObject::OrientedParticle particle1 = randomParticle();
     SimObject::OrientedParticle particle2 = randomParticle();
     SimObject::OrientedParticle particle3 = randomParticle();
+    SimObject::OrientedParticle particle4 = randomParticle();
 
     /** Revolute joint constraints */
     Constraint::RevoluteJointConstraint                 rev_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -166,6 +167,11 @@ int main()
     SimObject::RodElement<2> o2_element(o2_element_particles, 0.5);
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
     testConstraint(o2_constraint);
+
+    std::array<SimObject::OrientedParticle*, 4> o3_element_particles = {&particle1, &particle2, &particle3, &particle4};
+    SimObject::RodElement<3> o3_element(o3_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>> o3_constraint(&o3_element, 0.33, Vec6r::Zero());
+    testConstraint(o3_constraint);
 
     std::array<SimObject::OrientedParticle*, 2> cubic_hermite_element_particles = {&particle1, &particle2};
     SimObject::Particle pos1 = randomPositionalParticle();

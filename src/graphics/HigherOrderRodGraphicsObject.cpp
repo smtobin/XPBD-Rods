@@ -256,6 +256,7 @@ void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
 template class HigherOrderRodGraphicsObject<SimObject::RodElement<0>>;
 template class HigherOrderRodGraphicsObject<SimObject::RodElement<1>>;
 template class HigherOrderRodGraphicsObject<SimObject::RodElement<2>>;
+template class HigherOrderRodGraphicsObject<SimObject::RodElement<3>>;
 template class HigherOrderRodGraphicsObject<SimObject::CubicHermiteRodElement>;
 
 } // namespace Graphics
