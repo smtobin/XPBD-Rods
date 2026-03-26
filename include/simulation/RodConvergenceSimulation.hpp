@@ -26,6 +26,8 @@ private:
     template <typename ElementType1, typename ElementType2>
     Real _energyNorm(SimObject::XPBDRod_<ElementType1>* rod1, SimObject::XPBDRod_<ElementType2>* rod2);
     
+    bool _output_strains;
+
     Real _rod_E;
     Real _rod_nu;
     Real _rod_density;

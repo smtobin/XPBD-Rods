@@ -15,6 +15,8 @@ public:
     explicit RodConvergenceSimulationConfig(const YAML::Node& node)
         : SimulationConfig(node)
     {
+        _extractParameter("output-strains", node, _output_strains);
+
         _extractParameter("E", node, _rod_E);
         _extractParameter("diameter", node, _rod_dia);
         _extractParameter("length", node, _rod_length);
@@ -26,6 +28,8 @@ public:
         _extractParameter("cubic-rod-elements", node, _cubic_elements);
         _extractParameter("cubic-hermite-rod-elements", node, _cubic_hermite_elements);
     }
+
+    bool outputStrains() const { return _output_strains.value; }
 
     Real rodE() const { return _rod_E.value; }
     Real rodNu() const { return _rod_nu.value; }
@@ -40,6 +44,8 @@ public:
     std::vector<int> cubicHermiteElements() const { return _cubic_hermite_elements.value; }
 
 private:
+    ConfigParameter<bool> _output_strains = ConfigParameter<bool>(false);
+
     ConfigParameter<Real> _rod_E = ConfigParameter<Real>(1e6);
     ConfigParameter<Real> _rod_nu = ConfigParameter<Real>(0.4);
     ConfigParameter<Real> _rod_density = ConfigParameter<Real>(1000);

@@ -3,6 +3,7 @@
 #include "common/GaussQuadratureHelper.hpp"
 
 #include <thread>
+#include <fstream>
 
 namespace Sim
 {
@@ -12,7 +13,9 @@ RodConvergenceSimulation::RodConvergenceSimulation()
 {}
 
 RodConvergenceSimulation::RodConvergenceSimulation(const Config::RodConvergenceSimulationConfig& config)
-    : Simulation(config), _rod_E(config.rodE()), _rod_nu(config.rodNu()), _rod_density(config.rodDensity()),
+    : Simulation(config),
+    _output_strains(config.outputStrains()),
+     _rod_E(config.rodE()), _rod_nu(config.rodNu()), _rod_density(config.rodDensity()),
      _rod_dia(config.rodDia()), _rod_length(config.rodLength()),
     _rigid_body_elements(config.rigidBodyRodElements()),
     _linear_rod_elements(config.linearRodElements()),
@@ -89,7 +92,7 @@ void RodConvergenceSimulation::setup()
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::QUADRATIC, true, false, true,
-        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu
+        _rod_length, _rod_dia, 100, _rod_density, _rod_E, _rod_nu
     );
     _addObjectFromConfig(ground_truth_config);
 
@@ -126,6 +129,47 @@ void RodConvergenceSimulation::update()
         Vec3r gt_tip = _ground_truth->nodes().back().position;
         std::cout << "Position norm for " << obj->name() << ": " << (obj->nodes().back().position - gt_tip).norm() << std::endl;
     });
+
+    if (_output_strains)
+    {
+        std::ofstream out_file("strains.txt");
+
+        // write headers
+        _objects.for_each_element<
+            std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
+            std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
+            std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>,
+            std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<3>>>,
+            std::unique_ptr<SimObject::XPBDCubicHermiteRod>
+            >([&] (auto& obj)
+        {
+            out_file << obj->name() << "_v1 " << obj->name() << "_v2 " << obj->name() << "_v3 " << obj->name() << "_u1 " << obj->name() << "_u2 " << obj->name() << "_u3 ";
+        });
+        out_file << std::endl;
+
+        // sample strains along the rod
+        int num_samples = 100;
+        for (int i = 0; i < num_samples; i++)
+        {
+            Real s = Real(i) / (num_samples-1);
+
+            _objects.for_each_element<
+                std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<0>>>,
+                std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>,
+                std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>,
+                std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<3>>>,
+                std::unique_ptr<SimObject::XPBDCubicHermiteRod>
+                >([&] (auto& obj)
+            {
+                int elem_ind = std::clamp(static_cast<int>(s * obj->elements().size()), 0, static_cast<int>(obj->elements().size()-1));
+                Real s_hat = s * obj->elements().size() - (Real)elem_ind;
+                Vec6r strain = obj->elements()[elem_ind].strain(s_hat);
+                out_file << strain[0] << " " << strain[1] << " " << strain[2] << " " << strain[3] << " " << strain[4] << " " << strain[5] << " ";
+            });
+            out_file << std::endl;
+        }
+        out_file.close();
+    }
 }
 
 int RodConvergenceSimulation::run()
