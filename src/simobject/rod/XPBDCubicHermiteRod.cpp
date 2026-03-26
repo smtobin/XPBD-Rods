@@ -101,12 +101,12 @@ void XPBDCubicHermiteRod::setup()
             -13, -3, -22, 4;
     M_e *= 1.0 / 420.0;
 
-    MatXr hermite_inertia_global = MatXr::Zero(2*_num_elements+2, 2*_num_elements+2);
-    for (int i = 0; i < _num_elements; i++)
-    {
-        hermite_inertia_global.block<4,4>(2*i, 2*i) += M_e;
-    }
-    _hermite_inertia_global_inv = hermite_inertia_global.inverse();
+    // MatXr hermite_inertia_global = MatXr::Zero(2*_num_elements+2, 2*_num_elements+2);
+    // for (int i = 0; i < _num_elements; i++)
+    // {
+    //     hermite_inertia_global.block<4,4>(2*i, 2*i) += M_e;
+    // }
+    // _hermite_inertia_global_inv = hermite_inertia_global.inverse();
 
     // assemble global matrix
     Vec3r J_vec(_Ix, _Ix, _Iz);
@@ -123,11 +123,25 @@ void XPBDCubicHermiteRod::setup()
     }
     _inertia_mat_global_inv = _inertia_mat_global.inverse();
 
-    std::cout << "Inertia mat:\n" << _inertia_mat_global << std::endl;
-    std::cout << "Inertia mat inverse:\n" << _inertia_mat_global_inv << std::endl;
-    std::cout << "Hermite global:\n" << hermite_inertia_global << std::endl;
-    std::cout << "Hermite inverse:\n" << _hermite_inertia_global_inv << std::endl;
-    std::cout << "Scaled hermite inverse:\n" << 1/(_density * _area * _element_rest_length) * _hermite_inertia_global_inv << std::endl;
+    // std::cout << "Inertia mat:\n" << _inertia_mat_global << std::endl;
+    // std::cout << "Inertia mat inverse:\n" << _inertia_mat_global_inv << std::endl;
+
+    // just keep 12x12 tridiagonal approximation of inverse
+    // for (int i = 0; i < _num_nodes; i++)
+    // {
+    //     for (int j = 0; j < _num_nodes; j++)
+    //     {
+    //         if (std::abs(i-j) > 1)
+    //         {
+    //             _inertia_mat_global_inv.template block<12,12>(12*i,12*j) = Eigen::Matrix<Real,12,12>::Zero();
+    //         }
+    //     }
+    // }
+    // std::cout << "Inertia mat (banded) inverse:\n" << _inertia_mat_global_inv << std::endl;
+
+    // std::cout << "Hermite global:\n" << hermite_inertia_global << std::endl;
+    // std::cout << "Hermite inverse:\n" << _hermite_inertia_global_inv << std::endl;
+    // std::cout << "Scaled hermite inverse:\n" << 1/(_density * _area * _element_rest_length) * _hermite_inertia_global_inv << std::endl;
 
     /** Create elements */
     for (int i = 0; i < _num_elements; i++)
@@ -175,8 +189,8 @@ void XPBDCubicHermiteRod::setup()
     // stiffness
     Vec6r stiffness(_G*_area, _G*_area, _E*_area, _E*_Ix, _E*_Ix, _G*_Iz);
 
-    std::cout << "EI = " << _E*_Ix << std::endl;
-    std::cout << "GJ = " << _G*_Iz << std::endl;
+    // std::cout << "EI = " << _E*_Ix << std::endl;
+    // std::cout << "GJ = " << _G*_Iz << std::endl;
 
     // create (# Gauss points) constraints per element
     std::array<Real, NUM_GP> gauss_points = GaussQuadratureHelper<NUM_GP>::points();
@@ -262,12 +276,12 @@ void XPBDCubicHermiteRod::setup()
         _inertia_mat_inv.block<3,1>(12*i+9, 0) = 1/_dR_DOF[i].mass.array();
     }
 
-    std::cout << "diagonal inverse inertia:\n" << _inertia_mat_inv.asDiagonal() << std::endl;
+    // std::cout << "diagonal inverse inertia:\n" << _inertia_mat_inv.asDiagonal() << std::endl;
 
     /** Ensure proper setup of block banded solver */
     int bandwidth = 2*NUM_GP - 1;
     _gradient_buffer.resize(elastic_constraints.size());
-    _mass_weighted_gradient_buffer.resize(elastic_constraints.size());
+    // _mass_weighted_gradient_buffer.resize(elastic_constraints.size());
 
     // number of diagonals = bandwidth + 1
     _diagonals.resize(bandwidth+1);
@@ -284,9 +298,9 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
     // std::cout << "\n\n" << std::endl;
     for (int i = 0; i < _num_nodes; i++)
     {
-        std::cout << "p " << i << " before inertial update: " << _nodes[i].position.transpose() << std::endl;
-        std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
-        std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
+        // std::cout << "p " << i << " before inertial update: " << _nodes[i].position.transpose() << std::endl;
+        // std::cout << "dp " << i << " before inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
+        // std::cout << "dR " << i << " before inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
 
         auto& node = _nodes[i];
 
@@ -372,191 +386,214 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     // get a reference to the elastic constraints
     std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
 
-    /** Assemble diagonal blocks for solver */
+    // /** Assemble diagonal blocks for solver */
 
-    // iterate through elements and compute all the constraint gradients and the mass-weighted constraint gradients
-    // this will be used later in the delC
-    // i.e. each entry in _gradient_buffer will store a 
-    Real inv_element_mass = 1/(_density * _area * _element_rest_length);
-    Vec3r inv_element_rot_inertia = 1.0/(_density * _element_rest_length * Vec3r(_Ix, _Ix, _Iz).array());
-    for (int i = 0; i < _num_elements; i++)
-    {
-        // inverse inertia for the element DOFs
-        Mat4r inv_M_e = _hermite_inertia_global_inv.block<4,4>(2*i,2*i);
+    // // iterate through elements and compute all the constraint gradients and the mass-weighted constraint gradients
+    // // this will be used later in the delC
+    // // i.e. each entry in _gradient_buffer will store a 
+    // Real inv_element_mass = 1/(_density * _area * _element_rest_length);
+    // Vec3r inv_element_rot_inertia = 1.0/(_density * _element_rest_length * Vec3r(_Ix, _Ix, _Iz).array());
+    // for (int i = 0; i < _num_elements; i++)
+    // {
+    //     // inverse inertia for the element DOFs
+    //     Mat4r inv_M_e = _hermite_inertia_global_inv.block<4,4>(2*i,2*i);
 
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            // constraint index that we are on (in terms of elastic constraints)
-            int constraint_ind = NUM_GP*i + j;
-            // compute elastic constraint gradient at this Gauss point
-            _gradient_buffer[constraint_ind] = elastic_constraints[constraint_ind].gradient();
+    //     for (int j = 0; j < NUM_GP; j++)
+    //     {
+    //         // constraint index that we are on (in terms of elastic constraints)
+    //         int constraint_ind = NUM_GP*i + j;
+    //         // compute elastic constraint gradient at this Gauss point
+    //         const ElasticConstraintType::GradientMatType grad = elastic_constraints[constraint_ind].gradient();
+    //         // the constraint gradient is organized into 6x3 blocks as follows:
+    //         // | dC/p1 | dC/R1 | dC/p2 | dC/R2 | dC/p'1 | dC/R'1 | dC/p'2 | dC/R'2 |
+    //         // i.e. normal DOF and then derivative DOF
+    //         // we want to re-organize into the following seet of 6x3 blocks
+    //         // | dC/p1 | dC/R1 | dC/p'1 | dC/R'1 | dC/p2 | dC/R2 | dC/p'2 | dC/R'2 |
+    //         _gradient_buffer[constraint_ind].block<6,6>(0,0) = grad.block<6,6>(0,0);
+    //         _gradient_buffer[constraint_ind].block<6,6>(0,6) = grad.block<6,6>(0,12);
+    //         _gradient_buffer[constraint_ind].block<6,6>(0,12) = grad.block<6,6>(0,6);
+    //         _gradient_buffer[constraint_ind].block<6,6>(0,18) = grad.block<6,6>(0,18);
 
-            // the constraint gradient is organized into 6x3 blocks as follows:
-            // | dC/p1 | dC/R1 | dC/p2 | dC/R2 | dC/p'1 | dC/R'1 | dC/p'2 | dC/R'2 |
             
-            // there is no coupling between p, p' DOF and the R, R' DOF
-            // furthermore, the p1-p1 coupling is the same as the R1-R1 coupling, p1-p2' coupling the same as R1-R2' coupling, etc.
-            // for translational mass, multiply by rho * A * h
-            // for rotational mass, multiply by rho * h * J
-            for (int k1 = 0; k1 < 4; k1++)
-            {
-                const ElasticConstraintType::GradientMatType& grad = _gradient_buffer[constraint_ind];
-                Eigen::Matrix<Real, 6, 3> mC_block_trans = Eigen::Matrix<Real, 6, 3>::Zero();
-                Eigen::Matrix<Real, 6, 3> mC_block_rot = Eigen::Matrix<Real, 6, 3>::Zero();
-                mC_block_trans += inv_M_e(k1, 0) * inv_element_mass * grad.block<6,3>(0,0) +    // coupling with p1
-                                  inv_M_e(k1, 2) * inv_element_mass * grad.block<6,3>(0,6) +    // coupling with p'1
-                                  inv_M_e(k1, 1) * inv_element_mass * grad.block<6,3>(0,12) +   // coupling with p2
-                                  inv_M_e(k1, 3) * inv_element_mass * grad.block<6,3>(0,18);    // coupling with p'2
+            
+    //         // there is no coupling between p, p' DOF and the R, R' DOF
+    //         // furthermore, the p1-p1 coupling is the same as the R1-R1 coupling, p1-p2' coupling the same as R1-R2' coupling, etc.
+    //         // for translational mass, multiply by rho * A * h
+    //         // for rotational mass, multiply by rho * h * J
+    //         for (int k1 = 0; k1 < 4; k1++)
+    //         {
+    //             Eigen::Matrix<Real, 6, 3> mC_block_trans = Eigen::Matrix<Real, 6, 3>::Zero();
+    //             Eigen::Matrix<Real, 6, 3> mC_block_rot = Eigen::Matrix<Real, 6, 3>::Zero();
+    //             mC_block_trans += inv_M_e(k1, 0) * inv_element_mass * grad.block<6,3>(0,0) +    // coupling with p1
+    //                               inv_M_e(k1, 2) * inv_element_mass * grad.block<6,3>(0,6) +    // coupling with p2
+    //                               inv_M_e(k1, 1) * inv_element_mass * grad.block<6,3>(0,12) +   // coupling with p'1
+    //                               inv_M_e(k1, 3) * inv_element_mass * grad.block<6,3>(0,18);    // coupling with p'2
 
-                mC_block_rot += inv_M_e(k1, 0) * grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal() +  // coupling with R1
-                                inv_M_e(k1, 2) * grad.block<6,3>(0,9) * inv_element_rot_inertia.asDiagonal() +  // coupling with R'1
-                                inv_M_e(k1, 1) * grad.block<6,3>(0,15) * inv_element_rot_inertia.asDiagonal() + // coupling with R2
-                                inv_M_e(k1, 3) * grad.block<6,3>(0,21) * inv_element_rot_inertia.asDiagonal();  // coupling with R'2
+    //             mC_block_rot += inv_M_e(k1, 0) * grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal() +  // coupling with R1
+    //                             inv_M_e(k1, 2) * grad.block<6,3>(0,9) * inv_element_rot_inertia.asDiagonal() +  // coupling with R2
+    //                             inv_M_e(k1, 1) * grad.block<6,3>(0,15) * inv_element_rot_inertia.asDiagonal() + // coupling with R'1
+    //                             inv_M_e(k1, 3) * grad.block<6,3>(0,21) * inv_element_rot_inertia.asDiagonal();  // coupling with R'2
 
-                // put these blocks into their respective places
-                _mass_weighted_gradient_buffer[constraint_ind].block<6,3>(0,6*k1) = mC_block_trans;
-                _mass_weighted_gradient_buffer[constraint_ind].block<6,3>(0,6*k1+3) = mC_block_rot;
-            }
+    //             // put these blocks into their respective places
+    //             _mass_weighted_gradient_buffer[constraint_ind].block<6,3>(0,6*k1) = mC_block_trans;
+    //             _mass_weighted_gradient_buffer[constraint_ind].block<6,3>(0,6*k1+3) = mC_block_rot;
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
-    // iterate through again and assemble the diagonals of the system matrix and the RHS vector
-    int diag_block_ind = 0;
+    // // iterate through again and assemble the diagonals of the system matrix and the RHS vector
+    // int diag_block_ind = 0;
 
-    // if the base is fixed, compute the entries in the system matrix
-    // the fixed base constraint gradient overlaps with just the constraint gradients of the first element, 
-    //    and only w.r.t. the first node
-    if (_base_fixed)
-    {
-        // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_base_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front();
+    // // if the base is fixed, compute the entries in the system matrix
+    // // the fixed base constraint gradient overlaps with just the constraint gradients of the first element, 
+    // //    and only w.r.t. the first node
+    // Eigen::Matrix<Real,6,24> mass_weighted_fixed_base_grad = Eigen::Matrix<Real,6,24>::Zero();
+    // if (_base_fixed)
+    // {
+    //     // evaluate the fixed base constraint
+    //     const Constraint::OneSidedFixedJointConstraint& fixed_base_constraint = 
+    //         _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front();
 
-        // compute the RHS associated with the constraint
-        typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_base_constraint.evaluate();
-        typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_base_constraint.alpha() / (dt * dt);
-        _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
+    //     // compute the RHS associated with the constraint
+    //     typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_base_constraint.evaluate();
+    //     typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_base_constraint.alpha() / (dt * dt);
+    //     _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
 
-        // compute the gradient of the fixed base constraint
-        typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front().gradient();
+    //     // compute the gradient of the fixed base constraint
+    //     // typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = 
+    //     //     _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front().gradient();
         
-        // compute the M^-1 * delC product
-        Mat6r mass_weighted_grad = Mat6r::Zero();
-        mass_weighted_grad.block<6,3>(0,0) = _hermite_inertia_global_inv(0,0) * inv_element_mass * fixed_grad.block<6,3>(0,0);
-        mass_weighted_grad.block<6,3>(0,3) = _hermite_inertia_global_inv(0,0) * fixed_grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal(); 
+    //     Eigen::Matrix<Real,6,24> full_grad = Eigen::Matrix<Real,6,24>::Zero();
+    //     full_grad.block<6,6>(0,0) = _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front().gradient();
 
-        // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
-        _diagonals[0][diag_block_ind] = mass_weighted_grad * fixed_grad.transpose();
-        _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
-
-        // off diagonals are just the blocks of the gradients corresponding to the first node in the
-        //  delC_element * M1^-1 * delC_fixed^T
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,0);
-            _diagonals[j+1][diag_block_ind] = node1_block * _node_inverse_inertias.front().asDiagonal() * mass_weighted_grad.transpose();
-        }
-
-        diag_block_ind++;
-    }
-
-    for (int i = 0; i < _num_elements; i++)
-    {
-        // assemble element inertia
-        Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
-        for (int k = 0; k < NUM_EN; k++)
-        {
-            int node_ind = i*(NUM_EN-1) + k;
-            element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
-        }
-
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            // index of the current elastic constraint we are on
-            int this_ind = NUM_GP*i + j;
-
-            // compute RHS
-            typename ElasticConstraintType::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
-            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
-
-            // last constraint index that is still in this same element (element i)
-            int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
-            // last constraint index that is in the next element (element i+1)
-            int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP);
-
-            // for constraints defined on the same element, the gradients overlap for all nodes
-            // therefore we can simply take the delC^T * delC product of the entire gradient matrix
-            for (int other = this_ind; other <= end_of_this_element_ind; other++)
-            {
-                int diag_index = other - this_ind;
-                _diagonals[diag_index][diag_block_ind] = 
-                    _mass_weighted_gradient_buffer[other] * _gradient_buffer[this_ind].transpose();
-            }
-
-            // for constraints defined on adjacent elements, the gradients will only overlap for a single node
-            // this will be the "last" node of the constraint we are currently on, and the "first" node of the other constraint we are multiplying with
-            for (int other = end_of_this_element_ind+1; other <= end_of_next_element_ind; other++)
-            {
-                int diag_index = other - this_ind;
-
-                // the index of the node shared by the constraints
-                int shared_node_ind = (i+1)*(NUM_EN-1);
-
-                // extract the block associated with the "last" node affected by the constraint
-                Mat6r this_block = _mass_weighted_gradient_buffer[this_ind].template block<6,6>(0,6*(NUM_EN-1));
-                // extract the block associated with the "first" node affected by the constraint
-                Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
-
-                _diagonals[diag_index][diag_block_ind] = other_block * this_block.transpose();
-            }
-
-            // add alpha to main diagonal
-            _diagonals[0][diag_block_ind].diagonal() += alpha_tilde;
-
-            diag_block_ind++;
-        }
-    }
-
-    // if the tip is fixed, compute the entries in the system matrix
-    // the fixed tip constraint gradient overlaps with just the constraint gradients of the last element, 
-    //    and only w.r.t. the last node
-    if (_tip_fixed)
-    {
-        // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
-
-        // compute the RHS associated with the constraint
-        typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_tip_constraint.evaluate();
-        typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_tip_constraint.alpha() / (dt * dt);
-        _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
-
-        // compute the gradient of the fixed base constraint
-        typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = fixed_tip_constraint.gradient();
+    //     // compute the M^-1 * delC product
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,0) = _hermite_inertia_global_inv(0,0) * inv_element_mass * full_grad.block<6,3>(0,0);
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,3) = _hermite_inertia_global_inv(0,0) * full_grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal();
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,6) = _hermite_inertia_global_inv(1,0) * inv_element_mass * full_grad.block<6,3>(0,0);
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,9) = _hermite_inertia_global_inv(1,0) * full_grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal();
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,12) = _hermite_inertia_global_inv(2,0) * inv_element_mass * full_grad.block<6,3>(0,0);
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,15) = _hermite_inertia_global_inv(2,0) * full_grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal();
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,18) = _hermite_inertia_global_inv(3,0) * inv_element_mass * full_grad.block<6,3>(0,0);
+    //     mass_weighted_fixed_base_grad.block<6,3>(0,21) = _hermite_inertia_global_inv(3,0) * full_grad.block<6,3>(0,3) * inv_element_rot_inertia.asDiagonal();
         
-        // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
-        _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
-        _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+    //     // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
+    //     _diagonals[0][diag_block_ind] = mass_weighted_fixed_base_grad * full_grad.transpose();
+    //     _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
 
-        // off diagonals are just the blocks of the gradients corresponding to the last node in the
-        //  delC_element * M1^-1 * delC_fixed^T
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(NUM_EN-1));
-            _diagonals[j+1][diag_block_ind-(j+1)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * node1_block.transpose();
-        }
+    //     // off diagonals are just the blocks of the gradients corresponding to the first node in the
+    //     //  delC_element * M1^-1 * delC_fixed^T
+    //     for (int j = 0; j < NUM_GP; j++)
+    //     {
+    //         // Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,0);
+    //         _diagonals[j+1][diag_block_ind] = _gradient_buffer[j] * mass_weighted_fixed_base_grad.transpose();
+    //     }
 
-        diag_block_ind++;
-    }
+    //     diag_block_ind++;
+    // }
 
-    // solve system
+    // for (int i = 0; i < _num_elements; i++)
+    // {
+    //     // assemble element inertia
+    //     Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
+    //     for (int k = 0; k < NUM_EN; k++)
+    //     {
+    //         int node_ind = i*(NUM_EN-1) + k;
+    //         element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
+    //     }
+
+    //     for (int j = 0; j < NUM_GP; j++)
+    //     {
+    //         // index of the current elastic constraint we are on
+    //         int this_ind = NUM_GP*i + j;
+
+    //         // compute RHS
+    //         typename ElasticConstraintType::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
+    //         _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+
+    //         // last constraint index that is still in this same element (element i)
+    //         int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
+    //         // last constraint index that is in the next element (element i+1)
+    //         int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP);
+
+    //         // for constraints defined on the same element, the gradients overlap for all nodes
+    //         // therefore we can simply take the delC^T * delC product of the entire gradient matrix
+    //         for (int other = this_ind; other <= end_of_this_element_ind; other++)
+    //         {
+    //             int diag_index = other - this_ind;
+    //             _diagonals[diag_index][diag_block_ind] = 
+    //                 _gradient_buffer[other] * _mass_weighted_gradient_buffer[this_ind].transpose();
+
+    //             std::cout << "Diag " << diag_index << " block " << diag_block_ind << ": " << std::endl;
+    //             std::cout << _gradient_buffer[other] << "\n multiplied by\n" << _mass_weighted_gradient_buffer[this_ind].transpose() << std::endl;
+    //             std::cout <<"\nresult:\n" << _gradient_buffer[other] * _mass_weighted_gradient_buffer[this_ind].transpose() << std::endl;
+    //             std::cout <<"\nplus alpha_tilde:\n" << _diagonals[diag_index][diag_block_ind].diagonal() + alpha_tilde << std::endl;
+    //         }
+
+    //         // for constraints defined on adjacent elements, the gradients will only overlap for a single node
+    //         // this will be the "last" node of the constraint we are currently on, and the "first" node of the other constraint we are multiplying with
+    //         for (int other = end_of_this_element_ind+1; other <= end_of_next_element_ind; other++)
+    //         {
+    //             int diag_index = other - this_ind;
+
+    //             std::cout << "ADJACENT CONSTRAINT DIAG INDEX: " << diag_index << std::endl;
+
+    //             // the index of the node shared by the constraints
+    //             int shared_node_ind = i+1;
+
+    //             // extract the block associated with the "last" node affected by the constraint
+    //             Eigen::Matrix<Real,6,12> this_block = _mass_weighted_gradient_buffer[this_ind].template block<6,12>(0,12);
+    //             // extract the block associated with the "first" node affected by the constraint
+    //             Eigen::Matrix<Real,6,12> other_block = _gradient_buffer[other].template block<6,12>(0,0);
+
+    //             _diagonals[diag_index][diag_block_ind] = other_block * this_block.transpose();
+    //         }
+
+    //         // add alpha to main diagonal
+    //         _diagonals[0][diag_block_ind].diagonal() += alpha_tilde;
+
+    //         diag_block_ind++;
+    //     }
+    // }
+
+    // // if the tip is fixed, compute the entries in the system matrix
+    // // the fixed tip constraint gradient overlaps with just the constraint gradients of the last element, 
+    // //    and only w.r.t. the last node
+    // if (_tip_fixed)
+    // {
+    //     // evaluate the fixed base constraint
+    //     const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
+    //         _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
+
+    //     // compute the RHS associated with the constraint
+    //     typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_tip_constraint.evaluate();
+    //     typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_tip_constraint.alpha() / (dt * dt);
+    //     _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+
+    //     // compute the gradient of the fixed base constraint
+    //     typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = fixed_tip_constraint.gradient();
+        
+    //     // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
+    //     _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
+    //     _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+
+    //     // off diagonals are just the blocks of the gradients corresponding to the last node in the
+    //     //  delC_element * M1^-1 * delC_fixed^T
+    //     for (int j = 0; j < NUM_GP; j++)
+    //     {
+    //         Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(NUM_EN-1));
+    //         _diagonals[j+1][diag_block_ind-(j+1)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * node1_block.transpose();
+    //     }
+
+    //     diag_block_ind++;
+    // }
+
+    // // solve system
     // _solver.solveInPlace(_diagonals, _RHS_vec, _dlam);
-    // // std::cout << "\ndlam banded solver: " << _dlam.transpose() << std::endl;
+    // std::cout << "\ndlam banded solver: " << _dlam.transpose() << std::endl;
 
     // // compute position updates
-    // _dx = VecXr::Zero(6*_num_nodes);
+    // _dx = VecXr::Zero(12*_num_nodes);
     // int constraint_ind = 0;
     // if (_base_fixed)
     // {
@@ -565,7 +602,7 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     //         _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front();
 
     //     Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
-    //     _dx.template block<6,1>(0,0) += _node_inverse_inertias.front().asDiagonal() * fixed_base_constraint.gradient().transpose() * constraint_dlam;
+    //     _dx.template block<24,1>(0,0) += mass_weighted_fixed_base_grad.transpose() * constraint_dlam;
         
     //     constraint_ind++;
     // }
@@ -579,35 +616,27 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
     //         // index of the current elastic constraint we are on
     //         int elastic_constraint_ind = NUM_GP*i + j;
 
-    //         // iterate through the nodes of the elastic constraint and compute position updates
-    //         for (int k = 0; k < NUM_EN; k++)
-    //         {
-    //             int node_ind = first_node_ind + k;
-    //             Mat6r delC_block = _gradient_buffer[elastic_constraint_ind].template block<6,6>(0,6*k);
-    //             Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
-
-    //             _dx.template block<6,1>(6*node_ind,0) += 
-    //                 _node_inverse_inertias[node_ind].asDiagonal() * delC_block.transpose() * constraint_dlam;
-    //         }
+    //         Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+    //         _dx.template block<24,1>(12*first_node_ind,0) += _mass_weighted_gradient_buffer[elastic_constraint_ind].transpose() * constraint_dlam;
 
     //         constraint_ind++;
     //     }
     // }
 
-    // if (_tip_fixed)
-    // {
-    //     // evaluate the fixed base constraint
-    //     const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
-    //         _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
+    // // if (_tip_fixed)
+    // // {
+    // //     // evaluate the fixed base constraint
+    // //     const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
+    // //         _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
 
-    //     Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
-    //     // std::cout << "constraint dlam: " << constraint_dlam << std::endl;
-    //     _dx.template block<6,1>(6*(_num_nodes-1),0) += _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam;
+    // //     Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+    // //     // std::cout << "constraint dlam: " << constraint_dlam << std::endl;
+    // //     _dx.template block<6,1>(6*(_num_nodes-1),0) += _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam;
 
-    //     // std::cout << "dx tip fixed: " << _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam << std::endl;
-    // }
+    // //     // std::cout << "dx tip fixed: " << _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam << std::endl;
+    // // }
 
-    std::cout << "dx banded solver: " << _dx.transpose() << std::endl;
+    // std::cout << "dx banded solver: " << _dx.transpose() << std::endl;
 
 
     int constraint_index = 0;
@@ -677,26 +706,26 @@ void XPBDCubicHermiteRod::internalConstraintSolve(Real dt)
 
     // MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
 
-    std::cout << "True delC * M^-1:\n" << _delC_mat * _inertia_mat_global_inv << std::endl;
-    std::cout << "delC * M^-1 gradient buffer: " << std::endl;
-    for (int i = 0; i < elastic_constraints.size(); i++)
-    {
-        std::cout << _mass_weighted_gradient_buffer[i] << std::endl;
-    }
+    // std::cout << "True delC * M^-1:\n" << _delC_mat * _inertia_mat_global_inv << std::endl;
+    // std::cout << "delC * M^-1 gradient buffer: " << std::endl;
+    // for (int i = 0; i < elastic_constraints.size(); i++)
+    // {
+    //     std::cout << _mass_weighted_gradient_buffer[i] << std::endl;
+    // }
 
     MatXr LHS_mat = _delC_mat * _inertia_mat_global_inv * _delC_mat.transpose();
 
-    LHS_mat.diagonal() += alpha_tilde;
-    std::cout << "LHS mat:\n" << LHS_mat << std::endl;
+    LHS_mat.diagonal() += _alpha/(dt*dt);
+    // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
 
-    for (int i = 0; i < _diagonals.size(); i++)
-    {
-        std::cout << "\nDiagonal " << i << ": " << std::endl;
-        for (int j = 0; j < _diagonals[i].size(); j++)
-        {
-            std::cout << _diagonals[i][j] << std::endl;
-        }
-    }
+    // for (int i = 0; i < _diagonals.size(); i++)
+    // {
+    //     std::cout << "\nDiagonal " << i << ": " << std::endl;
+    //     for (int j = 0; j < _diagonals[i].size(); j++)
+    //     {
+    //         std::cout << _diagonals[i][j] << std::endl;
+    //     }
+    // }
 
     _RHS_vec -= alpha_tilde.asDiagonal() * _internal_lambda;
 

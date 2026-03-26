@@ -54,9 +54,8 @@ private:
      * This will be brute-force calculated during setup.
      * It assumes h=1, rho=1, A=1, purely the coefficients.
      * 
-     * TODO: get a banded approximation of the inverse with a banded Cholesky factorization 
      */
-    MatXr _hermite_inertia_global_inv;
+    // MatXr _hermite_inertia_global_inv;
 
     /** A buffer to store the mass-weighted gradients of all the elastic constraints.
      * Essentially computes delC * M^-1, with each entry in the buffer storing the 24x6 matrix corresponding to the ith constraint multiplied by the
@@ -64,7 +63,7 @@ private:
      * 
      * This is needed because the inertia matrix is no longer diagonal, so various 3x3 blocks of each elastic constraint gradient are coupled.
      */
-    std::vector<typename ElasticConstraintType::GradientMatType> _mass_weighted_gradient_buffer;
+    // std::vector<typename ElasticConstraintType::GradientMatType> _mass_weighted_gradient_buffer;
 };
 
 } // namespace SimObject

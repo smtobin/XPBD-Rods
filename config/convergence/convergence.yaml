@@ -13,13 +13,13 @@ length: 1
 density: 1000
 
 # rigid-body-rod-elements: [5, 10, 20, 40, 80, 160]
-# linear-rod-elements: [2, 5, 10, 20, 40, 80, 160]
-# quadratic-rod-elements: [1, 2, 5, 10, 20, 40, 80, 160]
-cubic-hermite-rod-elements: [1, 2, 4]
+linear-rod-elements: [2, 5, 10, 20, 40, 80, 160]
+quadratic-rod-elements: [1, 2, 5, 10, 20, 40, 80, 160]
+cubic-hermite-rod-elements: [1, 2, 4, 8, 16]
 
 # rigid-body-rod-elements: [5, 10, 20]
 # linear-rod-elements: [5, 10, 20]
-quadratic-rod-elements: [1, 2, 4, 8, 16, 32]
+# quadratic-rod-elements: [1, 2, 4, 8, 16, 32]
 
 # simulation render settings
 hdr-image-filename: "../resource/studio_1k.hdr"
