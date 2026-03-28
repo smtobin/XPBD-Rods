@@ -110,12 +110,15 @@ Vec3r CubicHermiteRodElement::shearStrain(Real s_hat) const
 
 Vec3r CubicHermiteRodElement::bendingStrain(Real s_hat) const
 {
+    // std::cout << "CubicHermite bending strain -- _dR_ds[0]: " << _dR_ds[0]->position.transpose() << "\t_dR_ds[1]: " << _dR_ds[1]->position.transpose() << std::endl; 
+    // std::cout << "   _R[0]: " << Math::Log_SO3(_nodes[0]->orientation).transpose() << "\t_R[1]: " << Math::Log_SO3(_nodes[1]->orientation).transpose() << std::endl;
     Vec3r R_diff = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
 
-    Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
-    Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(_dR_ds[0]->position) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(_dR_ds[1]->position) );
+    // Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
+    // Vec3r dtheta_ds = dshat_ds() * (_bases_derivatives[1](s_hat)*(_dR_ds[0]->position) + _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*(_dR_ds[1]->position) );
 
-    Vec3r u = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+    // Vec3r u = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+    Vec3r u = dshat_ds() * (_bases_derivatives[1](s_hat)*_dR_ds[0]->position +  _bases_derivatives[2](s_hat)*R_diff + _bases_derivatives[3](s_hat)*_dR_ds[1]->position);
     return u;
 }
 
@@ -198,11 +201,15 @@ CubicHermiteRodElement::StrainGradientMatType CubicHermiteRodElement::strainGrad
     grad.template block<3,3>(3,18) = Mat3r::Zero();
 
     // w.r.t orientation
-    Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
-    grad.template block<3,3>(3,3) = dexpmap_contract_j * dtheta_dRi[0] + gam_theta * dthetaprime_dRi[0];
-    grad.template block<3,3>(3,9) = dexpmap_contract_j * dtheta_dRi[1] + gam_theta * dthetaprime_dRi[1];
-    grad.template block<3,3>(3,15) = dexpmap_contract_j * dtheta_dRprimei[0] + gam_theta * dthetaprime_dRprimei[0];
-    grad.template block<3,3>(3,21) = dexpmap_contract_j * dtheta_dRprimei[1] + gam_theta * dthetaprime_dRprimei[1];
+    // Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
+    // grad.template block<3,3>(3,3) = dexpmap_contract_j * dtheta_dRi[0] + gam_theta * dthetaprime_dRi[0];
+    // grad.template block<3,3>(3,9) = dexpmap_contract_j * dtheta_dRi[1] + gam_theta * dthetaprime_dRi[1];
+    // grad.template block<3,3>(3,15) = dexpmap_contract_j * dtheta_dRprimei[0] + gam_theta * dthetaprime_dRprimei[0];
+    // grad.template block<3,3>(3,21) = dexpmap_contract_j * dtheta_dRprimei[1] + gam_theta * dthetaprime_dRprimei[1];
+    grad.template block<3,3>(3, 3) = -dshat_ds() * _bases_derivatives[2](s_hat) * gam_inv.transpose();
+    grad.template block<3,3>(3, 9) = dshat_ds() * _bases_derivatives[2](s_hat) * gam_inv;
+    grad.template block<3,3>(3, 15) = dshat_ds() * _bases_derivatives[1](s_hat) * Mat3r::Identity();
+    grad.template block<3,3>(3, 21) = dshat_ds() * _bases_derivatives[3](s_hat) * Mat3r::Identity();
 
     return grad;
 }

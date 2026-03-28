@@ -41,6 +41,9 @@ public:
 
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
 
+    const std::vector<Particle>& dpDOF() const { return _dp_DOF; }
+    const std::vector<Particle>& dRDOF() const { return _dR_DOF; }
+
 private:
 
     /** "Particles" that correspond to the derivative DOF in the Hermite formulation. */

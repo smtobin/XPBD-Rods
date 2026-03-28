@@ -92,7 +92,7 @@ void RodConvergenceSimulation::setup()
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::QUADRATIC, true, false, true,
-        _rod_length, _rod_dia, 100, _rod_density, _rod_E, _rod_nu
+        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu
     );
     _addObjectFromConfig(ground_truth_config);
 
@@ -148,7 +148,7 @@ void RodConvergenceSimulation::update()
         out_file << std::endl;
 
         // sample strains along the rod
-        int num_samples = 100;
+        int num_samples = 10000;
         for (int i = 0; i < num_samples; i++)
         {
             Real s = Real(i) / (num_samples-1);
@@ -164,6 +164,11 @@ void RodConvergenceSimulation::update()
                 int elem_ind = std::clamp(static_cast<int>(s * obj->elements().size()), 0, static_cast<int>(obj->elements().size()-1));
                 Real s_hat = s * obj->elements().size() - (Real)elem_ind;
                 Vec6r strain = obj->elements()[elem_ind].strain(s_hat);
+                // if ((s > 0.33 && s < 0.34) || (s > 0.66 && s < 0.67))
+                // {
+                //     std::cout << obj->name() << " strain at s=" << s << ": " << strain.transpose() << std::endl;
+                // }
+
                 out_file << strain[0] << " " << strain[1] << " " << strain[2] << " " << strain[3] << " " << strain[4] << " " << strain[5] << " ";
             });
             out_file << std::endl;

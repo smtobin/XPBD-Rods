@@ -307,57 +307,30 @@ void XPBDCubicHermiteRod::inertialUpdate(Real dt)
         // Vec3r F_ext = node.mass * Vec3r(0,-G_ACCEL,0);
         Vec3r F_ext = Vec3r::Zero();
         Vec3r T_ext = Vec3r(0,0,0);
-        if (i == _num_nodes-1)
-            T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
+        // if (i == _num_nodes-1)
+        //     T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
             // F_ext = Vec3r(0,0,10000);
+
+        // FOR APPLYING A 100 N FORCE AT END OF FIRST ELEMENT
+        // if (i == 1)
+        // {
+        //     F_ext[0] += 100;
+        // }
         
         global_F.block<3,1>(12*i,0) = F_ext;
         global_F.block<3,1>(12*i+3,0) = T_ext;
-
-        // node.inertialUpdate(dt, F_ext, T_ext);
-
-
-        /** FOR NOW, NO APPLIED FORCE TO DERIVATIVE DOF
-         * 
-         * Need to look at virtual work derivations to see if this is correct.
-         */
-        // if (i == 0)
-        // {
-        //     Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, G_ACCEL/12.0, 0);
-        //     _dp_DOF[i].inertialUpdate(dt, F_ext);
-        // }
-        // else if (i == _num_nodes-1)
-        // {
-        //     Vec3r F_ext = _element_rest_length * node.mass * Vec3r(0, -G_ACCEL/12.0, 0);
-        //     _dp_DOF[i].inertialUpdate(dt, F_ext);
-        // }
-        // else
-        {
-            // _dp_DOF[i].inertialUpdate(dt, Vec3r::Zero());
-        }
-        
-        // _dR_DOF[i].inertialUpdate(dt, Vec3r::Zero());
-
-        // std::cout << "p " << i << " after inertial update: " << _nodes[i].position.transpose() << std::endl;
-        // std::cout << "dp " << i << " after inertial update: " << _dp_DOF[i].position.transpose() << std::endl;
-        // std::cout << "dR " << i << " after inertial update: " << _dR_DOF[i].position.transpose() << std::endl;
     }
 
     VecXr global_a = _inertia_mat_global_inv * global_F;
     for (int i = 0; i < _num_nodes; i++)
     {
-        // Vec3r a_p = global_a.block<3,1>(12*i,0);
-        // Vec3r a_R = global_a.block<3,1>(12*i+3,0);
-        // Vec3r a_pp = global_a.block<3,1>(12*i+6,0);
-        // Vec3r a_Rp = global_a.block<3,1>(12*i+9,0);
-        // _nodes[i].inertialUpdateAccelerations(dt, a_p, a_R);
-        // _dp_DOF[i].inertialUpdateAcceleration(dt, a_pp);
-        // _dR_DOF[i].inertialUpdateAcceleration(dt, a_Rp);
-
-        // gravity loading
-        _nodes[i].inertialUpdateAccelerations(dt, Vec3r(0, -G_ACCEL, 0), Vec3r::Zero());
-        _dp_DOF[i].inertialUpdateAcceleration(dt, Vec3r::Zero());
-        _dR_DOF[i].inertialUpdateAcceleration(dt, Vec3r::Zero());
+        Vec3r a_p = global_a.block<3,1>(12*i,0) + Vec3r(0, -G_ACCEL, 0);
+        Vec3r a_R = global_a.block<3,1>(12*i+3,0);
+        Vec3r a_pp = global_a.block<3,1>(12*i+6,0);
+        Vec3r a_Rp = global_a.block<3,1>(12*i+9,0);
+        _nodes[i].inertialUpdateAccelerations(dt, a_p, a_R);
+        _dp_DOF[i].inertialUpdateAcceleration(dt, a_pp);
+        _dR_DOF[i].inertialUpdateAcceleration(dt, a_Rp);
     }
 
     
