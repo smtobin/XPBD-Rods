@@ -11,6 +11,7 @@
 #include "collision/sdf/BoxSDF.hpp"
 
 #include "collision/helper/BoxBoxCollider.hpp"
+#include "collision/helper/RodElementCollider.hpp"
 
 #include <random>
 
@@ -542,7 +543,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollis
         for (auto& elem2 : rod2_elements)
         {
             // get candidate pairs of closest positions on each rod
-            std::vector<std::pair<Real,Real>> cps = SimObject::closestPointsBetweenRodElements(elem1, elem2);
+            std::vector<std::pair<Real,Real>> cps = RodElementCollider::closestPointsBetweenRodElements(elem1, elem2);
             for (const auto& cp : cps)
             {
                 Real s_hat1 = cp.first;

@@ -1,6 +1,6 @@
 #include "common/common.hpp"
 #include "common/math.hpp"
-#include "simobject/rod/RodElement.hpp"
+#include "collision/helper/RodElementCollider.hpp"
 
 #include <array>
 
@@ -68,7 +68,7 @@ int main()
     SimObject::RodElement<2> elem1(elem1_nodes, 0.5);
     SimObject::RodElement<2> elem2(elem2_nodes, 0.5);
 
-    SimObject::closestPointsBetweenRodElements(&elem1, &elem2);
+    Collision::RodElementCollider::closestPointsBetweenRodElements(&elem1, &elem2);
 
     groundTruth(&elem1, &elem2);
 }

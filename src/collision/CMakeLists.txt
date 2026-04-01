@@ -14,6 +14,7 @@ set(COLLISION_HEADERS
     ${COLLISION_INCLUDE_DIR}/sdf/SDF.hpp
     ${COLLISION_INCLUDE_DIR}/sdf/SphereSDF.hpp
     ${COLLISION_INCLUDE_DIR}/sdf/BoxSDF.hpp
+    ${COLLISION_INCLUDE_DIR}/sdf/PlaneSDF.hpp
 )
 
 set(COLLISION_SOURCES
@@ -24,6 +25,7 @@ set(COLLISION_SOURCES
     # SDFs
     ${COLLISION_SRC_DIR}/sdf/SphereSDF.cpp
     ${COLLISION_SRC_DIR}/sdf/BoxSDF.cpp
+    ${COLLISION_SRC_DIR}/sdf/PlaneSDF.cpp
 )
 
 target_sources(Collision

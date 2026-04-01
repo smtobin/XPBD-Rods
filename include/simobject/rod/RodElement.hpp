@@ -72,7 +72,4 @@ private:
     std::array<Real(*)(Real), NumNodes> _bases_derivatives2;
 };
 
- /** Finds closest points between two rod elements. Use Newton's method to solve the optimization problem that minimizes squared error. */
-std::vector<std::pair<Real,Real>> closestPointsBetweenRodElements(const RodElement_Base* elem1, const RodElement_Base* elem2);
-
 } // namespace SimObject
