@@ -303,6 +303,29 @@ class Simulation
         _callback_queue.push_back(std::move(wrapper));
     }
 
+    /** Collision detection + processing */
+
+    /** Runs collision detection */
+    void _detectCollisions();
+    /** Adds a collision constraint for a rigid-rigid collision */
+    void _processCollision(const Collision::RigidRigidCollision& collision);
+    /** Adds a collision constraint for a rigid-rod collision */
+    void _processCollision(const Collision::RigidSegmentCollision& collision);
+    /** Adds a collision constraint for a rod-rod collision */
+    void _processCollision(const Collision::SegmentSegmentCollision& collision);
+
+    /** Templated helper method for handling a rigid-rod collision. */
+    template <int Order>
+    void _processRodRigidBodyCollision(SimObject::RodElement<Order>* elem, const Collision::RigidSegmentCollision& collision);
+
+    /** Templated helper method for converting RodElement_Base to the appropriate derived RodElement class,
+     * so as to create the appropriate collision constraint.
+     */
+    template <int Order>
+    void _processRodRodCollision(SimObject::RodElement<Order>* elem1, Real s_hat1, const Vec3r& cp_local1, 
+                                 SimObject::RodElement_Base* elem2, Real s_hat2, const Vec3r& cp_local2,
+                                 Vec3r& normal, Real mu_s, Real mu_d);
+
     protected:
     bool _setup;
 

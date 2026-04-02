@@ -34,6 +34,8 @@ static Real closestPointBetweenRodElementAndSDF(const SimObject::RodElement_Base
         }
     }
 
+    std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
+
     // mini golden-section search
     Real a = std::max(Real(0.0), best_s - 0.2);
     Real b = std::min(Real(1.0), best_s + 0.2);

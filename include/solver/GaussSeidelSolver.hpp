@@ -35,11 +35,18 @@ public:
         }
     }
 
-    template <typename ConstraintType>
+    template <typename ...ConstraintTypes>
     void clearProjectorsOfType()
     {
-        _constraint_projectors.template clear<Constraint::XPBDConstraintProjector<ConstraintType>>();
-        _separate_constraint_projectors.template clear<Constraint::XPBDSeparateConstraintProjector<ConstraintType>>();
+        _constraint_projectors.template clear_types<Constraint::XPBDConstraintProjector<ConstraintTypes>...>();
+        _separate_constraint_projectors.template clear_types<Constraint::XPBDSeparateConstraintProjector<ConstraintTypes>...>();
+    }
+
+    template <typename ...ConstraintTypes>
+    void clearProjectorsOfType(TypeList<ConstraintTypes...>)
+    {
+        _constraint_projectors.template clear_types<Constraint::XPBDConstraintProjector<ConstraintTypes>...>();
+        _separate_constraint_projectors.template clear_types<Constraint::XPBDSeparateConstraintProjector<ConstraintTypes>...>();
     }
 
     void solve(bool initialize=true);

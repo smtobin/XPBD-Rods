@@ -149,7 +149,9 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
 
 template class RodRodCollisionConstraint<1,1>;
 template class RodRodCollisionConstraint<1,2>;
-template class RodRodCollisionConstraint<2,1>;
 template class RodRodCollisionConstraint<2,2>;
+template class RodRodCollisionConstraint<1,3>;
+template class RodRodCollisionConstraint<2,3>;
+template class RodRodCollisionConstraint<3,3>;
 
 } // namespace Constraint
