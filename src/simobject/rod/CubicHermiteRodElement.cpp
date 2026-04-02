@@ -66,8 +66,18 @@ Mat3r CubicHermiteRodElement::orientation(Real s_hat) const
 {
     Vec3r R_diff = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
 
+    // use 4th order Magnus expansion to get orientation from curvature
+    Real s1 = s_hat/2 - std::sqrt(3)*s_hat/6;
+    Real s2 = s_hat/2 + std::sqrt(3)*s_hat/6;
+    Vec3r u1 = _rest_length * bendingStrain(s1);
+    Vec3r u2 = _rest_length * bendingStrain(s2);
+    Vec3r theta = s_hat/2 * (u1 + u2) + std::sqrt(3)*s_hat*s_hat/12 * u1.cross(u2);
+
+
     // get interpolated relative rotation vector
-    Vec3r theta = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
+    // Vec3r theta_old = _bases[1](s_hat)*(_dR_ds[0]->position) + _bases[2](s_hat)*R_diff + _bases[3](s_hat)*(_dR_ds[1]->position);
+
+    // std::cout << "new theta: " << theta.transpose() << "\t old theta: " << theta_old.transpose() << "\t diff: " << (theta-theta_old).norm() << std::endl;
 
     // use exponential map to get interpolated rotation
     return Math::Plus_SO3(_nodes[0]->orientation, theta);
