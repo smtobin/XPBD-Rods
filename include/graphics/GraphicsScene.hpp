@@ -1,6 +1,5 @@
 #pragma once
 
-#include "simobject/rod/XPBDRod.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/group/XPBDObjectGroup_Base.hpp"
@@ -8,6 +7,7 @@
 #include "graphics/SphereGraphicsObject.hpp"
 #include "graphics/BoxGraphicsObject.hpp"
 #include "graphics/RodGraphicsObject.hpp"
+#include "graphics/HigherOrderRodGraphicsObject.hpp"
 #include "graphics/PlaneGraphicsObject.hpp"
 
 #include "config/SimulationRenderConfig.hpp"
@@ -45,7 +45,14 @@ class GraphicsScene
 
     void update();
 
-    void addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
+    template <typename ElementType>
+    void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
+    {
+        std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, render_config);
+
+        _renderer->AddActor(rod_go->actor());
+        _graphics_objects.push_back(std::move(rod_go));
+    }
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
     void addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config);

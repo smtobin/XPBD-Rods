@@ -6,6 +6,8 @@ set(SIMOBJECT_SRC_DIR "./")
 
 set(SIMOBJECT_HEADERS
     ${SIMOBJECT_INCLUDE_DIR}/rod/XPBDRod.hpp
+    ${SIMOBJECT_INCLUDE_DIR}/rod/XPBDHigherOrderRod.hpp
+    ${SIMOBJECT_INCLUDE_DIR}/rod/RodElement.hpp
     ${SIMOBJECT_INCLUDE_DIR}/rod/CrossSection.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/XPBDObjectGroup_Base.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/XPBDConcentricTubeRobot.hpp
@@ -13,8 +15,13 @@ set(SIMOBJECT_HEADERS
 
 set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/OrientedParticle.cpp
+    ${SIMOBJECT_SRC_DIR}/Particle.cpp
     ${SIMOBJECT_SRC_DIR}/rod/XPBDRod.cpp
-    ${SIMOBJECT_SRC_DIR}/rod/XPBDRodSegment.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/XPBDHigherOrderRod.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/XPBDCubicHermiteRod.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/RodElement.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/CubicHermiteRodElement.cpp
+    ${SIMOBJECT_SRC_DIR}/rod/RodCollisionSegment.cpp
     ${SIMOBJECT_SRC_DIR}/XPBDObject_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDObjectGroup_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDConcentricTubeRobot.cpp

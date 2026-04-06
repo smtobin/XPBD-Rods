@@ -5,7 +5,7 @@
 namespace Constraint
 {
 
-class SphericalJointConstraint : public XPBDConstraint<3, 2>
+class SphericalJointConstraint : public XPBDConstraint<3, 2, 0>
 {
 public:
     SphericalJointConstraint(
@@ -13,8 +13,8 @@ public:
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1; }
-    Mat3r jointOrientation2() const { return _particles[1]->orientation * _or2; }
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1; }
+    Mat3r jointOrientation2() const { return _oriented_particles[1]->orientation * _or2; }
 
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return _r2; }
@@ -23,9 +23,7 @@ public:
     const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r1;
@@ -39,7 +37,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneSidedSphericalJointConstraint : public XPBDConstraint<3, 1>
+class OneSidedSphericalJointConstraint : public XPBDConstraint<3, 1, 0>
 {
 public:
     OneSidedSphericalJointConstraint(
@@ -47,7 +45,7 @@ public:
         SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1;}
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1;}
     Mat3r jointOrientation2() const { return _base_or; }
 
     Vec3r bodyJointOffset1() const { return _r1; }
@@ -57,9 +55,7 @@ public:
     Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _base_pos;
@@ -74,7 +70,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class NormedSphericalJointConstraint : public XPBDConstraint<1, 2>
+class NormedSphericalJointConstraint : public XPBDConstraint<1, 2, 0>
 {
 public:
     NormedSphericalJointConstraint(
@@ -82,8 +78,8 @@ public:
         SimObject::OrientedParticle* particle2, const Vec3r& r2, const Mat3r& or2
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1; }
-    Mat3r jointOrientation2() const { return _particles[1]->orientation * _or2; }
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1; }
+    Mat3r jointOrientation2() const { return _oriented_particles[1]->orientation * _or2; }
 
     Vec3r bodyJointOffset1() const { return _r1; }
     Vec3r bodyJointOffset2() const { return _r2; }
@@ -92,9 +88,7 @@ public:
     const Mat3r& bodyJointOrientationOffset2() const { return _or2; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _r1;
@@ -109,7 +103,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class NormedOneSidedSphericalJointConstraint : public XPBDConstraint<1, 1>
+class NormedOneSidedSphericalJointConstraint : public XPBDConstraint<1, 1, 0>
 {
 public:
     NormedOneSidedSphericalJointConstraint(
@@ -117,7 +111,7 @@ public:
         SimObject::OrientedParticle* particle, const Vec3r& joint_pos, const Mat3r& joint_or
     );
 
-    Mat3r jointOrientation1() const { return _particles[0]->orientation * _or1;}
+    Mat3r jointOrientation1() const { return _oriented_particles[0]->orientation * _or1;}
     Mat3r jointOrientation2() const { return _base_or; }
 
     Vec3r bodyJointOffset1() const { return _r1; }
@@ -127,9 +121,7 @@ public:
     Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Vec3r _base_pos;

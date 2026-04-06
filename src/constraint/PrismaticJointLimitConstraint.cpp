@@ -4,7 +4,7 @@ namespace Constraint
 {
 
 PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const PrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 2>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r1(pr_constraint.bodyJointOffset1()),
     _or1(pr_constraint.bodyJointOrientationOffset1()),
     _r2(pr_constraint.bodyJointOffset2()),
@@ -14,7 +14,7 @@ PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const PrismaticJoin
 }
 
 PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const NormedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 2>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 2, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r1(pr_constraint.bodyJointOffset1()),
     _or1(pr_constraint.bodyJointOrientationOffset1()),
     _r2(pr_constraint.bodyJointOffset2()),
@@ -26,12 +26,12 @@ PrismaticJointLimitConstraint::PrismaticJointLimitConstraint(const NormedPrismat
 PrismaticJointLimitConstraint::ConstraintVecType PrismaticJointLimitConstraint::evaluate() const
 {
     // position vector (global) between joint positions: (p2 - p1)
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
-    const Vec3r joint_pos2 = _particles[1]->position + _particles[1]->orientation * _r2;
+    const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+    const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
     const Vec3r dp = joint_pos2 - joint_pos1;
 
     // joint 1 orientation
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
     // rotate positional difference into joint 1 local frame
     const Vec3r joint_dp = joint_or1.transpose() * dp;
 
@@ -48,17 +48,17 @@ PrismaticJointLimitConstraint::ConstraintVecType PrismaticJointLimitConstraint::
     return C;
 }
 
-PrismaticJointLimitConstraint::GradientMatType PrismaticJointLimitConstraint::gradient(bool /* update_cache */) const
+PrismaticJointLimitConstraint::GradientMatType PrismaticJointLimitConstraint::gradient() const
 {
     GradientMatType grad;
 
     // position vector (global) between joint positions: (p2 - p1)
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r1;
-    const Vec3r joint_pos2 = _particles[1]->position + _particles[1]->orientation * _r2;
+    const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+    const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
     const Vec3r dp = joint_pos2 - joint_pos1;
 
     // joint 1 orientation
-    const Mat3r joint_or1 = _particles[0]->orientation * _or1;
+    const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
     // rotate positional difference into joint 1 local frame
     const Vec3r joint_dp = joint_or1.transpose() * dp;
 
@@ -75,8 +75,8 @@ PrismaticJointLimitConstraint::GradientMatType PrismaticJointLimitConstraint::gr
     const Mat3r dCp_dp1 = -joint_or1.transpose();
     const Mat3r dCp_dp2 = joint_or1.transpose();
 
-    const Mat3r dCp_dor1 = joint_or1.transpose() * Math::Skew3(dp) * _particles[0]->orientation + _or1.transpose() * Math::Skew3(_r1);
-    const Mat3r dCp_dor2 = -joint_or1.transpose() * _particles[1]->orientation * Math::Skew3(_r2);
+    const Mat3r dCp_dor1 = joint_or1.transpose() * Math::Skew3(dp) * _oriented_particles[0]->orientation + _or1.transpose() * Math::Skew3(_r1);
+    const Mat3r dCp_dor2 = -joint_or1.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
 
     if (min_diff < max_diff)
     {
@@ -98,18 +98,12 @@ PrismaticJointLimitConstraint::GradientMatType PrismaticJointLimitConstraint::gr
     return grad;
 }
 
-PrismaticJointLimitConstraint::SingleParticleGradientMatType PrismaticJointLimitConstraint::singleParticleGradient(const SimObject::OrientedParticle* /* node_ptr */, bool /* use_cache */) const
-{
-    throw std::runtime_error("PrismaticJointLimitConstraint has no singleParticleGradient");
-    return SingleParticleGradientMatType::Zero();
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
 OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
     const OneSidedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 1>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r2(pr_constraint.bodyJointOffset2()),
     _base_pos(pr_constraint.basePosition()),
     _base_or(pr_constraint.baseOrientation()),
@@ -120,7 +114,7 @@ OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
 
 OneSidedPrismaticJointLimitConstraint::OneSidedPrismaticJointLimitConstraint(
     const NormedOneSidedPrismaticJointConstraint& pr_constraint, Real min_dist, Real max_dist, Real alpha)
-    : XPBDConstraint<1, 1>(pr_constraint.particles(), AlphaVecType(alpha)),
+    : XPBDConstraint<1, 1, 0>(pr_constraint.orientedParticles(), AlphaVecType(alpha)),
     _r2(pr_constraint.bodyJointOffset2()),
     _base_pos(pr_constraint.basePosition()),
     _base_or(pr_constraint.baseOrientation()),
@@ -133,7 +127,7 @@ OneSidedPrismaticJointLimitConstraint::ConstraintVecType OneSidedPrismaticJointL
 {
     // position vector (global) between joint positions: (p2 - p1)
     const Vec3r joint_pos1 = _base_pos;
-    const Vec3r joint_pos2 = _particles[0]->position + _particles[0]->orientation * _r2;
+    const Vec3r joint_pos2 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r2;
     const Vec3r dp = joint_pos2 - joint_pos1;
 
     // joint 1 orientation
@@ -154,12 +148,12 @@ OneSidedPrismaticJointLimitConstraint::ConstraintVecType OneSidedPrismaticJointL
     return C;
 }
 
-OneSidedPrismaticJointLimitConstraint::GradientMatType OneSidedPrismaticJointLimitConstraint::gradient(bool /* update_cache */) const
+OneSidedPrismaticJointLimitConstraint::GradientMatType OneSidedPrismaticJointLimitConstraint::gradient() const
 {
     GradientMatType grad;
 
     // position vector (global) between joint positions: (p2 - p1)
-    const Vec3r joint_pos1 = _particles[0]->position + _particles[0]->orientation * _r2;
+    const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r2;
     const Vec3r joint_pos2 = _base_pos;
     const Vec3r dp = joint_pos2 - joint_pos1;
 
@@ -179,7 +173,7 @@ OneSidedPrismaticJointLimitConstraint::GradientMatType OneSidedPrismaticJointLim
     // taken from PrismaticJointConstraint
     // the limit constraint is the 3rd row of each of these matrices
     const Mat3r dCp_dp2 = -joint_or1.transpose();
-    const Mat3r dCp_dor2 = joint_or1.transpose() * _particles[0]->orientation * Math::Skew3(_r2);
+    const Mat3r dCp_dor2 = joint_or1.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r2);
 
     if (min_diff < max_diff)
     {
@@ -195,12 +189,6 @@ OneSidedPrismaticJointLimitConstraint::GradientMatType OneSidedPrismaticJointLim
     }
 
     return grad;
-}
-
-OneSidedPrismaticJointLimitConstraint::SingleParticleGradientMatType OneSidedPrismaticJointLimitConstraint::singleParticleGradient(const SimObject::OrientedParticle* /* node_ptr */, bool /* use_cache */) const
-{
-    throw std::runtime_error("OneSidedPrismaticJointLimitConstraint has no singleParticleGradient");
-    return SingleParticleGradientMatType::Zero();
 }
 
 } // namespace Constraint

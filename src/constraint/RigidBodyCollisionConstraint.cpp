@@ -9,31 +9,31 @@ RigidBodyCollisionConstraint::RigidBodyCollisionConstraint(
     const Vec3r& n,
     Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 2>({com1, com2}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _r2(r2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
+    : XPBDConstraint<1, 2, 0>({com1, com2}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _r2(r2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
 RigidBodyCollisionConstraint::ConstraintVecType RigidBodyCollisionConstraint::evaluate() const
 {
     // contact point on rigid body 1
-    const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r cp1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
     // contact point on rigid body 2
-    const Vec3r cp2 = _particles[1]->position + _particles[1]->orientation * _r2;
+    const Vec3r cp2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
 
     ConstraintVecType C;
     C[0] = (cp2 - cp1).dot(_n);
     return 0.1*C;
 }
 
-RigidBodyCollisionConstraint::GradientMatType RigidBodyCollisionConstraint::gradient(bool /*update_cache*/) const
+RigidBodyCollisionConstraint::GradientMatType RigidBodyCollisionConstraint::gradient() const
 {
     // positional gradients
     Vec3r dC_dp1 = -_n;
     Vec3r dC_dp2 = _n;
 
     // orientation gradients
-    Vec3r dC_dR1 = _n.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
-    Vec3r dC_dR2 = -_n.transpose() * _particles[1]->orientation * Math::Skew3(_r2);
+    Vec3r dC_dR1 = _n.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dR2 = -_n.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
 
     GradientMatType grad;
     grad.block<1,3>(0,0) = dC_dp1;
@@ -44,26 +44,20 @@ RigidBodyCollisionConstraint::GradientMatType RigidBodyCollisionConstraint::grad
     return grad;
 }
 
-RigidBodyCollisionConstraint::SingleParticleGradientMatType RigidBodyCollisionConstraint::singleParticleGradient(const SimObject::OrientedParticle* /*node_ptr*/, bool /*use_cache*/) const
-{
-    throw std::runtime_error("singleParticleGradient not implemented for RigidBodyCollisionConstraint");
-    return SingleParticleGradientMatType::Zero();
-}
-
 void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
     // std::cout << "\nTwoSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
 
     // contact point on rigid body 1
-    const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r cp1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
     // contact point on rigid body 2
-    const Vec3r cp2 = _particles[1]->position + _particles[1]->orientation * _r2;
+    const Vec3r cp2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
 
 
     // previous location of contact point on rigid body 1
-    const Vec3r prev_cp1 = _particles[0]->prev_position + _particles[0]->prev_orientation * _r1;
+    const Vec3r prev_cp1 = _oriented_particles[0]->prev_position + _oriented_particles[0]->prev_orientation * _r1;
     // previous location of contact point on rigid body 2
-    const Vec3r prev_cp2 = _particles[1]->prev_position + _particles[1]->prev_orientation * _r2;
+    const Vec3r prev_cp2 = _oriented_particles[1]->prev_position + _oriented_particles[1]->prev_orientation * _r2;
 
     // get tangent direction (direction of relative motion, with normal component removed)
     Vec3r dp_rel = (cp1 - prev_cp1) - (cp2 - prev_cp2);
@@ -77,8 +71,8 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     Real C = dp_tan.norm();//(cp1 - cp2).dot(tan_dir);
     Vec3r dC_dp1 = tan_dir;
     Vec3r dC_dp2 = -tan_dir;
-    Vec3r dC_dR1 = -tan_dir.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
-    Vec3r dC_dR2 = tan_dir.transpose() * _particles[1]->orientation * Math::Skew3(_r2);
+    Vec3r dC_dR1 = -tan_dir.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dR2 = tan_dir.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
     GradientMatType delC;
     delC.block<1,3>(0,0) = dC_dp1;
     delC.block<1,3>(0,3) = dC_dR1;
@@ -91,11 +85,11 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     
 
     Eigen::Vector<Real, StateDim> inertia_inverse;
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
         inertia_inverse.template block<6,1>(6*i, 0) = 
-            Vec6r(1/_particles[i]->mass, 1/_particles[i]->mass, 1/_particles[i]->mass,
-                 1/_particles[i]->Ib[0], 1/_particles[i]->Ib[1], 1/_particles[i]->Ib[2]);
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
     }
 
     Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
@@ -106,8 +100,8 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     
 
     // get last relative velocity between contact points, in the tangential direction
-    Vec3r v_cp1 = _particles[0]->lin_velocity + _particles[0]->orientation * Math::Skew3(_particles[0]->ang_velocity) * _r1;
-    Vec3r v_cp2 = _particles[1]->lin_velocity + _particles[1]->orientation * Math::Skew3(_particles[1]->ang_velocity) * _r2;
+    Vec3r v_cp1 = _oriented_particles[0]->lin_velocity + _oriented_particles[0]->orientation * Math::Skew3(_oriented_particles[0]->ang_velocity) * _r1;
+    Vec3r v_cp2 = _oriented_particles[1]->lin_velocity + _oriented_particles[1]->orientation * Math::Skew3(_oriented_particles[1]->ang_velocity) * _r2;
     Vec3r v_rel = v_cp1 - v_cp2;
     Vec3r v_rel_tan = v_rel - (v_rel.dot(_n))*_n;
 
@@ -132,12 +126,13 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
 
     // update nodes
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
-        SingleParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
+        using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim, 6>;
+        SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
         const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam_tan;
         // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
-        _particles[i]->positionUpdate(position_update);
+        _oriented_particles[i]->positionUpdate(position_update);
     }
 
 }
@@ -153,14 +148,14 @@ OneSidedRigidBodyCollisionConstraint::OneSidedRigidBodyCollisionConstraint(
     const Vec3r& n,
     Real mu_s, Real mu_d
 )
-    : XPBDConstraint<1, 1>({com1}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _cp(cp), _n(n), _mu_s(mu_s), _mu_d(mu_d)
+    : XPBDConstraint<1, 1, 0>({com1}, 1.0e-10*AlphaVecType::Ones()), _r1(r1), _cp(cp), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 
 OneSidedRigidBodyCollisionConstraint::ConstraintVecType OneSidedRigidBodyCollisionConstraint::evaluate() const
 {
     // contact point on rigid body 1
-    const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r cp1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
 
     ConstraintVecType C;
     C[0] = (cp1 - _cp).dot(_n);
@@ -168,25 +163,19 @@ OneSidedRigidBodyCollisionConstraint::ConstraintVecType OneSidedRigidBodyCollisi
     return C;
 }
 
-OneSidedRigidBodyCollisionConstraint::GradientMatType OneSidedRigidBodyCollisionConstraint::gradient(bool /*update_cache*/) const
+OneSidedRigidBodyCollisionConstraint::GradientMatType OneSidedRigidBodyCollisionConstraint::gradient() const
 {
     // positional gradients
     Vec3r dC_dp1 = _n;
 
     // orientation gradients
-    Vec3r dC_dR1 = -_n.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dR1 = -_n.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
 
     GradientMatType grad;
     grad.block<1,3>(0,0) = dC_dp1;
     grad.block<1,3>(0,3) = dC_dR1;
 
     return grad;
-}
-
-OneSidedRigidBodyCollisionConstraint::SingleParticleGradientMatType OneSidedRigidBodyCollisionConstraint::singleParticleGradient(const SimObject::OrientedParticle* /*node_ptr*/, bool /*use_cache*/) const
-{
-    throw std::runtime_error("singleParticleGradient not implemented for OneSidedRigidBodyCollisionConstraint");
-    return SingleParticleGradientMatType::Zero();
 }
 
 void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
@@ -196,11 +185,11 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 
     // std::cout << "\nOneSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
     // contact point on rigid body 1
-    const Vec3r cp1 = _particles[0]->position + _particles[0]->orientation * _r1;
+    const Vec3r cp1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
 
 
     // previous location of contact point on rigid body 1
-    const Vec3r prev_cp1 = _particles[0]->prev_position + _particles[0]->prev_orientation * _r1;
+    const Vec3r prev_cp1 = _oriented_particles[0]->prev_position + _oriented_particles[0]->prev_orientation * _r1;
 
     // get tangent direction (direction of relative motion, with normal component removed)
     Vec3r dp_rel = (cp1 - prev_cp1);
@@ -213,7 +202,7 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     Vec3r tan_dir = dp_tan.normalized();
     Real C = dp_tan.norm();//(cp1 - _cp).dot(tan_dir);
     Vec3r dC_dp1 = tan_dir;
-    Vec3r dC_dR1 = -tan_dir.transpose() * _particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dR1 = -tan_dir.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
     GradientMatType delC;
     delC.block<1,3>(0,0) = dC_dp1;
     delC.block<1,3>(0,3) = dC_dR1;
@@ -224,11 +213,11 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     
 
     Eigen::Vector<Real, StateDim> inertia_inverse;
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
         inertia_inverse.template block<6,1>(6*i, 0) = 
-            Vec6r(1/_particles[i]->mass, 1/_particles[i]->mass, 1/_particles[i]->mass,
-                 1/_particles[i]->Ib[0], 1/_particles[i]->Ib[1], 1/_particles[i]->Ib[2]);
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
     }
 
     Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
@@ -237,7 +226,7 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     // std::cout << "  Nominal dlam_tan: " << dlam_tan << std::endl;
 
     // get last relative velocity between contact points, in the tangential direction
-    Vec3r v_cp1 = _particles[0]->lin_velocity + _particles[0]->orientation * Math::Skew3(_particles[0]->ang_velocity) * _r1;
+    Vec3r v_cp1 = _oriented_particles[0]->lin_velocity + _oriented_particles[0]->orientation * Math::Skew3(_oriented_particles[0]->ang_velocity) * _r1;
     Vec3r v_rel = v_cp1;
     Vec3r v_rel_tan = v_rel - (v_rel.dot(_n))*_n;
 
@@ -262,12 +251,13 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
     // std::cout << "  Clamped dlam_tan: " << dlam_tan << std::endl;
 
     // update nodes
-    for (int i = 0; i < NumParticles; i++)
+    for (int i = 0; i < NumOrientedParticles; i++)
     {
-        SingleParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
+        using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim, 6>;
+        SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
         const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam_tan;
         // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
-        _particles[i]->positionUpdate(position_update);
+        _oriented_particles[i]->positionUpdate(position_update);
     }
 
 }

@@ -132,7 +132,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         }
 
         _renderer->UseImageBasedLightingOn();
-        _renderer->UseSphericalHarmonicsOn();
+        _renderer->UseSphericalHarmonicsOff();
         _renderer->SetEnvironmentTexture(hdr_texture, false);
     }
     
@@ -144,46 +144,14 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     vtkNew<vtkLight> light;
     light->SetLightTypeToSceneLight();
     light->SetPositional(true);
-    light->SetPosition(0.0, 10, 0);
-    light->SetFocalPoint(0,0,0);
-    light->SetConeAngle(90);
-    light->SetAttenuationValues(1,0,0);
+    light->SetPosition(0.0, 10.0, 0.0);
+    light->SetFocalPoint(0, 0, 0);
+    light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
+    light->SetShadowAttenuation(3.0);
     _renderer->AddLight(light);
 
-
-    ///////////////////////////////////////////////////////
-    // Set up ground plane
-    ///////////////////////////////////////////////////////
-
-    // vtkNew<vtkPlaneSource> plane;
-    // plane->SetCenter(0.0, 0.0, 0.0);
-    // plane->SetNormal(0.0, 1.0, 0.0);
-    // // plane->SetResolution(10, 10);
-    // plane->Update();
-
-    // vtkNew<vtkPolyDataMapper> plane_mapper;
-    // plane_mapper->SetInputData(plane->GetOutput());
-
-    // vtkNew<vtkPNGReader> plane_tex_reader;
-    // plane_tex_reader->SetFileName("../resource/textures/ground_plane_texture.png");
-    // vtkNew<vtkTexture> plane_color;
-    // plane_color->UseSRGBColorSpaceOn();
-    // plane_color->SetMipmap(true);
-    // plane_color->InterpolateOn();
-    // plane_color->SetInputConnection(plane_tex_reader->GetOutputPort());
-
-    // vtkNew<vtkActor> plane_actor;
-    // plane_actor->SetMapper(plane_mapper);
-    // // plane_actor->GetProperty()->SetColor(0.9, 0.9, 0.9);
-    // plane_actor->GetProperty()->SetInterpolationToPBR();
-    // plane_actor->GetProperty()->SetMetallic(0.0);
-    // plane_actor->GetProperty()->SetRoughness(0.3);
-    // plane_actor->SetScale(0.1,1.0,0.1);
-
-    // plane_actor->GetProperty()->SetBaseColorTexture(plane_color);
-    // _renderer->AddActor(plane_actor);
 
     //////////////////////////////////////////////////////
     // Create the render window and interactor
@@ -206,19 +174,19 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     /////////////////////////////////////////////////////////
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
-    _render_window->SetMultiSamples(10);
+    _render_window->SetMultiSamples(5);
     
     vtkNew<vtkSequencePass> seqP;
     vtkNew<vtkOpaquePass> opaqueP;
     vtkNew<vtkLightsPass> lightsP;
 
     vtkNew<vtkShadowMapPass> shadows;
-    shadows->GetShadowMapBakerPass()->SetResolution(1024);
+    shadows->GetShadowMapBakerPass()->SetResolution(4096);
 
     vtkNew<vtkRenderPassCollection> passes;
+    passes->AddItem(shadows->GetShadowMapBakerPass());
     passes->AddItem(lightsP);
     passes->AddItem(opaqueP);
-    passes->AddItem(shadows->GetShadowMapBakerPass());
     passes->AddItem(shadows);
     seqP->SetPasses(passes);
 
@@ -249,14 +217,6 @@ void GraphicsScene::update()
     }
 
     _should_render.store(true);
-}
-
-void GraphicsScene::addObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<RodGraphicsObject> rod_go = std::make_unique<RodGraphicsObject>(rod, render_config);
-
-    _renderer->AddActor(rod_go->actor());
-    _graphics_objects.push_back(std::move(rod_go));
 }
 
 void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)

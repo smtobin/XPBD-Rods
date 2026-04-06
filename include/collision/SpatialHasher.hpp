@@ -3,6 +3,7 @@
 #include "common/common.hpp"
 
 #include "collision/CollisionBucket.hpp"
+#include "simobject/rod/XPBDHigherOrderRod.hpp"
 
 #include <unordered_set>
 
@@ -25,7 +26,21 @@ public:
     }
 
     /** Specific overload for rods - create a collision object for each rod segment. */
-    void addObject(SimObject::XPBDRod* rod);
+    template <typename ElementType>
+    void addObject(SimObject::XPBDRod_<ElementType>* rod)
+    {
+        // create a collision object for each rod segment
+        std::vector<SimObject::RodCollisionSegment>& rod_segments = rod->collisionSegments();
+        for (auto& segment : rod_segments)
+        {
+            _collision_objects.emplace_back(&segment);
+        }
+    }
+
+    void addObject(SimObject::XPBDCubicHermiteRod* rod)
+    {
+        addObject( (SimObject::XPBDRod_<SimObject::CubicHermiteRodElement>*)rod );
+    }
 
     void hashObjects();
 

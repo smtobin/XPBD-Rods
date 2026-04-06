@@ -43,18 +43,22 @@ public:
 
         _extractParameter("log-particles", node, _log_particles);
 
+        _extractParameter("collisions", node, _collisions);
+
         _extractParameter("static-friction-coeff", node, _static_friction_coeff);
         _extractParameter("dynamic-friction-coeff", node, _dynamic_friction_coeff);
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
-        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity)
+        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions)
         : Config_Base(name), _render_config()
     {
         _initial_position.value = initial_position;
         _initial_rotation.value = initial_rotation;
         _initial_velocity.value = initial_velocity;
         _initial_angular_velocity.value = initial_angular_velocity;
+
+        _collisions.value = collisions;
 
         _projector_type.value = ProjectorType::BLOCK;
         _log_particles.value = false;
@@ -72,6 +76,8 @@ public:
 
     bool logParticles() const { return _log_particles.value; }
 
+    bool collisions() const { return _collisions.value; }
+
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
 
 protected:
@@ -86,6 +92,8 @@ protected:
     ConfigParameter<ProjectorType> _projector_type = ConfigParameter<ProjectorType>(ProjectorType::BLOCK);
 
     ConfigParameter<bool> _log_particles = ConfigParameter<bool>(false);
+
+    ConfigParameter<bool> _collisions = ConfigParameter<bool>(true);
 
     ObjectRenderConfig _render_config;
 };

@@ -1,43 +1,43 @@
-#pragma once
+// #pragma once
 
-#include "simobject/rod/XPBDRod.hpp"
-#include "graphics/GraphicsObject.hpp"
-#include "config/ObjectRenderConfig.hpp"
+// #include "simobject/rod/XPBDRod.hpp"
+// #include "graphics/GraphicsObject.hpp"
+// #include "config/ObjectRenderConfig.hpp"
 
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkPointData.h>
+// #include <vtkPolyData.h>
+// #include <vtkPolyDataMapper.h>
+// #include <vtkPolyDataNormals.h>
+// #include <vtkPointData.h>
 
-#include <vtkActor.h>
-#include <vtkNew.h>
-#include <vtkSmartPointer.h>
+// #include <vtkActor.h>
+// #include <vtkNew.h>
+// #include <vtkSmartPointer.h>
 
-namespace Graphics
-{
+// namespace Graphics
+// {
 
-class RodGraphicsObject : public GraphicsObject
-{
-public:
-    explicit RodGraphicsObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
+// class RodGraphicsObject : public GraphicsObject
+// {
+// public:
+//     explicit RodGraphicsObject(const SimObject::XPBDRod* rod, const Config::ObjectRenderConfig& render_config);
 
-    virtual void update() override;
+//     virtual void update() override;
 
-private:
-    void _generateInitialPolyData();
-    void _updatePolyData();
+// private:
+//     void _generateInitialPolyData();
+//     void _updatePolyData();
 
-    private:
-    const SimObject::XPBDRod* _rod;
+//     private:
+//     const SimObject::XPBDRod* _rod;
 
-    vtkSmartPointer<vtkPolyData> _vtk_poly_data;
-    vtkSmartPointer<vtkPolyDataNormals> _vtk_poly_data_normals;
-    vtkSmartPointer<vtkPolyDataMapper> _vtk_poly_data_mapper;
+//     vtkSmartPointer<vtkPolyData> _vtk_poly_data;
+//     vtkSmartPointer<vtkPolyDataNormals> _vtk_poly_data_normals;
+//     vtkSmartPointer<vtkPolyDataMapper> _vtk_poly_data_mapper;
 
-    Config::ObjectRenderConfig _render_config;
+//     Config::ObjectRenderConfig _render_config;
 
 
 
-};
+// };
 
-} // namespace Graphics
+// } // namespace Graphics

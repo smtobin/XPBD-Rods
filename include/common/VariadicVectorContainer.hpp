@@ -198,6 +198,21 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         return this->VariadicVectorContainer<T>::_clear();
     }
 
+    // clear all elements in a subset of types - only enable this overload if sizeof(Ts) > 0
+    template<typename... Ts>
+    std::enable_if_t<(sizeof...(Ts) > 0), void>
+    clear_types()
+    {
+        _clear_helper<Ts...>();
+    }
+
+    template<typename... Ts>
+    std::enable_if_t<(sizeof...(Ts) > 0), void>
+    clear_types(TypeList<Ts...>)
+    {
+        _clear_helper<Ts...>();
+    }
+
     // visit all elements in a subset of types - only enable this overload if sizeof(Ts) > 0
     template<typename... Ts, typename Visitor>
     std::enable_if_t<(sizeof...(Ts) > 0), void>

@@ -52,16 +52,16 @@ public:
             
         }
         
-        typename Constraint::GradientMatType delC = _constraint->gradient(true);
+        typename Constraint::GradientMatType delC = _constraint->gradient();
         // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
         const typename Constraint::ConstraintVecType RHS = -C - _constraint->alpha().asDiagonal() * _lambda / (_dt*_dt);
 
         Eigen::Vector<Real, Constraint::StateDim> inertia_inverse;
-        // for (const auto& particle : _constraint->particles())
-        for (int i = 0; i < Constraint::NumParticles; i++)
+        // for (const auto& particle : _constraint->orientedParticles())
+        for (int i = 0; i < Constraint::NumOrientedParticles; i++)
         {
-            const SimObject::OrientedParticle* particle = _constraint->particles()[i];
+            const SimObject::OrientedParticle* particle = _constraint->orientedParticles()[i];
             inertia_inverse.template block<6,1>(6*i, 0) = 
                 Vec6r(1/particle->mass, 1/particle->mass, 1/particle->mass, 1/particle->Ib[0], 1/particle->Ib[1], 1/particle->Ib[2]);
         }
@@ -79,10 +79,11 @@ public:
         // std::cout << "dlam: " << dlam << std::endl;
 
         // update nodes
-        for (int i = 0; i < Constraint::NumParticles; i++)
+        for (int i = 0; i < Constraint::NumOrientedParticles; i++)
         {
-            typename Constraint::SingleParticleGradientMatType particle_i_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
-            SimObject::OrientedParticle* particle_i = _constraint->particles()[i];
+            using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
+            SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
+            SimObject::OrientedParticle* particle_i = _constraint->orientedParticles()[i];
             // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
             const Vec6r position_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam;
             // std::cout << "Position update: " << position_update.transpose() << std::endl;

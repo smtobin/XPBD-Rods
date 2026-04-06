@@ -1,4 +1,6 @@
 #include "simobject/rod/XPBDRod.hpp"
+#include "simobject/rod/XPBDHigherOrderRod.hpp"
+#include "constraint/RodRodCollisionConstraint.hpp"
 #include "config/RodConfig.hpp"
 #include "collision/CollisionScene.hpp"
 
@@ -41,9 +43,9 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
             using ConstraintType = base_type_t<decltype(constraint)>;
             num_constraints += ConstraintType::ConstraintDim;
 
-            for (int i = 0; i < ConstraintType::NumParticles; i++)
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
-                SimObject::OrientedParticle* particle_i = const_cast<SimObject::OrientedParticle*>(constraint->particles()[i]); // cast away constness - gross! but necessary for now
+                SimObject::OrientedParticle* particle_i = const_cast<SimObject::OrientedParticle*>(constraint->orientedParticles()[i]); // cast away constness - gross! but necessary for now
                 particle_to_index.insert({particle_i, particle_to_index.size()});   // insert if the particle not already accounted for
             }
         },
@@ -79,9 +81,9 @@ void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType
 
                 // evaluate the gradient and put it in global delC matrix
                 typename ConstraintType::GradientMatType gradient = constraint->gradient();
-                for (int i = 0; i < ConstraintType::NumParticles; i++)
+                for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
                 {
-                    int particle_index = particle_to_index[constraint->particles()[i]];
+                    int particle_index = particle_to_index[constraint->orientedParticles()[i]];
                     delC.template block<ConstraintType::ConstraintDim, 6>(constraint_index, 6*particle_index) = 
                         gradient.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
                 }
@@ -128,19 +130,16 @@ int main()
     // create rod
     Config::RodConfig rod_config(
         "test_rod",
-        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
-        true, true,
+        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        Config::RodElementType::LINEAR,
+        true, true, true,
         1.0, 0.1,
         num_nodes,
         1000,
         1e8, 0.4
     );
 
-    SimObject::CircleCrossSection rod_xs(
-        0.05
-    );
-
-    SimObject::XPBDRod rod(rod_config, rod_xs);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod(rod_config);
     rod.setup();
 
     auto& rod_nodes = rod.nodes();
@@ -163,26 +162,28 @@ int main()
 
     Config::RodConfig rod_config1(
         "rod1",
-        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
-        true, true,
+        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        Config::RodElementType::LINEAR,
+        true, true, true,
         1.0, 0.1,
         10,
         1000,
         1e7, 0.4
     );
-    SimObject::XPBDRod rod1(rod_config1, rod_xs);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod1(rod_config1);
     rod1.setup();
 
     Config::RodConfig rod_config2(
         "rod2",
-        Vec3r(-0.505, 0.098, 0.505), Vec3r(0,90,0), Vec3r::Zero(), Vec3r::Zero(),
-        false, false,
+        Vec3r(-0.505, 0.098, 0.505), Vec3r(0,90,0), Vec3r::Zero(), Vec3r::Zero(), true,
+        Config::RodElementType::LINEAR,
+        false, false, true,
         1.0, 0.1,
         10,
         1000,
         1e6, 0.4
     );
-    SimObject::XPBDRod rod2(rod_config2, rod_xs);
+    SimObject::XPBDRod_<SimObject::RodElement<1>> rod2(rod_config2);
     rod2.setup();
 
     // create global particle list
@@ -197,7 +198,7 @@ int main()
     }
 
     // create collision constraint(s)
-    std::vector<Constraint::RodRodCollisionConstraint> collision_constraints;
+    std::vector<Constraint::RodRodCollisionConstraint<1,1>> collision_constraints;
     Collision::CollisionScene collision_scene;
     collision_scene.addObject(&rod1);
     collision_scene.addObject(&rod2);
@@ -209,14 +210,17 @@ int main()
             if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
             {
                 std::cout << "segment-segment collision!" << std::endl;
-                std::cout << "  rod1: " << collision.segment1_particle1->position.transpose() << ", " << collision.segment1_particle2->position.transpose() << std::endl;
-                std::cout << "  rod2: " << collision.segment2_particle1->position.transpose() << ", " << collision.segment2_particle2->position.transpose() << std::endl;
+                // std::cout << "  rod1: " << collision.segment1_particle1->position.transpose() << ", " << collision.segment1_particle2->position.transpose() << std::endl;
+                // std::cout << "  rod2: " << collision.segment2_particle1->position.transpose() << ", " << collision.segment2_particle2->position.transpose() << std::endl;
+                
                 // using ConstraintType = Constraint::RodRodCollisionConstraint;
                 // auto& constraint_vec = _constraints.template get<ConstraintType>();
+                SimObject::RodElement<1>* elem1 = static_cast<SimObject::RodElement<1>*>(collision.element1);
+                SimObject::RodElement<1>* elem2 = static_cast<SimObject::RodElement<1>*>(collision.element2);
                 collision_constraints.emplace_back(
-                    collision.segment1_particle1, collision.segment1_particle2, collision.beta1, collision.cp_local1, 
-                    collision.segment2_particle1, collision.segment2_particle2, collision.beta2, collision.cp_local2,
-                    collision.normal, collision.rod1->staticFrictionCoeff(), collision.rod1->dynamicFrictionCoeff()
+                    elem1, collision.s_hat1, collision.cp_local1, 
+                    elem2, collision.s_hat2, collision.cp_local2,
+                    collision.normal, rod1.staticFrictionCoeff(), rod1.dynamicFrictionCoeff()
                 );
                 // ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
                 // _solver.addConstraint(constraint_ref);
@@ -225,7 +229,7 @@ int main()
     }
 
     std::cout << "Collision constraint before solve: " << collision_constraints[0].evaluate() << std::endl;
-    const auto& particles_in_collision = collision_constraints[0].particles();
+    const auto& particles_in_collision = collision_constraints[0].orientedParticles();
     for (const auto& particle : particles_in_collision)
     {
         std::cout << "Original position for particle " << particle << ": " << particle->position.transpose() << std::endl;

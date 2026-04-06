@@ -6,7 +6,7 @@
 namespace Constraint
 {
 
-class SphericalJointSwingLimitConstraint : public XPBDConstraint<1, 2>
+class SphericalJointSwingLimitConstraint : public XPBDConstraint<1, 2, 0>
 {
 public:
     SphericalJointSwingLimitConstraint(const SphericalJointConstraint& sph_constraint, Real min_angle, Real max_angle, Real alpha=0);
@@ -15,9 +15,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Mat3r _or1;
@@ -33,7 +31,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////
 
 
-class OneSidedSphericalJointSwingLimitConstraint : public XPBDConstraint<1, 1>
+class OneSidedSphericalJointSwingLimitConstraint : public XPBDConstraint<1, 1, 0>
 {
 public:
     OneSidedSphericalJointSwingLimitConstraint(const OneSidedSphericalJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
@@ -42,9 +40,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Mat3r _or1;

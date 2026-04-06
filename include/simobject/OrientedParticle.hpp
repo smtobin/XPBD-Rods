@@ -9,7 +9,6 @@ namespace SimObject
 /** Represents a general "particle" that has both position and orientation with some mass and rotational inertia.
  * This particle can be both a node in a discretized Cosserat rod, or a rigid body.
  * 
- * TODO: add fixed flag
  */
 struct OrientedParticle
 {
@@ -36,6 +35,8 @@ struct OrientedParticle
      */
     void inertialUpdate(Real dt);
 
+    void inertialUpdateAccelerations(Real dt, const Vec3r& a_trans, const Vec3r& a_rot);
+
     /** Updates the particle given some change in position and orientiation.
      * @param dpos - the change in position (specified in global coordinates)
      * @param dor - the change in orientation - a member of the Lie algebra so(3)
@@ -49,8 +50,6 @@ struct OrientedParticle
 
     /** Updates the particle velocity given a time step, and previous position and orientation.
      * @param dt - the time step
-     * @param prev_pos - the previous position of the particle (at the end of the last time step)
-     * @param prev_or - the previous orientation of the particle (at the end of the last time step)
      */
     void velocityUpdate(Real dt);
 };

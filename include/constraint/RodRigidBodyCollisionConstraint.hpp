@@ -1,16 +1,26 @@
 #pragma once
 
 #include "constraint/Constraint.hpp"
+#include "simobject/rod/RodElement.hpp"
 
 namespace Constraint
 {
 
-class RodRigidBodyCollisionConstraint : public XPBDConstraint<1, 3>
+template <int Order>
+class RodRigidBodyCollisionConstraint : public XPBDConstraint<1, 1 + Order+1, 0>
 {
 public:
+    using BaseConstraintType = XPBDConstraint<1, 1 + Order+1, 0>;
+    constexpr static int StateDim = BaseConstraintType::StateDim;
+    constexpr static int ConstraintDim = BaseConstraintType::ConstraintDim;
+    constexpr static int NumOrientedParticles = BaseConstraintType::NumOrientedParticles;
+    using ConstraintVecType = typename BaseConstraintType::ConstraintVecType;
+    using AlphaVecType = typename BaseConstraintType::AlphaVecType;
+    using GradientMatType = typename BaseConstraintType::GradientMatType;
+
     RodRigidBodyCollisionConstraint(
-        SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
-        Real beta, const Vec3r& cp_local_rod,
+        SimObject::RodElement<Order>* element,
+        Real s_hat, const Vec3r& cp_local_rod,
         SimObject::OrientedParticle* com_rb, const Vec3r& cp_local_rb,
         const Vec3r& n,
         Real mu_s, Real mu_d
@@ -19,15 +29,18 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
 
 private:
+    using BaseConstraintType::_oriented_particles;
+
+    /** Rod element in collision */
+    SimObject::RodElement<Order>* _element;
+
     /** Interpolation parameter for the rod segment in [0,1] */
-    Real _beta;
+    Real _s_hat;
 
     /** Local offset to contact point in interpolated rod frame */
     Vec3r _cp_local_rod;
@@ -50,12 +63,21 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneSidedRodRigidBodyCollisionConstraint : public XPBDConstraint<1, 2>
+template <int Order>
+class OneSidedRodRigidBodyCollisionConstraint : public XPBDConstraint<1, Order+1, 0>
 {
 public:
+    using BaseConstraintType = XPBDConstraint<1, Order+1, 0>;
+    constexpr static int StateDim = BaseConstraintType::StateDim;
+    constexpr static int ConstraintDim = BaseConstraintType::ConstraintDim;
+    constexpr static int NumOrientedParticles = BaseConstraintType::NumOrientedParticles;
+    using ConstraintVecType = typename BaseConstraintType::ConstraintVecType;
+    using AlphaVecType = typename BaseConstraintType::AlphaVecType;
+    using GradientMatType = typename BaseConstraintType::GradientMatType;
+
     OneSidedRodRigidBodyCollisionConstraint(
-        SimObject::OrientedParticle* p1, SimObject::OrientedParticle* p2,
-        Real beta, const Vec3r& cp_local_rod,
+        SimObject::RodElement<Order>* element,
+        Real s_hat, const Vec3r& cp_local_rod,
         const Vec3r& rb_cp,
         const Vec3r& n,
         Real mu_s, Real mu_d
@@ -64,15 +86,18 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
 
 private:
+    using BaseConstraintType::_oriented_particles;
+    
+    /** Rod element in collision */
+    SimObject::RodElement<Order>* _element;
+
     /** Interpolation parameter for the rod segment in [0,1] */
-    Real _beta;
+    Real _s_hat;
 
     /** Local offset to contact point in interpolated rod frame */
     Vec3r _cp_local_rod;

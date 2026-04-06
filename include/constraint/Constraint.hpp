@@ -2,33 +2,67 @@
 
 #include "common/common.hpp"
 #include "simobject/OrientedParticle.hpp"
+#include "simobject/Particle.hpp"
 
 namespace Constraint
 {
 
-template <int ConstraintDim_, int NumParticles_>
+template <int ConstraintDim_, int NumOrientedParticles_, int NumParticles_>
 class XPBDConstraint
 {
-    public:
+public:
     constexpr static int ConstraintDim = ConstraintDim_;
+    constexpr static int NumOrientedParticles = NumOrientedParticles_;
     constexpr static int NumParticles = NumParticles_;
-    constexpr static int StateDim = NumParticles_ * SimObject::OrientedParticle::DOF;
+    constexpr static int StateDim = NumOrientedParticles_ * SimObject::OrientedParticle::DOF + NumParticles_ * SimObject::Particle::DOF;
 
     using ConstraintVecType = Eigen::Vector<Real, ConstraintDim_>;
     using AlphaVecType = Eigen::Vector<Real, ConstraintDim_>;
     using GradientMatType = Eigen::Matrix<Real, ConstraintDim_, StateDim>;
-    using SingleParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim_, SimObject::OrientedParticle::DOF>; 
-    using ParticlePtrArray = std::array<SimObject::OrientedParticle*, NumParticles>;
-    using CachedSingleParticleGradientArray = std::array<SingleParticleGradientMatType, NumParticles>;
+    using OrientedParticlePtrArray = std::array<SimObject::OrientedParticle*, NumOrientedParticles>;
+    using ParticlePtrArray = std::array<SimObject::Particle*, NumParticles>;
 
-    public:
+public:
+
+    XPBDConstraint(const OrientedParticlePtrArray& oriented_particles, const ParticlePtrArray& particles, const AlphaVecType& alpha)
+        : _oriented_particles(oriented_particles), _particles(particles), _alpha(alpha)
+    {
+    }
+
+    XPBDConstraint(std::initializer_list<SimObject::OrientedParticle*> oriented_particles_list, std::initializer_list<SimObject::Particle*> particles_list, AlphaVecType& alpha)
+        : _oriented_particles{}, _particles{}, _alpha(alpha)
+    {
+        std::copy(oriented_particles_list.begin(), oriented_particles_list.end(), _oriented_particles.begin());
+        std::copy(particles_list.begin(), particles_list.end(), _particles.begin());
+    }
+
+    /** Enable reduced constructors for when the number of positional particles = 0 */
+
+    template<int M = NumParticles_, typename std::enable_if<M == 0, int>::type = 0>
+    XPBDConstraint(const OrientedParticlePtrArray& oriented_particles, const AlphaVecType& alpha)
+        : _oriented_particles(oriented_particles), _alpha(alpha)
+    {
+    }
+
+    template<int M = NumParticles_, typename std::enable_if<M == 0, int>::type = 0>
+    XPBDConstraint(std::initializer_list<SimObject::OrientedParticle*> oriented_particles_list, const AlphaVecType& alpha)
+        : _oriented_particles{}, _particles{}, _alpha(alpha)
+    {
+        std::copy(oriented_particles_list.begin(), oriented_particles_list.end(), _oriented_particles.begin());
+    }
+
+
+    /** Enable reduced constructors for when the number of oriented particles = 0 */
+    
+    template<int M = NumOrientedParticles_, typename std::enable_if<M == 0, int>::type = 0>
     XPBDConstraint(const ParticlePtrArray& particles, const AlphaVecType& alpha)
         : _particles(particles), _alpha(alpha)
     {
     }
 
-    XPBDConstraint(std::initializer_list<SimObject::OrientedParticle*> particles_list, const AlphaVecType& alpha)
-        : _particles{}, _alpha(alpha)
+    template<int M = NumOrientedParticles_, typename std::enable_if<M == 0, int>::type = 0>
+    XPBDConstraint(std::initializer_list<SimObject::Particle*> particles_list, const AlphaVecType& alpha)
+        : _oriented_particles{}, _particles{}, _alpha(alpha)
     {
         std::copy(particles_list.begin(), particles_list.end(), _particles.begin());
     }
@@ -38,17 +72,16 @@ class XPBDConstraint
     virtual bool isInequality() const { return false; }
 
     virtual ConstraintVecType evaluate() const = 0;
-    virtual GradientMatType gradient(bool update_cache=true) const = 0;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* particle_ptr, bool use_cache=false) const = 0;
+    virtual GradientMatType gradient() const = 0;
 
     const AlphaVecType& alpha() const { return _alpha; }
+    const OrientedParticlePtrArray& orientedParticles() const { return _oriented_particles; }
     const ParticlePtrArray& particles() const { return _particles; }
 
     protected:
+    OrientedParticlePtrArray _oriented_particles;
     ParticlePtrArray _particles;
     AlphaVecType _alpha;
-    mutable CachedSingleParticleGradientArray _cached_gradients;
 };
 
 } // namespace Constraint

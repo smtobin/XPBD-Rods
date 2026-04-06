@@ -33,6 +33,8 @@ public:
     Real staticFrictionCoeff() const { return _mu_s; }
     Real dynamicFrictionCoeff() const { return _mu_d; }
 
+    bool collisions() const { return _collisions; }
+
     /** Performs necessary setup to prepare the object for simulation. (sets up constraints, computes mass properties, etc.) */
     virtual void setup() = 0;
 
@@ -61,6 +63,9 @@ protected:
     /** Friction coefficients */
     Real _mu_s;
     Real _mu_d;
+
+    /** Whether or not collisions are enabled for this object */
+    bool _collisions;
 
     /** Stores the "internal" constraints for this object.
      * The internal constraints are constraints that are intentionally hidden from the Gauss-Seidel solver so that they can be solved for in a special way.

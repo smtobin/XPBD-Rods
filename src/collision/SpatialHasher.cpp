@@ -10,16 +10,6 @@ SpatialHasher::SpatialHasher(Real grid_size, int num_buckets)
 {
 }
 
-void SpatialHasher::addObject(SimObject::XPBDRod* rod)
-{
-    // create a collision object for each rod segment
-    std::vector<SimObject::XPBDRodSegment>& rod_segments = rod->collisionSegments();
-    for (auto& segment : rod_segments)
-    {
-        _collision_objects.emplace_back(&segment);
-    }
-}
-
 void SpatialHasher::hashObjects()
 {
     _collision_pairs.clear();

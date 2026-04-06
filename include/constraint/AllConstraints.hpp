@@ -7,6 +7,7 @@
 #include "constraint/PrismaticJointConstraint.hpp"
 
 #include "constraint/RodElasticConstraint.hpp"
+#include "constraint/RodElasticGaussPointConstraint.hpp"
 #include "constraint/PointLineConstraint.hpp"
 
 
@@ -17,3 +18,5 @@
 #include "constraint/RigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRodCollisionConstraint.hpp"
+
+#include "constraint/FixedParticleConstraint.hpp"

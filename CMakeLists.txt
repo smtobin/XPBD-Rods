@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)                       # specify C++ standard
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-ftime-trace)
     message(STATUS "Added -ftime-trace flag")
@@ -40,7 +43,7 @@ target_link_libraries(Solver Eigen3::Eigen)
 
 add_library(Constraint)
 add_subdirectory("src/constraint")
-target_link_libraries(Constraint Eigen3::Eigen)
+target_link_libraries(Constraint Eigen3::Eigen SimObject)
 
 add_library(SimObject)
 add_subdirectory("src/simobject")
@@ -61,8 +64,8 @@ target_link_libraries(Simulation Eigen3::Eigen ${VTK_LIBRARIES} SimObject Solver
 add_executable(Sim src/exec/main.cpp)
 target_link_libraries(Sim Simulation ${VTK_LIBRARIES})
 
-add_executable(RodGraspingSim src/exec/rod_grasping_sim.cpp)
-target_link_libraries(RodGraspingSim Simulation ${VTK_LIBRARIES})
+add_executable(RodConvergenceSim src/exec/rod_convergence_sim.cpp)
+target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 
 
 ###################################################
@@ -77,9 +80,6 @@ target_link_libraries(TestBanded Solver Eigen3::Eigen)
 add_executable(TestThomasVsBanded test/test_thomas_vs_banded.cpp)
 target_link_libraries(TestThomasVsBanded Solver Eigen3::Eigen)
 
-add_executable(TestVTK test/test_vtk.cpp)
-target_link_libraries(TestVTK Eigen3::Eigen ${VTK_LIBRARIES} SimObject)
-
 add_executable(TestPBR test/test_pbr.cpp)
 target_link_libraries(TestPBR Eigen3::Eigen ${VTK_LIBRARIES})
 
@@ -92,16 +92,15 @@ target_link_libraries(TestConstraintGradients Eigen3::Eigen Constraint SimObject
 add_executable(TestCollision test/test_collision.cpp)
 target_link_libraries(TestCollision Eigen3::Eigen Collision SimObject Graphics ${VTK_LIBRARIES})
 
+add_executable(TestRodCollisionOptimzation test/test_rod_collision_optimization.cpp)
+target_link_libraries(TestRodCollisionOptimzation Eigen3::Eigen SimObject Collision)
+
 add_executable(TestRod test/test_rod.cpp)
 target_link_libraries(TestRod Eigen3::Eigen SimObject Collision)
 
 
 
 # vtk_module_autoinit is needed
-vtk_module_autoinit(
-  TARGETS TestVTK
-  MODULES ${VTK_LIBRARIES}
-)
 
 vtk_module_autoinit(
   TARGETS TestPBR
@@ -119,7 +118,7 @@ vtk_module_autoinit(
 )
 
 vtk_module_autoinit(
-  TARGETS RodGraspingSim
+  TARGETS RodConvergenceSim
   MODULES ${VTK_LIBRARIES}
 )
 

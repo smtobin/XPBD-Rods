@@ -9,14 +9,15 @@
 template<typename ConstraintType>
 typename ConstraintType::GradientMatType numericalConstraintGradient(ConstraintType& constraint)
 {
+    const typename ConstraintType::OrientedParticlePtrArray& orientedParticles = constraint.orientedParticles();
     const typename ConstraintType::ParticlePtrArray& particles = constraint.particles();
     typename ConstraintType::ConstraintVecType orig_C = constraint.evaluate();
 
     Real delta = 1e-8;
     typename ConstraintType::GradientMatType gradient;
-    for (int pi = 0; pi < ConstraintType::NumParticles; pi++)
+    for (int pi = 0; pi < ConstraintType::NumOrientedParticles; pi++)
     {
-        SimObject::OrientedParticle* particle_i = particles[pi];
+        SimObject::OrientedParticle* particle_i = orientedParticles[pi];
         for (int dof_i = 0; dof_i < 3; dof_i++)
         {
             particle_i->position[dof_i] += delta;
@@ -33,6 +34,17 @@ typename ConstraintType::GradientMatType numericalConstraintGradient(ConstraintT
             typename ConstraintType::ConstraintVecType new_C = constraint.evaluate();
             gradient.col(6*pi + 3 + dof_i) = (new_C - orig_C) / delta;
             particle_i->orientation = orig_or;
+        }
+    }
+    for (int pi = 0; pi < ConstraintType::NumParticles; pi++)
+    {
+        SimObject::Particle* particle_i = particles[pi];
+        for (int dof_i = 0; dof_i < 3; dof_i++)
+        {
+            particle_i->position[dof_i] += delta;
+            typename ConstraintType::ConstraintVecType new_C = constraint.evaluate();
+            gradient.col(6*ConstraintType::NumOrientedParticles+3*pi+dof_i) = (new_C - orig_C) / delta;
+            particle_i->position[dof_i] -= delta;
         }
     }
 
@@ -71,6 +83,14 @@ SimObject::OrientedParticle randomParticle()
     return particle;
 }
 
+SimObject::Particle randomPositionalParticle()
+{
+    Vec3r pos = Vec3r::Random();
+    SimObject::Particle particle;
+    particle.position = pos;
+    return particle;
+}
+
 Mat3r randomRotation()
 {
     Vec3r R_vec = Vec3r::Random();
@@ -83,6 +103,8 @@ int main()
     randomRotation();
     SimObject::OrientedParticle particle1 = randomParticle();
     SimObject::OrientedParticle particle2 = randomParticle();
+    SimObject::OrientedParticle particle3 = randomParticle();
+    SimObject::OrientedParticle particle4 = randomParticle();
 
     /** Revolute joint constraints */
     Constraint::RevoluteJointConstraint                 rev_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
@@ -129,5 +151,79 @@ int main()
     Constraint::OneSidedPrismaticJointLimitConstraint   pr_lim_constraint2(pr_constraint2, -0.5, 0.5);
     testConstraint(pr_lim_constraint1);
     testConstraint(pr_lim_constraint2);
+
+    /** Rod Elastic Gauss Constraints */
+    std::array<SimObject::OrientedParticle*, 2> o0_element_particles = {&particle1, &particle2};
+    SimObject::RodElement<0> o0_element(o0_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<0>> o0_constraint(&o0_element, 0.5, Vec6r::Zero());
+    testConstraint(o0_constraint);
+
+    std::array<SimObject::OrientedParticle*, 2> o1_element_particles = {&particle1, &particle2};
+    SimObject::RodElement<1> o1_element(o1_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<1>> o1_constraint(&o1_element, 0.5, Vec6r::Zero());
+    testConstraint(o1_constraint);
+
+    std::array<SimObject::OrientedParticle*, 3> o2_element_particles = {&particle1, &particle2, &particle3};
+    SimObject::RodElement<2> o2_element(o2_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>> o2_constraint(&o2_element, 0.33, Vec6r::Zero());
+    testConstraint(o2_constraint);
+
+    std::array<SimObject::OrientedParticle*, 4> o3_element_particles = {&particle1, &particle2, &particle3, &particle4};
+    SimObject::RodElement<3> o3_element(o3_element_particles, 0.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>> o3_constraint(&o3_element, 0.33, Vec6r::Zero());
+    testConstraint(o3_constraint);
+
+    std::array<SimObject::OrientedParticle*, 2> cubic_hermite_element_particles = {&particle1, &particle2};
+    SimObject::Particle pos1 = randomPositionalParticle();
+    SimObject::Particle pos2 = randomPositionalParticle();
+    SimObject::Particle pos3 = randomPositionalParticle();
+    SimObject::Particle pos4 = randomPositionalParticle();
+    std::array<SimObject::Particle*, 2> dp_DOF = {&pos1, &pos3};
+    std::array<SimObject::Particle*, 2> dR_DOF = {&pos2, &pos4};
+    SimObject::CubicHermiteRodElement hermite_element(cubic_hermite_element_particles, dp_DOF, dR_DOF, 2.5);
+    Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement> hermite_constraint(&hermite_element, 0.3, Vec6r::Zero());
+    testConstraint(hermite_constraint);
+    
+
+    /** Test derivative of exponential map */
+    Real l = 0.1;
+    Vec3r theta1(0.5, -0.6, 0.4);
+    Vec3r theta2(0.8, 0.2, 0.9);
+    Mat3r R1 = Math::Exp_so3(theta1);
+    Mat3r R2 = Math::Exp_so3(theta2);
+    Vec3r theta = Math::Minus_SO3(R2, R1);
+    Real s = 0.5;
+    Vec3r theta_prime = 1/l * theta;
+
+
+    Mat3r gamma = Math::ExpMap_RightJacobian(s*theta);
+    Mat3r gamma_inv = Math::ExpMap_InvRightJacobian(theta);
+
+    Vec3r u = gamma * theta_prime;
+
+    Vec3r dR1(0.001, -0.002, -0.001);
+    Vec3r u_pred_delta1 = Math::DExpMap_RightJacobian_Contract_k(s*theta, -s*gamma_inv.transpose() * dR1) * theta_prime + gamma * -1/l * gamma_inv.transpose() * dR1;
+    Vec3r u_pred_delta2 = (Math::DExpMap_RightJacobian_Contract_j(s*theta, theta_prime) * -s*gamma_inv.transpose() + gamma * -1/l * gamma_inv.transpose()) * dR1;
+    Vec3r u_pred_delta3 = -1/l * gamma_inv.transpose() * dR1;
+
+
+    R1 = Math::Plus_SO3(R1, dR1);
+    Vec3r u_new = Math::ExpMap_RightJacobian(s*Math::Minus_SO3(R2, R1)) * 1/l * Math::Minus_SO3(R2, R1);
+
+    std::cout << "Original u:\n" << u.transpose() << std::endl;
+    std::cout << "Predicted du1:\n" << u_pred_delta1.transpose() << std::endl;
+    std::cout << "Predicted du2:\n" << u_pred_delta2.transpose() << std::endl;
+    std::cout << "Predicted du3:\n" << u_pred_delta3.transpose() << std::endl;
+    std::cout << "Actual du:\n" << (u_new - u).transpose() << std::endl;
+
+    Vec3r v1(1.2, 0.8, 0.6);
+    Vec3r v2(0.7, 0.2, 0.4);
+    Mat3r A;
+    A << 0.5, 0.9, -0.4, 0.6, 0.5, 0.3, 0.1, -0.1, 0.6;
+    Vec3r res1 = Math::DExpMap_RightJacobian_Contract_k(s*theta, A*v1) * theta_prime;
+    Vec3r res2 = Math::DExpMap_RightJacobian_Contract_j(s*theta, theta_prime) * A * v1;
+
+    std::cout << "res1: " << res1.transpose() << std::endl;
+    std::cout << "res2: " << res2.transpose() << std::endl;
     
 }

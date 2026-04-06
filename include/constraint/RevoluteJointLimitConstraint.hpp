@@ -6,7 +6,7 @@
 namespace Constraint
 {
 
-class RevoluteJointLimitConstraint : public XPBDConstraint<1, 2>
+class RevoluteJointLimitConstraint : public XPBDConstraint<1, 2, 0>
 {
 public:
     RevoluteJointLimitConstraint(const RevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
@@ -19,9 +19,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Mat3r _or1;
@@ -37,7 +35,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////
 
 
-class OneSidedRevoluteJointLimitConstraint : public XPBDConstraint<1, 1>
+class OneSidedRevoluteJointLimitConstraint : public XPBDConstraint<1, 1, 0>
 {
 public:
     OneSidedRevoluteJointLimitConstraint(const OneSidedRevoluteJointConstraint& rev_constraint, Real min_angle, Real max_angle, Real alpha=0);
@@ -49,9 +47,7 @@ public:
     virtual bool isInequality() const override { return true; }
 
     virtual ConstraintVecType evaluate() const override;
-    virtual GradientMatType gradient(bool update_cache=true) const override;
-
-    virtual SingleParticleGradientMatType singleParticleGradient(const SimObject::OrientedParticle* node_ptr, bool use_cache=false) const override;
+    virtual GradientMatType gradient() const override;
 
 private:
     Mat3r _or1;

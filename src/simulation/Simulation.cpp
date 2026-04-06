@@ -394,7 +394,7 @@ void Simulation::setup()
     {
         Config::XPBDPlaneConfig plane_config(
             "ground-plane",
-            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(),
+            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
             1, true,
             1000, 1000,
             Vec3r(0,1,0)
@@ -411,12 +411,14 @@ void Simulation::setup()
     // add objects to collision scene
     /** TODO: determine grid size based on object sizes */
     _objects.for_each_element([&](auto& obj) {
-        _collision_scene.addObject(obj.get());
+        if (obj->collisions())
+            _collision_scene.addObject(obj.get());
     });
     _object_groups.for_each_element([&](auto& obj_group) {
         auto& objects = obj_group->objects();
         objects.for_each_element([&](auto& obj) {
-            _collision_scene.addObject(&obj);
+            if (obj.collisions())
+                _collision_scene.addObject(&obj);
         });
     });
     
@@ -537,11 +539,15 @@ VecXr Simulation::primaryResidual() const
                 using ConstraintType = std::remove_cv_t<std::remove_pointer_t<std::decay_t<decltype(constraint)>>>;
 
                 // iterate through the particles involved in the constraint
-                const typename ConstraintType::ParticlePtrArray& particles = constraint->particles();
-                for (const auto& particle : particles)
+                const typename ConstraintType::OrientedParticlePtrArray& particles = constraint->orientedParticles();
+                typename ConstraintType::GradientMatType full_grad = constraint->gradient();
+                for (unsigned i = 0; i < particles.size(); i++)
                 {
+                    SimObject::OrientedParticle* particle = particles[i];
+
                     // compute delC^T * lambda for the constraint gradient w.r.t. this particle
-                    typename ConstraintType::SingleParticleGradientMatType grad = constraint->singleParticleGradient(particle);
+                    using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintType::ConstraintDim, 6>;
+                    SingleOrientedParticleGradientMatType grad = full_grad.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
                     Vec6r vec = grad.transpose() * Eigen::Map<const typename ConstraintType::ConstraintVecType>(constraint_and_lambda.lambda);
 
                     // add its contribution to the global delC^T * lambda vector
@@ -561,10 +567,15 @@ VecXr Simulation::primaryResidual() const
         using ProjType = std::remove_cv_t<std::remove_reference_t<decltype(proj)>>;
         using ConstraintType = typename ProjType::Constraint;
         
-        const typename ConstraintType::ParticlePtrArray& particles = proj.constraint()->particles();
-        for (const auto& particle : particles)
+        const typename ConstraintType::OrientedParticlePtrArray& particles = proj.constraint()->orientedParticles();
+        typename ConstraintType::GradientMatType full_grad = proj.constraint()->gradient();
+
+        for (unsigned i = 0; i < particles.size(); i++)
         {
-            typename ConstraintType::SingleParticleGradientMatType grad = proj.constraint()->singleParticleGradient(particle);
+            SimObject::OrientedParticle* particle = particles[i];
+
+            using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintType::ConstraintDim, 6>;
+            SingleOrientedParticleGradientMatType grad = full_grad.template block<ConstraintType::ConstraintDim, 6>(0, 6*i);
             Vec6r vec = grad.transpose() * proj.lambda();
             int index = _particle_ptr_to_index.at(particle);
 
@@ -673,95 +684,7 @@ void Simulation::_timeStep()
     _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
 
-    _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
-    _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
-    _constraints.clear<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    _constraints.clear<Constraint::RodRodCollisionConstraint>();
-    _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
-    _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
-    _solver.clearProjectorsOfType<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint>();
-    const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
-    for (const auto& detected_collision : detected_collisions)
-    {
-        std::visit([&](auto&& collision) {
-            using T = std::decay_t<decltype(collision)>;
-            if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
-            {
-                Real mu_s = 0.5*(collision.rb1->staticFrictionCoeff() + collision.rb2->staticFrictionCoeff());
-                Real mu_d = 0.5*(collision.rb1->dynamicFrictionCoeff() + collision.rb2->dynamicFrictionCoeff());
-                if (collision.rb1->com().fixed)
-                {
-                    using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.rb1->com().position + collision.rb1->com().orientation * collision.cp_local1;
-                    constraint_vec.emplace_back(cp, &collision.rb2->com(), collision.cp_local2, collision.normal, mu_s, mu_d);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
-                }
-                else if (collision.rb2->com().fixed)
-                {
-                    using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.rb2->com().position + collision.rb2->com().orientation * collision.cp_local2;
-                    constraint_vec.emplace_back(cp, &collision.rb1->com(), collision.cp_local1, -collision.normal, mu_s, mu_d);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
-                }
-                else
-                {
-                    using ConstraintType = Constraint::RigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    constraint_vec.emplace_back(&collision.rb1->com(), collision.cp_local1, &collision.rb2->com(), collision.cp_local2, collision.normal,
-                        mu_s, mu_d);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
-                }
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
-            {
-                Real mu_s = 0.5*(collision.rb->staticFrictionCoeff() + collision.rod->staticFrictionCoeff());
-                Real mu_d = 0.5*(collision.rb->dynamicFrictionCoeff() + collision.rod->dynamicFrictionCoeff());
-                if (collision.rb->com().fixed)
-                {
-                    using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    Vec3r cp = collision.rb->com().position + collision.rb->com().orientation * collision.cp_local_rb;
-                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
-                        cp, collision.normal, mu_s, mu_d);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
-                }
-                else
-                {
-                    using ConstraintType = Constraint::RodRigidBodyCollisionConstraint;
-                    auto& constraint_vec = _constraints.template get<ConstraintType>();
-                    constraint_vec.emplace_back(collision.segment_particle1, collision.segment_particle2, collision.beta, collision.cp_local_rod, 
-                        &collision.rb->com(), collision.cp_local_rb, collision.normal, mu_s, mu_d);
-                    ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                    _solver.addConstraint(constraint_ref);
-                }
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
-            {
-                Real mu_s = 0.5*(collision.rod1->staticFrictionCoeff() + collision.rod2->staticFrictionCoeff());
-                Real mu_d = 0.5*(collision.rod1->dynamicFrictionCoeff() + collision.rod2->dynamicFrictionCoeff());
-                using ConstraintType = Constraint::RodRodCollisionConstraint;
-                auto& constraint_vec = _constraints.template get<ConstraintType>();
-                constraint_vec.emplace_back(
-                    collision.segment1_particle1, collision.segment1_particle2, collision.beta1, collision.cp_local1, 
-                    collision.segment2_particle1, collision.segment2_particle2, collision.beta2, collision.cp_local2,
-                    collision.normal, mu_s, mu_d
-                );
-                ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
-                _solver.addConstraint(constraint_ref);
-            }
-        }, detected_collision);
-    }
+    _detectCollisions();
 
     // std::cout << "t=" << _time << std::endl;
 
@@ -794,6 +717,236 @@ void Simulation::_timeStep()
     }
 
     _time += _dt;
+}
+
+void Simulation::_detectCollisions()
+{
+    /** TODO: make this cleaner */
+    // _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
+    // _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
+    // _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
+    // _constraints.clear<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
+    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,1>>();
+    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,2>>();
+    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,1>>();
+    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,2>>();
+    _constraints.clear_types(XPBDCollisionConstraints_TypeList{});
+
+    // _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
+    // _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
+    // _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
+    // _solver.clearProjectorsOfType<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
+    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,1>>();
+    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,1>>();
+    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,2>>();
+    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,2>>();
+    _solver.clearProjectorsOfType(XPBDCollisionConstraints_TypeList{});
+
+    const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
+    for (const auto& detected_collision : detected_collisions)
+    {
+        std::visit([&](auto&& collision) {
+            _processCollision(collision);
+
+            using T = std::decay_t<decltype(collision)>;
+            if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
+            {
+                
+                
+            }
+            if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
+            {
+                
+                
+            }
+            if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
+            {
+                
+            }
+        }, detected_collision);
+    }
+}
+
+void Simulation::_processCollision(const Collision::RigidRigidCollision& collision)
+{
+    Real mu_s = 0.5*(collision.rb1->staticFrictionCoeff() + collision.rb2->staticFrictionCoeff());
+    Real mu_d = 0.5*(collision.rb1->dynamicFrictionCoeff() + collision.rb2->dynamicFrictionCoeff());
+    if (collision.rb1->com().fixed)
+    {
+        using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        Vec3r cp = collision.rb1->com().position + collision.rb1->com().orientation * collision.cp_local1;
+        constraint_vec.emplace_back(cp, &collision.rb2->com(), collision.cp_local2, collision.normal, mu_s, mu_d);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    else if (collision.rb2->com().fixed)
+    {
+        using ConstraintType = Constraint::OneSidedRigidBodyCollisionConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        Vec3r cp = collision.rb2->com().position + collision.rb2->com().orientation * collision.cp_local2;
+        constraint_vec.emplace_back(cp, &collision.rb1->com(), collision.cp_local1, -collision.normal, mu_s, mu_d);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    else
+    {
+        using ConstraintType = Constraint::RigidBodyCollisionConstraint;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(&collision.rb1->com(), collision.cp_local1, &collision.rb2->com(), collision.cp_local2, collision.normal,
+            mu_s, mu_d);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+}
+
+void Simulation::_processCollision(const Collision::RigidSegmentCollision& collision)
+{
+    if (collision.element->order() == 1)
+    {
+        SimObject::RodElement<1>* elem_derived = static_cast<SimObject::RodElement<1>*>(collision.element);
+        _processRodRigidBodyCollision<1>(elem_derived, collision);
+    }
+    else if (collision.element->order() == 2)
+    {
+        SimObject::RodElement<2>* elem_derived = static_cast<SimObject::RodElement<2>*>(collision.element);
+        _processRodRigidBodyCollision<2>(elem_derived, collision);
+    }
+    else if (collision.element->order() == 3)
+    {
+        SimObject::RodElement<3>* elem_derived = static_cast<SimObject::RodElement<3>*>(collision.element);
+        _processRodRigidBodyCollision<3>(elem_derived, collision);
+    }
+}
+
+template <int Order>
+void Simulation::_processRodRigidBodyCollision(SimObject::RodElement<Order>* elem, const Collision::RigidSegmentCollision& collision)
+{
+    Real mu_s = 0.5*(collision.rb->staticFrictionCoeff() + collision.rod_mu_s);
+    Real mu_d = 0.5*(collision.rb->dynamicFrictionCoeff() + collision.rod_mu_d);
+    if (collision.rb->com().fixed)
+    {
+        using ConstraintType = Constraint::OneSidedRodRigidBodyCollisionConstraint<Order>;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        Vec3r cp = collision.rb->com().position + collision.rb->com().orientation * collision.cp_local_rb;
+        constraint_vec.emplace_back(elem, collision.s_hat, collision.cp_local_rod, 
+            cp, collision.normal, mu_s, mu_d);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+    else
+    {
+        using ConstraintType = Constraint::RodRigidBodyCollisionConstraint<Order>;
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(elem, collision.s_hat, collision.cp_local_rod, 
+            &collision.rb->com(), collision.cp_local_rb, collision.normal, mu_s, mu_d);
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
+}
+
+void Simulation::_processCollision(const Collision::SegmentSegmentCollision& collision)
+{
+    Real mu_s = 0.5*(collision.mu_s1 + collision.mu_s2);
+    Real mu_d = 0.5*(collision.mu_d1 + collision.mu_d2);
+
+    Real s_hat1, s_hat2;
+    Vec3r cp_local1, cp_local2, normal;
+    SimObject::RodElement_Base* elem1 = collision.element1;
+    SimObject::RodElement_Base* elem2 = collision.element2;
+
+    if (collision.element1->order() <= collision.element2->order())
+    {
+        s_hat1 = collision.s_hat1;
+        s_hat2 = collision.s_hat2;
+        cp_local1 = collision.cp_local1;
+        cp_local2 = collision.cp_local2;
+        normal = collision.normal;
+        elem1 = collision.element1;
+        elem2 = collision.element2;
+    }
+    else
+    {
+        s_hat1 = collision.s_hat2;
+        s_hat2 = collision.s_hat1;
+        cp_local1 = collision.cp_local2;
+        cp_local2 = collision.cp_local1;
+        normal = -collision.normal;
+        elem1 = collision.element2;
+        elem2 = collision.element1;
+    }
+
+    if (elem1->order() == 1)
+    {
+        SimObject::RodElement<1>* elem1_derived = static_cast<SimObject::RodElement<1>*>(elem1);
+        _processRodRodCollision<1>(elem1_derived, s_hat1, cp_local1, elem2, s_hat2, cp_local2, normal, mu_s, mu_d);
+    }
+    else if (elem1->order() == 2)
+    {
+        SimObject::RodElement<2>* elem1_derived = static_cast<SimObject::RodElement<2>*>(elem1);
+        _processRodRodCollision<2>(elem1_derived, s_hat1, cp_local1, elem2, s_hat2, cp_local2, normal, mu_s, mu_d);
+    }
+    else if (elem1->order() == 3)
+    {
+        SimObject::RodElement<3>* elem1_derived = static_cast<SimObject::RodElement<3>*>(elem1);
+        _processRodRodCollision<3>(elem1_derived, s_hat1, cp_local1, elem2, s_hat2, cp_local2, normal, mu_s, mu_d);
+    }
+}
+
+template <int Order1>
+void Simulation::_processRodRodCollision(SimObject::RodElement<Order1>* elem1, Real s_hat1, const Vec3r& cp_local1, 
+                                 SimObject::RodElement_Base* elem2, Real s_hat2, const Vec3r& cp_local2,
+                                 Vec3r& normal, Real mu_s, Real mu_d)
+{
+    // convert elem2 to its derived type based on its order
+    if constexpr (Order1 < 2)
+    {
+        if (elem2->order() == 1)
+        {
+            using ConstraintType = Constraint::RodRodCollisionConstraint<Order1, 1>;
+            SimObject::RodElement<1>* elem2_derived = static_cast<SimObject::RodElement<1>*>(elem2);
+
+            auto& constraint_vec = _constraints.template get<ConstraintType>();
+            constraint_vec.emplace_back(
+                elem1, s_hat1, cp_local1, 
+                elem2_derived, s_hat2, cp_local2,
+                normal, mu_s, mu_d
+            );
+            ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+            _solver.addConstraint(constraint_ref);
+        }
+    }
+    if constexpr (Order1 < 3)
+    {
+        if (elem2->order() == 2)
+        {
+            using ConstraintType = Constraint::RodRodCollisionConstraint<Order1, 2>;
+            SimObject::RodElement<2>* elem2_derived = static_cast<SimObject::RodElement<2>*>(elem2);
+
+            auto& constraint_vec = _constraints.template get<ConstraintType>();
+            constraint_vec.emplace_back(
+                elem1, s_hat1, cp_local1, 
+                elem2_derived, s_hat2, cp_local2,
+                normal, mu_s, mu_d
+            );
+            ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+            _solver.addConstraint(constraint_ref);
+        }
+    }
+    if (elem2->order() == 3)
+    {
+        using ConstraintType = Constraint::RodRodCollisionConstraint<Order1, 3>;
+        SimObject::RodElement<3>* elem2_derived = static_cast<SimObject::RodElement<3>*>(elem2);
+
+        auto& constraint_vec = _constraints.template get<ConstraintType>();
+        constraint_vec.emplace_back(
+            elem1, s_hat1, cp_local1, 
+            elem2_derived, s_hat2, cp_local2,
+            normal, mu_s, mu_d
+        );
+        ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
+        _solver.addConstraint(constraint_ref);
+    }
 }
 
 void Simulation::_updateGraphics()

@@ -6,15 +6,16 @@ solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
-
+exposure: 0.5
 objects:
   - 
     type: "Rod"
     name: "rod1"
+    element-type: "Cubic"
     initial-position: [-0.2, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    nodes: 20
-    E: 1e6
+    elements: 5
+    E: 1e5
     diameter: 0.1
     length: 1
     nu: 0.3
@@ -23,16 +24,17 @@ objects:
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [1.0, 0.0, 0.0]
 
   - 
     type: "Rod"
     name: "rod1"
+    element-type: "Linear"
     initial-position: [0.2, 1, 0.0]
     initial-rotation: [0, 0, 0]
-    nodes: 20
+    elements: 20
     E: 1e6
     diameter: 0.1
     length: 1
@@ -42,17 +44,18 @@ objects:
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [1.0, 0.0, 0.0]
 
   - 
     type: "Rod"
     name: "rod2"
+    element-type: "Cubic"
     initial-position: [-0.5, 1.3, 0.5]
     initial-rotation: [0, 90, 0]
-    nodes: 50
-    E: 1e6
+    elements: 5
+    E: 1e5
     diameter: 0.1
     length: 1
     nu: 0.3
@@ -61,7 +64,7 @@ objects:
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
+    metallic: 0.0
     roughness: 0.5
     color: [0.0, 0.0, 1.0]
    
