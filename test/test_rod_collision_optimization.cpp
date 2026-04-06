@@ -102,11 +102,11 @@ int main()
     SimObject::XPBDRigidBox box(box_config);
     Collision::BoxSDF box_sdf(&box);
 
-    Real best_s1 = Collision::RodElementCollider::closestPointBetweenRodElementAndSDF(&elem1, &box_sdf);
-    std::cout << "Optimization identified best s for element 1: " << best_s1 << ", d=" << box_sdf.evaluate(elem1.position(best_s1)) << std::endl;
+    auto [best_s1, best_dist1] = Collision::RodElementCollider::closestPointBetweenRodElementAndSDF(&elem1, &box_sdf);
+    std::cout << "Optimization identified best s for element 1: " << best_s1 << ", d=" << best_dist1 << std::endl;
     groundTruthRodRigidBody(&elem1, &box_sdf);
-    Real best_s2 = Collision::RodElementCollider::closestPointBetweenRodElementAndSDF(&elem2, &box_sdf);
-    std::cout << "Optimization identified best s for element 2: " << best_s2 << ", d=" << box_sdf.evaluate(elem2.position(best_s2)) << std::endl;
+    auto [best_s2, best_dist2] = Collision::RodElementCollider::closestPointBetweenRodElementAndSDF(&elem2, &box_sdf);
+    std::cout << "Optimization identified best s for element 2: " << best_s2 << ", d=" << best_dist2 << std::endl;
     groundTruthRodRigidBody(&elem2, &box_sdf);
     
 }

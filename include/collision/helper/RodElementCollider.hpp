@@ -10,7 +10,69 @@ class RodElementCollider
 {
 public:
 
-static Real closestPointBetweenRodElementAndSDF(const SimObject::RodElement_Base* elem, const SDF* sdf)
+static std::pair<Real,Real> closestPointBetweenLineAndSDF(const Vec3r& p1, const Vec3r& p2, const SDF* sdf)
+{
+    // fixed number of initial points to test
+    const Real samples[7] = {
+        0.0, 0.1666667, 0.3333333,
+        0.5,
+        0.6666667, 0.8333333, 1.0
+    };
+
+    Real best_s = 0.0;
+    Real best_f = sdf->evaluate(p1);
+
+    for (int i = 0; i < 7; i++)
+    {
+        double s = samples[i];
+        double f = sdf->evaluate(p1 + s*(p2-p1));
+
+        if (f < best_f)
+        {
+            best_f = f;
+            best_s = s;
+        }
+    }
+
+    std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
+
+    // mini golden-section search
+    Real a = std::max(Real(0.0), best_s - 0.2);
+    Real b = std::min(Real(1.0), best_s + 0.2);
+    const Real phi = 0.61803398875;
+    Real x = best_s;
+    Real fx = best_f;
+    for (int i = 0; i < 4; i++)
+    {
+        Real left = x - phi * (x - a);
+        Real right = x + phi * (b - x);
+
+        Real fl = sdf->evaluate(p1 + left*(p2 - p1));
+        Real fr = sdf->evaluate(p1 + right*(p2 - p1));
+
+        if (fl < fx)
+        {
+            b = x;
+            x = left;
+            fx = fl;
+        }
+        else if (fr < fx)
+        {
+            a = x;
+            x = right;
+            fx = fr;
+        }
+        else
+        {
+            a = left;
+            b = right;
+        }
+    }
+
+    return std::make_pair(x, fx);
+}
+
+static std::pair<Real,Real> closestPointBetweenRodElementAndSDF(const SimObject::RodElement_Base* elem, const SDF* sdf)
 {
     // fixed number of initial points to test
     const Real samples[7] = {
@@ -69,7 +131,7 @@ static Real closestPointBetweenRodElementAndSDF(const SimObject::RodElement_Base
         }
     }
 
-    return x;
+    return std::make_pair(x, fx);
     
 }
 

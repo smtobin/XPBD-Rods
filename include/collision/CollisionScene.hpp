@@ -81,6 +81,8 @@ private:
 
     static Vec3r _frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3);
 
+    void _checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* rb, const SDF* rb_sdf, SimObject::RodCollisionSegment* segment);
+
     /** Store all the newly detected collisions (in the latest call of detectCollisions()).
      * DetectedCollision is a std::variant type that stores different information depending on the type of collision
      * (i.e. Rigid-rigid, rigid-rod segment, rod segment-rod segment, etc.)
