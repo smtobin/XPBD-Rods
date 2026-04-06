@@ -34,7 +34,7 @@ static std::pair<Real,Real> closestPointBetweenLineAndSDF(const Vec3r& p1, const
         }
     }
 
-    std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
+    // std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
 
     // mini golden-section search
     Real a = std::max(Real(0.0), best_s - 0.2);
@@ -96,7 +96,7 @@ static std::pair<Real,Real> closestPointBetweenRodElementAndSDF(const SimObject:
         }
     }
 
-    std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
+    // std::cout << "Initial best s: " << best_s << "\tInitial best f: " << best_f << std::endl;
 
     // mini golden-section search
     Real a = std::max(Real(0.0), best_s - 0.2);
@@ -154,7 +154,7 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
 
             seeds[i*order1 + j] = std::make_pair(s1, s2);
 
-            std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
+            // std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
         }
     }
 
@@ -238,7 +238,7 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
             s1 = std::clamp(s1 + damping*ds[0], 0.0, 1.0);
             s2 = std::clamp(s2 + damping*ds[1], 0.0, 1.0);
 
-            std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
+            // std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
 
         }
 
@@ -270,8 +270,8 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
         //     std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
         // }
 
-        std::cout << "\nFinal s1 and s2: " << s1 << ", " << s2 << std::endl;
-        std::cout << "Distance: " << (elem1->position(s1) - elem2->position(s2)).norm() << std::endl;
+        // std::cout << "\nFinal s1 and s2: " << s1 << ", " << s2 << std::endl;
+        // std::cout << "Distance: " << (elem1->position(s1) - elem2->position(s2)).norm() << std::endl;
 
         seeds[i].first = s1;
         seeds[i].second = s2;

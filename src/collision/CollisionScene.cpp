@@ -9,6 +9,7 @@
 #include "collision/sdf/SDF.hpp"
 #include "collision/sdf/SphereSDF.hpp"
 #include "collision/sdf/BoxSDF.hpp"
+#include "collision/sdf/PlaneSDF.hpp"
 
 #include "collision/helper/BoxBoxCollider.hpp"
 #include "collision/helper/RodElementCollider.hpp"
@@ -202,41 +203,8 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
     if (scene->_checkJoint(&plane->com(), segment->particle1()) || scene->_checkJoint(&plane->com(), segment->particle2()))
         return;
 
-    // const Vec3r& p1 = segment->particle1()->position;
-    // const Vec3r& p2 = segment->particle2()->position;
-    // Vec3r cp_p1 = p1 - segment->radius() * plane->normal();
-    // Vec3r cp_p2 = p2 - segment->radius() * plane->normal();
-
-    // Vec3r diff1 = cp_p1 - plane->com().position;
-    // Vec3r diff2 = cp_p2 - plane->com().position;
-
-    // if (diff1.dot(plane->normal()) <= COLLISION_TOL || diff2.dot(plane->normal()) <= COLLISION_TOL)
-    // {
-    //     for (int ind = segment->index1(); ind < segment->index2(); ind++)
-    //     {
-    //         Collision::RigidSegmentCollision new_collision;
-    //         new_collision.beta = 0; // always create the constraint at the center of the segment for stability
-    //         new_collision.cp_local_rod = segment->particle1()->orientation.transpose() * (cp_p1 - segment->particle1()->position);
-    //         new_collision.normal = -plane->normal();
-    //         new_collision.rb = plane;
-    //         new_collision.cp_local_rb = Vec3r::Zero();
-    //         new_collision.rod = segment->rod();
-    //         new_collision.segment_particle1 = &segment->rod()->nodes()[ind];
-    //         new_collision.segment_particle2 = &segment->rod()->nodes()[ind+1];
-
-    //         if (ind == segment->index2()-1)
-    //         {
-    //             // std::cout << " Creating collision constraint at rod node " << ind+1 << std::endl;
-    //             Collision::RigidSegmentCollision new_collision2 = new_collision;
-    //             new_collision.beta = 1;
-    //             new_collision.cp_local_rod = segment->particle2()->orientation.transpose() * (cp_p2 - segment->particle2()->position);
-    //             scene->_new_collisions.push_back(std::move(new_collision2));
-    //         }
-    //         scene->_new_collisions.push_back(std::move(new_collision));
-
-            
-    //     }
-    // }
+    PlaneSDF sdf(plane);
+    scene->_checkRigidSegmentCollision(plane, &sdf, segment);
 
 }
 
@@ -448,7 +416,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollis
                 
                 if (sq_dist < rads_sq)
                 {
-                    std::cout << "Rod-rod collision!" << std::endl;
+                    // std::cout << "Rod-rod collision!" << std::endl;
                     Vec3r normal;
                     if (sq_dist < 1e-6)
                         normal = Vec3r(1,0,0);

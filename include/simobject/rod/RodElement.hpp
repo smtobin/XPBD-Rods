@@ -46,9 +46,6 @@ public:
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const override;
 
-    /** Second arc length derivative w.r.t. reference coordiante s_hat of position. */
-    virtual Vec3r d2position_dshat2(Real s_hat) const override;
-
     virtual Real Ni(int shape_func_index, Real s_hat) const override;
     virtual Real dNi_dshat(int shape_func_index, Real s_hat) const override;
 
@@ -69,7 +66,6 @@ private:
     
     std::array<Real(*)(Real), NumNodes> _bases;
     std::array<Real(*)(Real), NumNodes> _bases_derivatives;
-    std::array<Real(*)(Real), NumNodes> _bases_derivatives2;
 };
 
 } // namespace SimObject

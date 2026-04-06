@@ -14,7 +14,7 @@ RodRigidBodyCollisionConstraint<Order>::RodRigidBodyCollisionConstraint(
     Real mu_s, Real mu_d
 )
     : XPBDConstraint<1, 1 + Order+1, 0>(concat_arrays(element->nodes(), std::array<SimObject::OrientedParticle*,1>{com_rb}), 1.0e-10*AlphaVecType::Ones()), 
-    _s_hat(s_hat), _cp_local_rod(cp_local_rod),  _cp_local_rb(cp_local_rb), _n(n), _mu_s(mu_s), _mu_d(mu_d)
+    _element(element), _s_hat(s_hat), _cp_local_rod(cp_local_rod),  _cp_local_rb(cp_local_rb), _n(n), _mu_s(mu_s), _mu_d(mu_d)
 {
 }
 

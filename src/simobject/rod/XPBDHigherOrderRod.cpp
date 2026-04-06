@@ -156,8 +156,8 @@ void XPBDRod_<ElementType>::setup()
     // this prevents segments from within the rod fighting with each other in collision detection
     // and makes collision detection a lot faster if we downsample
     int num_segments_per_dia = static_cast<int>(2*_radius / _element_rest_length) + 1;    // round up
-    int remainder = (_num_nodes - 1) % num_segments_per_dia;
-    int num_collision_segments = (_num_nodes - 1) / num_segments_per_dia;
+    int remainder = _num_elements % num_segments_per_dia;
+    int num_collision_segments = _num_elements / num_segments_per_dia;
     _collision_segments.reserve(num_collision_segments);
 
     int cur_index = 0;

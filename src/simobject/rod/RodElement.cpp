@@ -7,8 +7,8 @@ Real linearN1(Real s_hat) { return -s_hat + 1; }
 Real linearN2(Real s_hat) { return s_hat; }
 Real dlinearN1(Real /* s_hat */) { return -1; }
 Real dlinearN2(Real /* s_hat */) { return 1; }
-Real d2linearN1(Real /* s_hat */) { return 0; }
-Real d2linearN2(Real /* s_hat */) { return 0; }
+// Real d2linearN1(Real /* s_hat */) { return 0; }
+// Real d2linearN2(Real /* s_hat */) { return 0; }
 
 Real quadraticN1(Real s_hat) { return 2*s_hat*s_hat - 3*s_hat + 1; }
 Real quadraticN2(Real s_hat) { return -4*s_hat*s_hat + 4*s_hat; }
@@ -16,9 +16,9 @@ Real quadraticN3(Real s_hat) { return 2*s_hat*s_hat - s_hat; }
 Real dquadraticN1(Real s_hat) { return 4*s_hat - 3; }
 Real dquadraticN2(Real s_hat) { return -8*s_hat + 4; }
 Real dquadraticN3(Real s_hat) { return 4*s_hat - 1; }
-Real d2quadraticN1(Real /* s_hat */) { return 4; }
-Real d2quadraticN2(Real /* s_hat */) { return -8; }
-Real d2quadraticN3(Real /* s_hat */) { return 4; }
+// Real d2quadraticN1(Real /* s_hat */) { return 4; }
+// Real d2quadraticN2(Real /* s_hat */) { return -8; }
+// Real d2quadraticN3(Real /* s_hat */) { return 4; }
 
 Real cubicN1(Real s_hat) { return -9.0/2.0 * (s_hat - 1.0/3.0) * (s_hat - 2.0/3.0) * (s_hat - 1); }
 Real cubicN2(Real s_hat) { return 27.0/2.0 * s_hat * (s_hat - 2.0/3.0) * (s_hat - 1); }
@@ -42,13 +42,11 @@ RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
     {
         _bases = {linearN1, linearN2};
         _bases_derivatives = {dlinearN1, dlinearN2};
-        _bases_derivatives2 = {d2linearN1, d2linearN2};
     }
     else if constexpr (Order == 2)
     {
         _bases = {quadraticN1, quadraticN2, quadraticN3};
         _bases_derivatives = {dquadraticN1, dquadraticN2, dquadraticN3};
-        _bases_derivatives2 = {d2quadraticN1, d2quadraticN2, d2quadraticN3};
     }
     else if constexpr (Order == 3)
     {
@@ -121,18 +119,6 @@ Vec3r RodElement<Order>::dposition_dshat(Real s_hat) const
     }
 
     return dp;
-}
-
-template<int Order>
-Vec3r RodElement<Order>::d2position_dshat2(Real s_hat) const
-{
-    Vec3r d2p = _bases_derivatives2[0](s_hat) * _nodes[0]->position;
-    for (int i = 1; i < Order+1; i++)
-    {
-        d2p += _bases_derivatives2[i](s_hat) * _nodes[i]->position;
-    }
-
-    return d2p;
 }
 
 template <int Order>
@@ -551,15 +537,6 @@ Vec3r RodElement<0>::dposition_dshat(Real /* s_hat */) const
     // this doesn't make sense, throw an error
     throw std::runtime_error("dposition_dshat not defined for RodElement<0>");
 
-    return Vec3r::Zero();
-}
-
-template<>
-Vec3r RodElement<0>::d2position_dshat2(Real /* s_hat */) const
-{
-    // this doesn't make sense, throw an error
-    throw std::runtime_error("d2position_dshat2 not defined for RodElement<0>");
-    
     return Vec3r::Zero();
 }
 

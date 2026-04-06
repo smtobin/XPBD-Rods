@@ -50,9 +50,6 @@ public:
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const = 0;
 
-    /** Second arc length derivative w.r.t. reference coordiante s_hat of position. */
-    virtual Vec3r d2position_dshat2(Real s_hat) const = 0;
-
     /** Evaluates the shape function at the specified referenece coordinate. */
     virtual Real Ni(int shape_func_index, Real s_hat) const = 0;
 

@@ -52,12 +52,6 @@ public:
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const override;
 
-    /** Second arc length derivative w.r.t. reference coordiante s_hat of position.
-     * 
-     * TODO: remove
-     */
-    virtual Vec3r d2position_dshat2(Real s_hat) const override { return Vec3r::Zero(); }
-
     virtual Real Ni(int shape_func_index, Real s_hat) const override;
     virtual Real dNi_dshat(int shape_func_index, Real s_hat) const override;
 
