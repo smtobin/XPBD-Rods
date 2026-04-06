@@ -4,6 +4,7 @@
 #include <math.h>
 #include <iostream>
 #include <memory>
+#include <cassert>
 
 #include "common/TypeList.hpp"
 #include "common/VectorHandle.hpp"

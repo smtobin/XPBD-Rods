@@ -73,6 +73,11 @@ static Mat3r DExpMap_RightJacobian_Contract_j(const Vec3r& theta, const Vec3r& x
 {
     Real theta_norm = theta.norm();
 
+    if (theta_norm < Real(1e-2))
+    {
+        return DExpMap_RightJacobian_Contract_j_approx(theta, xi);
+    }
+
     Mat3r skew_theta = Skew3(theta);
 
     Mat3r dskew_dtheta_i[3] = {Mat3r::Zero(), Mat3r::Zero(), Mat3r::Zero()};
@@ -84,21 +89,6 @@ static Mat3r DExpMap_RightJacobian_Contract_j(const Vec3r& theta, const Vec3r& x
 
     dskew_dtheta_i[2](0, 1) = -1;
     dskew_dtheta_i[2](1, 0) = 1;
-
-    if (theta_norm < Real(1e-8))
-    {
-        Mat3r term1, term2, term3;
-        for (int k = 0; k < 3; k++)
-        {
-            term1.col(k) = 1.0/12.0 * theta[k] * skew_theta * xi;
-            term2.col(k) = 1.0/2.0 * dskew_dtheta_i[k] * xi;
-            term3.col(k) = 1.0/6.0 * (dskew_dtheta_i[k] * skew_theta + skew_theta * dskew_dtheta_i[k]) * xi;
-        }
-        return term1 + term2 + term3;
-    }
-
-    
-
 
     Real theta_norm2 = theta_norm*theta_norm;
     Real theta_norm3 = theta_norm2*theta_norm;
@@ -121,6 +111,24 @@ static Mat3r DExpMap_RightJacobian_Contract_j(const Vec3r& theta, const Vec3r& x
 
     return term1 + term2 + term3 + term4;
 
+}
+
+static Mat3r DExpMap_RightJacobian_Contract_j_approx(const Vec3r& theta, const Vec3r& xi)
+{
+    Vec3r skew_xi = theta.cross(xi);
+
+    Vec3r dskew_dtheta_xi_i[] = { Vec3r(0,-xi[2],xi[1]), Vec3r(xi[2],0,-xi[0]), Vec3r(-xi[1],xi[0],0) };
+    Vec3r dskew_dtheta_skew_xi_i[] = { Vec3r(0,-skew_xi[2],skew_xi[1]), Vec3r(skew_xi[2],0,-skew_xi[0]), Vec3r(-skew_xi[1],skew_xi[0],0) };
+
+    Mat3r term1, term2, term3;
+    for (int k = 0; k < 3; k++)
+    {
+        term1.col(k) = 1.0/12.0 * theta[k] * skew_xi;
+        term2.col(k) = -1.0/2.0 * dskew_dtheta_xi_i[k];
+        term3.col(k) = 1.0/6.0 * (dskew_dtheta_skew_xi_i[k] + theta.cross(dskew_dtheta_xi_i[k]));
+    }
+
+    return term1 + term2 + term3;
 }
 
 // Computes the inverse of the right Jacobian of SO(3) exponential map
