@@ -446,8 +446,8 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
         //  delC_element * M1^-1 * delC_fixed^T
         for (int j = 0; j < NUM_GP; j++)
         {
-            Mat6r node1_block = _gradient_buffer[_num_elements-NUM_GP+j].template block<6,6>(0,6*(NUM_EN-1));
-            _diagonals[j+1][diag_block_ind-(j+1)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * node1_block.transpose();
+            Mat6r last_node_block = _gradient_buffer[NUM_GP*(_num_elements-1)+j].template block<6,6>(0,6*(NUM_EN-1));
+            _diagonals[NUM_GP-j][diag_block_ind-(NUM_GP-j)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * last_node_block.transpose();
         }
 
         diag_block_ind++;
@@ -552,7 +552,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     // // std::cout << "DelC mat:\n" << _delC_mat << std::endl;
     // MatXr LHS_mat = _delC_mat * _inertia_mat_inv.asDiagonal() * _delC_mat.transpose();
     // LHS_mat.diagonal() += alpha_tilde;
-    // // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
+    // std::cout << "LHS mat:\n" << LHS_mat << std::endl;
 
     // _RHS_vec -= alpha_tilde.asDiagonal() * _internal_lambda;
 
