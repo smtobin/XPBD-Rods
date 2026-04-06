@@ -6,7 +6,7 @@ solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
-
+exposure: 0.5
 objects:
   - 
     type: "Rod"
