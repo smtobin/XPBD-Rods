@@ -247,6 +247,7 @@ void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const 
 {
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {
+        std::cout << "Adding object to graphics scene with name " << obj.name() << " and addr: " << &obj << std::endl;
         addObject(&obj, render_config);
     });
 }

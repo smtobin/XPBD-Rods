@@ -17,6 +17,7 @@
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/group/XPBDPendulum.hpp"
 #include "simobject/group/XPBDConcentricTubeRobot.hpp"
+#include "simobject/group/HexBug.hpp"
 
 #include "solver/GaussSeidelSolver.hpp"
 
