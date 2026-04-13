@@ -353,7 +353,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::RodCollisionSegment* segment)
 {
     if (scene->_checkJoint(&box->com(), segment->particle1()) || scene->_checkJoint(&box->com(), segment->particle2()))
+    {
         return;
+    }
 
     BoxSDF sdf(box);
     scene->_checkRigidSegmentCollision(box, &sdf, segment);
@@ -493,7 +495,6 @@ void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* 
 
             Mat3r rod_R = elem->orientation(s);
             Vec3r cp_local_rod = rod_R.transpose() * (p_rod_surface - p_rod_center);
-
 
             Collision::RigidSegmentCollision new_collision;
             new_collision.element = elem;

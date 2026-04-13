@@ -82,6 +82,15 @@ class Simulation
             ConstVectorHandle<ConstraintType> handle(&single_type_constraint_vec, index);
             _solver.addConstraint(handle, proj_type);
         });
+
+        // iterate through any joint constraints and make sure the CollisionScene ignores collisions appropriately
+        const XPBDConstraints_Container& internal_constraints = obj->internalConstraints();
+        constraints.for_each_element(XPBDTwoSidedJointConstraints_TypeList{}, [&](auto& constraint) {
+            _collision_scene.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
+        });
+        internal_constraints.for_each_element(XPBDTwoSidedJointConstraints_TypeList{}, [&](auto& constraint) {
+            _collision_scene.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
+        });
     }
 
     template<typename ConfigType>        
@@ -188,10 +197,10 @@ class Simulation
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
-            if (!new_rod_ptr->globalSolve())
-            {
-                _addConstraintsFromObject(new_rod_ptr);
-            }
+            // if (!new_rod_ptr->globalSolve())
+            // {
+            //     _addConstraintsFromObject(new_rod_ptr);
+            // }
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
@@ -206,10 +215,10 @@ class Simulation
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
-            if (!new_rod_ptr->globalSolve())
-            {
-                _addConstraintsFromObject(new_rod_ptr);
-            }
+            // if (!new_rod_ptr->globalSolve())
+            // {
+            //     _addConstraintsFromObject(new_rod_ptr);
+            // }
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
@@ -224,10 +233,10 @@ class Simulation
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
-            if (!new_rod_ptr->globalSolve())
-            {
-                _addConstraintsFromObject(new_rod_ptr);
-            }
+            // if (!new_rod_ptr->globalSolve())
+            // {
+            //     _addConstraintsFromObject(new_rod_ptr);
+            // }
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());
@@ -242,10 +251,10 @@ class Simulation
             new_rod_ptr->setup();
 
             // add constraints to Gauss-Seidel solver if not using a global solve on the internal rod constraints
-            if (!new_rod_ptr->globalSolve())
-            {
-                _addConstraintsFromObject(new_rod_ptr);
-            }
+            // if (!new_rod_ptr->globalSolve())
+            // {
+            //     _addConstraintsFromObject(new_rod_ptr);
+            // }
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config.renderConfig());

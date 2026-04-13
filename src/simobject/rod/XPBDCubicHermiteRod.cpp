@@ -4,27 +4,6 @@
 
 #include <Eigen/Cholesky>
 
-template<typename T>
-struct base_type { using type = T; };
-
-template<typename T>
-struct base_type<T*> : base_type<T> {};
-
-template<typename T>
-struct base_type<T&> : base_type<T> {};
-
-template<typename T>
-struct base_type<T&&> : base_type<T> {};
-
-template<typename T>
-struct base_type<const T> : base_type<T> {};
-
-template<typename T>
-struct base_type<volatile T> : base_type<T> {};
-
-template<typename T>
-using base_type_t = typename base_type<T>::type;
-
 namespace SimObject
 {
 

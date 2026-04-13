@@ -29,7 +29,7 @@ typename RodRigidBodyCollisionConstraint<Order>::ConstraintVecType RodRigidBodyC
 
     ConstraintVecType C;
     C[0] = (cp_rb - cp_rod).dot(_n);
-    return 0.1*C;
+    return 0.5*C;
 }
 
 template <int Order>
@@ -162,7 +162,7 @@ typename OneSidedRodRigidBodyCollisionConstraint<Order>::ConstraintVecType OneSi
 
     ConstraintVecType C;
     C[0] = (_cp - cp_rod).dot(_n);
-    return 0.1*C;
+    return 0.5*C;
 }
 
 template <int Order>

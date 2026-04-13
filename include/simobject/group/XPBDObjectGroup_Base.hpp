@@ -24,6 +24,7 @@ public:
     XPBDObjects_Container& objects() { return _objects; }
     
     const XPBDConstraints_Container& constraints() const { return _constraints; }
+    const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
 
     virtual void inertialUpdate(Real dt) override;
 

@@ -17,7 +17,7 @@ public:
 
     virtual void setup() override;
 
-    virtual void internalConstraintSolve(Real dt) override {}
+    virtual void internalConstraintSolve(Real dt) override;
 
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override {}
 

@@ -60,6 +60,32 @@ struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
     using const_vector_handle_type = VariadicVectorContainer<ConstVectorHandle<Types>...>;
 };
 
+/////////////////////////////////////////////////////////////////////////
+// Get base type (remove keywords, references, etc.)
+/////////////////////////////////////////////////////////////////////////
+template<typename T>
+struct base_type { using type = T; };
+
+template<typename T>
+struct base_type<T*> : base_type<T> {};
+
+template<typename T>
+struct base_type<T&> : base_type<T> {};
+
+template<typename T>
+struct base_type<T&&> : base_type<T> {};
+
+template<typename T>
+struct base_type<const T> : base_type<T> {};
+
+template<typename T>
+struct base_type<volatile T> : base_type<T> {};
+
+template<typename T>
+using base_type_t = typename base_type<T>::type;
+
+//////////////////////////////////////////////////////////////////////////////////////
+
 /** Simulation object types */
 namespace SimObject
 {
@@ -151,22 +177,38 @@ namespace Constraint
     class OneSidedFixedParticleConstraint;
 }
 
-using XPBDJointConstraints_TypeList = TypeList<
+using XPBDOneSidedJointConstraints_TypeList = TypeList<
     Constraint::OneSidedFixedJointConstraint,
-    Constraint::FixedJointConstraint,
     Constraint::OneSidedRevoluteJointConstraint,
-    Constraint::NormedOneSidedRevoluteJointConstraint,
-    Constraint::RevoluteJointConstraint,
-    Constraint::NormedRevoluteJointConstraint,
-    Constraint::SphericalJointConstraint,
     Constraint::OneSidedSphericalJointConstraint,
-    Constraint::NormedSphericalJointConstraint,
+    Constraint::OneSidedPrismaticJointConstraint
+>;
+
+using XPBDNormedOneSidedJointConstraints_TypeList = TypeList<
+    Constraint::NormedOneSidedRevoluteJointConstraint,
     Constraint::NormedOneSidedSphericalJointConstraint,
-    Constraint::PrismaticJointConstraint,
-    Constraint::OneSidedPrismaticJointConstraint,
-    Constraint::NormedPrismaticJointConstraint,
     Constraint::NormedOneSidedPrismaticJointConstraint
 >;
+
+using XPBDTwoSidedJointConstraints_TypeList = TypeList<
+    Constraint::FixedJointConstraint,
+    Constraint::RevoluteJointConstraint,
+    Constraint::SphericalJointConstraint,
+    Constraint::PrismaticJointConstraint
+>;
+
+using XPBDNormedTwoSidedJointConstraints_TypeList = TypeList<
+    Constraint::NormedRevoluteJointConstraint,
+    Constraint::NormedSphericalJointConstraint,
+    Constraint::NormedPrismaticJointConstraint
+>;
+
+using XPBDJointConstraints_TypeList = ConcatenateTypeLists<
+    XPBDOneSidedJointConstraints_TypeList,
+    XPBDNormedOneSidedJointConstraints_TypeList,
+    XPBDTwoSidedJointConstraints_TypeList,
+    XPBDNormedTwoSidedJointConstraints_TypeList
+>::type;
 
 using XPBDJointLimitConstraints_TypeList = TypeList<
     Constraint::RevoluteJointLimitConstraint,
