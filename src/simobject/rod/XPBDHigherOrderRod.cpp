@@ -26,6 +26,8 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     _Ix = M_PI * _radius * _radius * _radius * _radius / 4.0;
     _Iz = 2*_Ix;
 
+    _curvature = config.curvature();
+
     // element rest length
     _element_rest_length = _length/(_num_nodes-1) * (NUM_EN - 1);
 
@@ -46,9 +48,12 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     // leave inertial properties empty - will fill in later
     for (int i = 1; i < _num_nodes; i++)
     {
-        _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,_length/(_num_nodes-1));
+        Real ds = _length/(_num_nodes-1);
+        Vec3r dR = _curvature*ds;
+
+        _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,ds);
         _nodes[i].lin_velocity = _nodes[i-1].lin_velocity;
-        _nodes[i].orientation = _nodes[i-1].orientation;
+        _nodes[i].orientation = _nodes[i-1].orientation*Math::Exp_so3(dR);
         _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
         _nodes[i].mass = 0;
         _nodes[i].Ib = Vec3r::Zero();
@@ -120,7 +125,7 @@ void XPBDRod_<ElementType>::setup()
             _nodes[node_ind].Ib += total_rot_inertia * lumped_masses[j];
         }
 
-        _elements.emplace_back(element_nodes, _element_rest_length);
+        _elements.emplace_back(element_nodes, _element_rest_length, _curvature);
     }
 
     // compute inverse inertias

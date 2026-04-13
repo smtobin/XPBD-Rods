@@ -78,6 +78,9 @@ protected:
     Real _Ix;
     Real _Iz;
 
+    /** Rest curvature in the rod */
+    Vec3r _curvature;
+
     /** Collision geometries */
     std::vector<RodCollisionSegment> _collision_segments;
 

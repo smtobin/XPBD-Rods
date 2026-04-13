@@ -21,13 +21,13 @@ void XPBDConcentricTubeRobot::setup()
     Config::RodConfig outer_rod_config(
         "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::LINEAR, true, false, true,
-        1, 0.1, 20, 1000, 1e6, 0.3
+        1, 0.1, 20, 1000, 1e6, 0.3, Vec3r(0,0,0)
     );
 
     Config::RodConfig inner_rod_config(
         "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::LINEAR, true, false, true,
-        1.5, 0.08, 20, 1000, 1e6, 0.3
+        1.5, 0.08, 20, 1000, 1e6, 0.3, Vec3r(0,0,0)
     );
 
     _objects.template reserve<XPBDRod_<RodElement<1>>>(2);

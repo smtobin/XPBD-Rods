@@ -90,8 +90,8 @@ int main()
     std::array<SimObject::OrientedParticle*, 3> elem1_nodes = {&p1, &p2, &p3};
     std::array<SimObject::OrientedParticle*, 3> elem2_nodes = {&p4, &p5, &p6};
 
-    SimObject::RodElement<2> elem1(elem1_nodes, 0.5);
-    SimObject::RodElement<2> elem2(elem2_nodes, 0.5);
+    SimObject::RodElement<2> elem1(elem1_nodes, 0.5, Vec3r::Zero());
+    SimObject::RodElement<2> elem2(elem2_nodes, 0.5, Vec3r::Zero());
 
     Collision::RodElementCollider::closestPointsBetweenRodElements(&elem1, &elem2);
     groundTruth(&elem1, &elem2);

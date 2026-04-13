@@ -44,7 +44,7 @@ private:
     int _sample_points_per_element;
 
     /** Number of cross-sections to use along the rod. */
-    int _num_samples = 20;
+    int _num_samples = 50;
 
 
 

@@ -48,6 +48,8 @@ class RodConfig : public XPBDObjectConfig
         _extractParameter("density", node, _density);
         _extractParameter("E", node, _E);
         _extractParameter("nu", node, _nu);
+
+        _extractParameter("curvature", node, _curvature);
         
     }
 
@@ -56,7 +58,7 @@ class RodConfig : public XPBDObjectConfig
                         RodElementType element_type,
                         bool base_fixed, bool tip_fixed, bool global_solve,
                         Real length, Real diameter, int elements,
-                        Real density, Real E, Real nu)
+                        Real density, Real E, Real nu, Vec3r curvature)
         : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity, collisions)
     {
         _element_type.value = element_type;
@@ -73,6 +75,8 @@ class RodConfig : public XPBDObjectConfig
         _density.value = density;
         _E.value = E;
         _nu.value = nu;
+
+        _curvature.value = curvature;
     }
 
     RodElementType elementType() const { return _element_type.value; }
@@ -90,6 +94,8 @@ class RodConfig : public XPBDObjectConfig
     Real E() const { return _E.value; }
     Real nu() const { return _nu.value; }
 
+    Vec3r curvature() const { return _curvature.value; }
+
     protected:
     ConfigParameter<RodElementType> _element_type = ConfigParameter<RodElementType>(RodElementType::LINEAR);
 
@@ -105,6 +111,8 @@ class RodConfig : public XPBDObjectConfig
     ConfigParameter<Real> _density = ConfigParameter<Real>(1000);
     ConfigParameter<Real> _E = ConfigParameter<Real>(3e6);
     ConfigParameter<Real> _nu = ConfigParameter<Real>(0.45);
+
+    ConfigParameter<Vec3r> _curvature = ConfigParameter<Vec3r>(Vec3r(0,0,0));
 };
 
 } // namespace Config

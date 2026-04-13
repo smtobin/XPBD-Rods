@@ -30,8 +30,8 @@ Real dcubicN3(Real s_hat) { return -81.0/2.0*s_hat*s_hat + 36*s_hat - 9.0/2.0; }
 Real dcubicN4(Real s_hat) { return 27.0/2.0*s_hat*s_hat - 9*s_hat + 1; }
 
 template<int Order>
-RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
-    : RodElement_Base(rest_length), _nodes(nodes_list), _bases{}, _bases_derivatives{}
+RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature)
+    : RodElement_Base(rest_length, curvature), _nodes(nodes_list), _bases{}, _bases_derivatives{}
 {
     // get pointers to basis functions and their derivatives, according to element order
     if constexpr (Order == 0)
@@ -194,7 +194,7 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
         dtheta_ds += dshat_ds() * _bases_derivatives[i](s_hat) * Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
     }
 
-    Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+    Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds - _curvature;
 
     return u1;
 }
@@ -202,7 +202,7 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
 template <>
 Vec3r RodElement<1>::bendingStrain(Real /* s_hat */) const
 {
-    return 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
+    return 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation) - _curvature;
 }
 
 template <int Order>

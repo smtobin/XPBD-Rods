@@ -20,8 +20,8 @@ public:
     static constexpr int NumNodeDerivatives = 0;
     static constexpr int NumGP = 0;
 
-    RodElement_Base(Real rest_length)
-        : _rest_length(rest_length), _inv_rest_length(1.0/rest_length)
+    RodElement_Base(Real rest_length, const Vec3r& curvature)
+        : _rest_length(rest_length), _inv_rest_length(1.0/rest_length), _curvature(curvature)
     {}
 
     virtual ~RodElement_Base() = default;
@@ -41,6 +41,9 @@ public:
 
     /** Rest length of the element */
     virtual Real restLength() const { return _rest_length; }
+
+    /** Rest curvature of the element */
+    const Vec3r& curvature() const { return _curvature; }
 
     /** Position evaluated at the specified reference coordinate. (i.e. p(s_hat)) */
     virtual Vec3r position(Real s_hat) const = 0;
@@ -62,6 +65,8 @@ public:
 protected:
     Real _rest_length;
     Real _inv_rest_length;
+
+    Vec3r _curvature;
 };
 
 } // namespace SimObject

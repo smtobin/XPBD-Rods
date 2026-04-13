@@ -23,7 +23,7 @@ public:
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(NumNodes)>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(NumNodes)>;
 
-    RodElement(const NodeArrayType& nodes_list, Real rest_length);
+    RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature);
 
     virtual int order() const override { return Order; }
 

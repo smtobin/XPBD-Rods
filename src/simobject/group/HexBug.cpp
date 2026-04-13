@@ -36,13 +36,13 @@ void HexBug::setup()
         Real dx = side == 0 ? -body_width/2 + leg_radius : body_width/2 - leg_radius;
         for (int i = 0; i < 6; i++)
         {
-            Vec3r pos_local = Vec3r(dx, -body_thickness/2, -body_length/2 + leg_radius + (body_length-2*leg_radius)/num_legs_per_side*i);
+            Vec3r pos_local = Vec3r(dx, -body_thickness/2, -body_length/2 + leg_radius + (body_length-2*leg_radius)/(num_legs_per_side-1)*i);
             Vec3r leg_base = body_center + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
                 "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
                 Config::RodElementType::LINEAR, false, false, true,
-                leg_length, leg_radius*2, 3, 1000, 1e5, 0.4
+                leg_length, leg_radius*2, 3, 1000, 1e6, 0.4, Vec3r(10,0,0)
             );
             auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(leg_config);
             
