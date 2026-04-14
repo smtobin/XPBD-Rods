@@ -61,6 +61,10 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
         _nodes[i].prev_orientation = _nodes[i].orientation;
     }
 
+    // initialize fixed base/tip constraints to null
+    _fixed_base_constraint = (const Constraint::FixedJointConstraint*)nullptr;
+    _fixed_tip_constraint = (const Constraint::OneSidedFixedJointConstraint*)nullptr;
+
 }
 
 template <typename ElementType>
@@ -189,18 +193,22 @@ void XPBDRod_<ElementType>::setup()
     }
 
     /** Create fixed constraints */
+    // reserve space so pointers are valid
+    _internal_constraints.template reserve<Constraint::OneSidedFixedJointConstraint>(2);
     if (_base_fixed)
     {
-        _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
+        auto& new_constraint = _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes[0].position, _nodes[0].orientation, &_nodes[0], Vec3r::Zero(), Mat3r::Identity()
         );
+        _fixed_base_constraint = &new_constraint;
     }
 
     if(_tip_fixed)
     {
-        _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
+        auto& new_constraint = _internal_constraints.template emplace_back<Constraint::OneSidedFixedJointConstraint>(
             _nodes.back().position, _nodes.back().orientation, &_nodes.back(), Vec3r::Zero(), Mat3r::Identity()
         );
+        _fixed_tip_constraint = &new_constraint;
     }
 
     /** Add constraints to ordered constraints vector */
@@ -220,6 +228,17 @@ void XPBDRod_<ElementType>::setup()
             &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().back());
     }
 
+    _allocateSpace();
+}
+
+template<>
+void XPBDRod_<CubicHermiteRodElement>::setup()
+{}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::_allocateSpace()
+{
+    const std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
     _num_constraints = elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed;
 
     /** Allocate space */
@@ -251,9 +270,23 @@ void XPBDRod_<ElementType>::setup()
     _solver.setNumDiagBlocks(_num_constraints);
 }
 
-template<>
-void XPBDRod_<CubicHermiteRodElement>::setup()
-{}
+template <typename ElementType>
+void XPBDRod_<ElementType>::setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint)
+{   
+    _base_fixed = true;
+    _fixed_base_constraint = new_fixed_base_constraint;
+
+    _allocateSpace();
+}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint)
+{   
+    _tip_fixed = true;
+    _fixed_tip_constraint = new_fixed_tip_constraint;
+
+    _allocateSpace();
+}
 
 template <typename ElementType>
 void XPBDRod_<ElementType>::inertialUpdate(Real dt)
@@ -321,31 +354,41 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     if (_base_fixed)
     {
         // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_base_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front();
+        std::visit([&](auto&& fixed_base_constraint) {
+            using ConstraintType = base_type_t<decltype(fixed_base_constraint)>;
+            // compute the RHS associated with the constraint
+            typename ConstraintType::ConstraintVecType fixed_C = fixed_base_constraint->evaluate();
+            typename ConstraintType::AlphaVecType fixed_alpha_tilde = fixed_base_constraint->alpha() / (dt * dt);
+            _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
 
-        // compute the RHS associated with the constraint
-        typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_base_constraint.evaluate();
-        typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_base_constraint.alpha() / (dt * dt);
-        _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
+            // compute the gradient of the fixed base constraint
+            typename ConstraintType::GradientMatType fixed_grad_full = fixed_base_constraint->gradient();
+            Mat6r fixed_grad = Mat6r::Zero();
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
+            {
+                const OrientedParticle* particle_i = fixed_base_constraint->orientedParticles()[i];
+                if (particle_i == &_nodes.front())
+                {
+                    fixed_grad = fixed_grad_full.template block<6,6>(0,6*i);
+                    break;
+                }
+            }            
+            
+            // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
+            _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
+            _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
 
-        // compute the gradient of the fixed base constraint
-        typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front().gradient();
-        
-        // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
-        _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
-        _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+            // off diagonals are just the blocks of the gradients corresponding to the first node in the
+            //  delC_element * M1^-1 * delC_fixed^T
+            for (int j = 0; j < NUM_GP; j++)
+            {
+                Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,0);
+                _diagonals[j+1][diag_block_ind] = node1_block * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
+            }
 
-        // off diagonals are just the blocks of the gradients corresponding to the first node in the
-        //  delC_element * M1^-1 * delC_fixed^T
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,0);
-            _diagonals[j+1][diag_block_ind] = node1_block * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
-        }
+            diag_block_ind++;
 
-        diag_block_ind++;
+        }, _fixed_base_constraint);
     }
 
     for (int i = 0; i < _num_elements; i++)
@@ -411,30 +454,41 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     if (_tip_fixed)
     {
         // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
+        std::visit([&](auto&& fixed_tip_constraint) {
+            using ConstraintType = base_type_t<decltype(fixed_tip_constraint)>;
+            // compute the RHS associated with the constraint
+            typename ConstraintType::ConstraintVecType fixed_C = fixed_tip_constraint->evaluate();
+            typename ConstraintType::AlphaVecType fixed_alpha_tilde = fixed_tip_constraint->alpha() / (dt * dt);
+            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
 
-        // compute the RHS associated with the constraint
-        typename Constraint::OneSidedFixedJointConstraint::ConstraintVecType fixed_C = fixed_tip_constraint.evaluate();
-        typename Constraint::OneSidedFixedJointConstraint::AlphaVecType fixed_alpha_tilde = fixed_tip_constraint.alpha() / (dt * dt);
-        _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+            // compute the gradient of the fixed base constraint
+            typename ConstraintType::GradientMatType fixed_grad_full = fixed_tip_constraint->gradient();
+            Mat6r fixed_grad = Mat6r::Zero();
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
+            {
+                const OrientedParticle* particle_i = fixed_tip_constraint->orientedParticles()[i];
+                if (particle_i == &_nodes.back())
+                {
+                    fixed_grad = fixed_grad_full.template block<6,6>(0,6*i);
+                    break;
+                }
+            }
+            
+            // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
+            _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
+            _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
 
-        // compute the gradient of the fixed base constraint
-        typename Constraint::OneSidedFixedJointConstraint::GradientMatType fixed_grad = fixed_tip_constraint.gradient();
-        
-        // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
-        _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
-        _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+            // off diagonals are just the blocks of the gradients corresponding to the last node in the
+            //  delC_element * M1^-1 * delC_fixed^T
+            for (int j = 0; j < NUM_GP; j++)
+            {
+                Mat6r last_node_block = _gradient_buffer[NUM_GP*(_num_elements-1)+j].template block<6,6>(0,6*(NUM_EN-1));
+                _diagonals[NUM_GP-j][diag_block_ind-(NUM_GP-j)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * last_node_block.transpose();
+            }
 
-        // off diagonals are just the blocks of the gradients corresponding to the last node in the
-        //  delC_element * M1^-1 * delC_fixed^T
-        for (int j = 0; j < NUM_GP; j++)
-        {
-            Mat6r last_node_block = _gradient_buffer[NUM_GP*(_num_elements-1)+j].template block<6,6>(0,6*(NUM_EN-1));
-            _diagonals[NUM_GP-j][diag_block_ind-(NUM_GP-j)] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * last_node_block.transpose();
-        }
+            diag_block_ind++;
 
-        diag_block_ind++;
+        }, _fixed_tip_constraint);
     }
 
     // solve system
@@ -447,13 +501,30 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     if (_base_fixed)
     {
         // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_base_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().front();
-
-        Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
-        _dx.template block<6,1>(0,0) += _node_inverse_inertias.front().asDiagonal() * fixed_base_constraint.gradient().transpose() * constraint_dlam;
+        std::visit([&](auto&& fixed_base_constraint) {
+            Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+            using ConstraintType = base_type_t<decltype(fixed_base_constraint)>;
+            typename ConstraintType::GradientMatType grad = fixed_base_constraint->gradient();
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
+            {
+                Mat6r particle_i_grad = grad.template block<6,6>(0,6*i);
+                OrientedParticle* particle_i = fixed_base_constraint->orientedParticles()[i];
+                if (particle_i == &_nodes.front())
+                {
+                    _dx.template block<6,1>(0,0) += _node_inverse_inertias.front().asDiagonal() * particle_i_grad.transpose() * constraint_dlam;
+                }
+                else
+                {
+                    Vec6r other_inverse_inertia(1.0/particle_i->mass, 1.0/particle_i->mass, 1.0/particle_i->mass, 
+                        1.0/particle_i->Ib[0], 1.0/particle_i->Ib[1], 1.0/particle_i->Ib[2]);
+                    Vec6r other_dx = other_inverse_inertia.asDiagonal() * particle_i_grad.transpose() * constraint_dlam;
+                    particle_i->positionUpdate(other_dx);
+                }
+            }
+            
+            constraint_ind++;
+        }, _fixed_base_constraint);
         
-        constraint_ind++;
     }
 
 
@@ -483,12 +554,32 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     if (_tip_fixed)
     {
         // evaluate the fixed base constraint
-        const Constraint::OneSidedFixedJointConstraint& fixed_tip_constraint = 
-            _internal_constraints.get<Constraint::OneSidedFixedJointConstraint>().back();
-
-        Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+        std::visit([&](auto&& fixed_tip_constraint) {
+            Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+            using ConstraintType = base_type_t<decltype(fixed_tip_constraint)>;
+            typename ConstraintType::GradientMatType grad = fixed_tip_constraint->gradient();
+            for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
+            {
+                Mat6r particle_i_grad = grad.template block<6,6>(0,6*i);
+                OrientedParticle* particle_i = fixed_tip_constraint->orientedParticles()[i];
+                if (particle_i == &_nodes.back())
+                {
+                    _dx.template block<6,1>(6*(_num_nodes-1),0) += 
+                        _node_inverse_inertias.back().asDiagonal() * particle_i_grad.transpose() * constraint_dlam;
+                }
+                else
+                {
+                    Vec6r other_inverse_inertia(1.0/particle_i->mass, 1.0/particle_i->mass, 1.0/particle_i->mass, 
+                        1.0/particle_i->Ib[0], 1.0/particle_i->Ib[1], 1.0/particle_i->Ib[2]);
+                    Vec6r other_dx = other_inverse_inertia.asDiagonal() * particle_i_grad.transpose() * constraint_dlam;
+                    particle_i->positionUpdate(other_dx);
+                }
+            }
+            
+            constraint_ind++;
+        }, _fixed_tip_constraint);
+    
         // std::cout << "constraint dlam: " << constraint_dlam << std::endl;
-        _dx.template block<6,1>(6*(_num_nodes-1),0) += _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam;
 
         // std::cout << "dx tip fixed: " << _node_inverse_inertias.back().asDiagonal() * fixed_tip_constraint.gradient().transpose() * constraint_dlam << std::endl;
     }

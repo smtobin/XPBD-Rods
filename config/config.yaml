@@ -1,7 +1,7 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
-time-step: 1e-3
+sim-mode: "AFAP"
+time-step: 1e-2
 end-time: 100
 
 logging: False
@@ -45,12 +45,12 @@ objects:
     initial-position: [0, 1.3, 0]
     initial-rotation: [0, 90, 0]
     elements: 10
-    E: 1e5
+    E: 1e6
     diameter: 0.1
     length: 1
     nu: 0.3
-    curvature: [0,10,3]
-    base-fixed: False
+    # curvature: [0,10,3]
+    base-fixed: True
     tip-fixed: False
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"

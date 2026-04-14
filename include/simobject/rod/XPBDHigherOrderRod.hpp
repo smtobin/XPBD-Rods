@@ -47,6 +47,9 @@ public:
     Real radius() const { return _radius; }
     bool globalSolve() const { return _global_solve; }
 
+    void setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint);
+    void setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint);
+
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
@@ -58,6 +61,9 @@ public:
     std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
 
 protected:
+    /** Allocates space based on the number of constraints. */
+    void _allocateSpace();
+
     /** Number of elements the rod is discretized into. */
     int _num_elements;
 
@@ -90,6 +96,12 @@ protected:
     /** If base and/or tip are fixed */
     bool _base_fixed;
     bool _tip_fixed;
+
+    /** Base/tip fixed constraints.
+     * These are either one-sided or two-sided fixed joint constraints
+     */
+    std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_base_constraint;
+    std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_tip_constraint;
 
     /** Whether or not to do a global solve for all the constraints.
      * If false, the constraints will be added to the top-level Gauss-Seidel solver.
