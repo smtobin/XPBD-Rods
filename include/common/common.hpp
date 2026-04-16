@@ -142,6 +142,7 @@ namespace Constraint
     class NormedRevoluteJointConstraint;
     class RevoluteJointLimitConstraint;
     class OneSidedRevoluteJointLimitConstraint;
+    class RevoluteJointVelocityMotorConstraint;
 
     class SphericalJointConstraint;
     class OneSidedSphericalJointConstraint;
@@ -203,6 +204,10 @@ using XPBDNormedTwoSidedJointConstraints_TypeList = TypeList<
     Constraint::NormedPrismaticJointConstraint
 >;
 
+using XPBDJointVelocityMotorConstraints_TypeList = TypeList<
+    Constraint::RevoluteJointVelocityMotorConstraint
+>;
+
 using XPBDJointConstraints_TypeList = ConcatenateTypeLists<
     XPBDOneSidedJointConstraints_TypeList,
     XPBDNormedOneSidedJointConstraints_TypeList,
@@ -254,6 +259,7 @@ using XPBDConstraints_TypeList = ConcatenateTypeLists<
     XPBDParticleConstraints_TypeList,
     XPBDJointConstraints_TypeList,
     XPBDJointLimitConstraints_TypeList,
+    XPBDJointVelocityMotorConstraints_TypeList,
     XPBDCollisionConstraints_TypeList   // important that this goes last (I think)
 >::type;
 

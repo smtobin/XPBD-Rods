@@ -15,6 +15,8 @@
 #include "constraint/SphericalJointSwingLimitConstraint.hpp"
 #include "constraint/PrismaticJointLimitConstraint.hpp"
 
+#include "constraint/RevoluteJointVelocityMotorConstraint.hpp"
+
 #include "constraint/RigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRigidBodyCollisionConstraint.hpp"
 #include "constraint/RodRodCollisionConstraint.hpp"

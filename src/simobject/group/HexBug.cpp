@@ -15,7 +15,7 @@ void HexBug::setup()
     Real body_width = 0.0125;
     Real body_thickness = 0.005;
 
-    Vec3r body_center(0,0.03,0);
+    Vec3r body_center(0,0.025,0);
 
     Real leg_radius = body_width/10.0;
     Real leg_length = 0.01875;
@@ -42,9 +42,9 @@ void HexBug::setup()
             Config::RodConfig leg_config(
                 "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
                 Config::RodElementType::LINEAR, false, false, true,
-                leg_length, leg_radius*2, 5, 1000, 1e6, 0.4, Vec3r(10,0,0)
+                leg_length, leg_radius*2, 1, 1000, 1e6, 0.4, Vec3r(10,0,0)
             );
-            auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(leg_config);
+            auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(leg_config);
             
 
             body_joint_pos[side*num_legs_per_side + i] = pos_local;
@@ -52,7 +52,7 @@ void HexBug::setup()
     }
 
     // add fixed constraints
-    auto& legs = _objects.template get<XPBDRod_<RodElement<1>>>();
+    auto& legs = _objects.template get<XPBDRod_<RodElement<2>>>();
     // reserve fixed constraints so that pointers to them are valid
     auto& fixed_joint_constraints = _internal_constraints.template get<Constraint::FixedJointConstraint>();
     fixed_joint_constraints.reserve(2*num_legs_per_side);
