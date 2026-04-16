@@ -19,6 +19,8 @@ public:
 
     // virtual void internalConstraintSolve(Real dt) override;
 
+    virtual void velocityUpdate(Real dt) override;
+
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override {}
 
 };

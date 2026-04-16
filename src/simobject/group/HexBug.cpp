@@ -15,10 +15,12 @@ void HexBug::setup()
     Real body_width = 0.0125;
     Real body_thickness = 0.005;
 
-    Vec3r body_center(0,0.025,0);
+    Vec3r body_center(0,0.023,0);
 
     Real leg_radius = body_width/10.0;
     Real leg_length = 0.01875;
+
+    _objects.template reserve<XPBDRigidBox>(2);
 
     // create "body" with just a box - 4 cm long, 1.25 cm wide, with a little thickness
     Config::XPBDRigidBoxConfig body_config(
@@ -75,6 +77,41 @@ void HexBug::setup()
         //     _internal_constraints.push_back(constraint);
         //     // _constraints.push_back(constraint);
         // });
+    }
+
+    // create eccentric rotating mass
+    Vec3r mass_size(0.004, 0.01, 0.004);
+    Vec3r mass_ang_velocity(0,0,100);
+    Config::XPBDRigidBoxConfig eccentric_mass_config(
+        "hexbug_eccentric_mass", body_center - Vec3r(0,mass_size[1]/2,0), Vec3r::Zero(), Vec3r::Zero(), mass_ang_velocity, false,
+        2700, false, mass_size
+    );
+    auto& ecc_mass = _objects.template emplace_back<XPBDRigidBox>(eccentric_mass_config);
+    std::cout << "Eccentric mass: " << ecc_mass.com().mass *1000 << " grams" << std::endl;
+    
+    // create revolute joint joining eccentric mass to body
+    Constraint::RevoluteJointConstraint rev_constraint(
+        &body.com(), Vec3r::Zero(), Mat3r::Identity(),
+        &ecc_mass.com(), Vec3r(0,mass_size[1]/2,0), Mat3r::Identity()
+    );
+    _constraints.push_back(std::move(rev_constraint));
+
+    // create revolute motor joint constraint
+    const auto& rev_ref = _constraints.template get<Constraint::RevoluteJointConstraint>().back();
+    Constraint::RevoluteJointVelocityMotorConstraint motor_constraint(
+        rev_ref, mass_ang_velocity[2]
+    );
+    _constraints.push_back(std::move(motor_constraint));
+}
+
+void HexBug::velocityUpdate(Real dt)
+{
+    XPBDObjectGroup_Base::velocityUpdate(dt);
+
+    auto& motor_constraints = _constraints.template get<Constraint::RevoluteJointVelocityMotorConstraint>();
+    for (auto& motor_constraint : motor_constraints)
+    {
+        motor_constraint.updateTarget(dt);
     }
 }
 

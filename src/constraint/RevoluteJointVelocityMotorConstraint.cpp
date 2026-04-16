@@ -33,10 +33,10 @@ void RevoluteJointVelocityMotorConstraint::updateTarget(Real dt)
 
     // wrap target so that it is in [-180, 180] deg
     while (_target > M_PI)
-        _target -= M_PI;
+        _target -= 2*M_PI;
     
     while (_target < -M_PI)
-        _target += M_PI;
+        _target += 2*M_PI;
 }
 
 RevoluteJointVelocityMotorConstraint::ConstraintVecType RevoluteJointVelocityMotorConstraint::evaluate() const
@@ -50,9 +50,9 @@ RevoluteJointVelocityMotorConstraint::ConstraintVecType RevoluteJointVelocityMot
     // e.g. if target is -179 and the current dtheta[2] is +179, set target to be 181
     Real corr_target = _target;
     if (dtheta[2] > 3*M_PI/4 && _target < -3*M_PI/4)
-        corr_target = _target + M_PI;
+        corr_target = _target + 2*M_PI;
     if (dtheta[2] < -3*M_PI/4 && _target > 3*M_PI/4)
-        corr_target = _target - M_PI;
+        corr_target = _target - 2*M_PI;
 
     // difference from target
     Real diff = dtheta[2] - corr_target;

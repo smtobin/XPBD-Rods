@@ -1,8 +1,8 @@
 name: "RodSim"
-sim-mode: "Frame-by-frame"
+# sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 5e-4
-end-time: 10
+end-time: 100
 
 logging: False
 logging-output-folder: "../output/convergence"
