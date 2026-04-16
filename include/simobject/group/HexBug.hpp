@@ -23,6 +23,19 @@ public:
 
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override {}
 
+private:
+    Vec3r _body_initial_position;
+    Vec3r _body_size;
+    Real _body_density;
+
+    Real _motor_angular_velocity;
+
+    Real _leg_stiffness;
+    Real _leg_length;
+    Real _leg_length_increment;
+    Real _leg_diameter;
+    Vec3r _leg_curvature;
+
 };
 
 } // namespace SimObject

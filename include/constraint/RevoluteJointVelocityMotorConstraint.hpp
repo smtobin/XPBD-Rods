@@ -15,6 +15,7 @@ public:
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 
+    Real velocity() const { return _velocity; }
     void setVelocity(Real new_vel) { _velocity = new_vel; }
 
     void updateTarget(Real dt);

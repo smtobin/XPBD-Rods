@@ -17,25 +17,17 @@ ground-plane: True
 objects:
   -
     type: "HexBug"
-  # - 
-  #   type: "Rod"
-  #   name: "rod1"
-  #   element-type: "Linear"
-  #   initial-position: [0, 1, 0.0]
-  #   initial-rotation: [0, 0, 0]
-  #   E: 5e6
-  #   nu: 0.4
-  #   diameter: 0.1
-  #   length: 1
-  #   density: 1000
-  #   elements: 100
-  #   base-fixed: True
-  #   tip-fixed: False
-  #   collisions: False
-  #   log-particles: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.0
-  #   roughness: 0.5
+
+    body-initial-position: [0, 0.023, 0]
+    body-size: [0.0125, 0.007, 0.04]
+    body-density: 1030
+
+    motor-angular-velocity: 220
+
+    leg-stiffness: 1e6
+    leg-length: 1.875e-2
+    leg-length-increment: 0.5e-3
+    leg-diameter: 2.5e-3
+    leg-curvature: [10,0,0]
+
     color: [1.0, 0.5, 0.0]

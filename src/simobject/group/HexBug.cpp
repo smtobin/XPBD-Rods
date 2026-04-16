@@ -4,28 +4,29 @@ namespace SimObject
 {
 
 HexBug::HexBug(const Config::HexBugConfig& config)
-    : XPBDObjectGroup_Base(config)
+    : XPBDObjectGroup_Base(config),
+    _body_initial_position(config.bodyInitialPosition()),
+    _body_size(config.bodySize()),
+    _body_density(config.bodyDensity()),
+    _motor_angular_velocity(config.motorAngularVelocity()),
+    _leg_stiffness(config.legStiffness()),
+    _leg_length(config.legLength()),
+    _leg_length_increment(config.legLengthIncrement()),
+    _leg_diameter(config.legDiameter()),
+    _leg_curvature(config.legCurvature())
 {
 
 }
 
 void HexBug::setup()
 {
-    Real body_length = 0.04;
-    Real body_width = 0.0125;
-    Real body_thickness = 0.005;
-
-    Vec3r body_center(0,0.023,0);
-
-    Real leg_radius = body_width/10.0;
-    Real leg_length = 0.01875;
 
     _objects.template reserve<XPBDRigidBox>(2);
 
     // create "body" with just a box - 4 cm long, 1.25 cm wide, with a little thickness
     Config::XPBDRigidBoxConfig body_config(
-        "hexbug_body", body_center, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
-        1030, false, Vec3r(body_width, body_thickness, body_length)
+        "hexbug_body", _body_initial_position, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        _body_density, false, _body_size
     );
     auto& body = _objects.template emplace_back<XPBDRigidBox>(body_config);
     std::cout << "Body mass: " << body.com().mass*1000 << " grams" << std::endl;
@@ -35,16 +36,16 @@ void HexBug::setup()
     std::vector<Vec3r> body_joint_pos(2*num_legs_per_side);
     for (int side = 0; side < 2; side++)
     {
-        Real dx = side == 0 ? -body_width/2 + leg_radius : body_width/2 - leg_radius;
+        Real dx = side == 0 ? -_body_size[0]/2 + _leg_diameter/2 : _body_size[0]/2 - _leg_diameter/2;
         for (int i = 0; i < 6; i++)
         {
-            Vec3r pos_local = Vec3r(dx, -body_thickness/2, -body_length/2 + leg_radius + (body_length-2*leg_radius)/(num_legs_per_side-1)*i);
-            Vec3r leg_base = body_center + pos_local;
+            Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -_body_size[2]/2 + _leg_diameter/2 + (_body_size[2]-_leg_diameter)/(num_legs_per_side-1)*i);
+            Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
                 "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
                 Config::RodElementType::LINEAR, false, false, true,
-                leg_length, leg_radius*2, 1, 1000, 1e6, 0.4, Vec3r(10,0,0)
+                _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, _leg_curvature
             );
             auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(leg_config);
             
@@ -80,10 +81,10 @@ void HexBug::setup()
     }
 
     // create eccentric rotating mass
-    Vec3r mass_size(0.004, 0.01, 0.004);
+    Vec3r mass_size(0.006, 0.002, 0.006);
     Vec3r mass_ang_velocity(0,0,100);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
-        "hexbug_eccentric_mass", body_center - Vec3r(0,mass_size[1]/2,0), Vec3r::Zero(), Vec3r::Zero(), mass_ang_velocity, false,
+        "hexbug_eccentric_mass", _body_initial_position - Vec3r(0,mass_size[1]/2,0), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false,
         2700, false, mass_size
     );
     auto& ecc_mass = _objects.template emplace_back<XPBDRigidBox>(eccentric_mass_config);
@@ -99,7 +100,7 @@ void HexBug::setup()
     // create revolute motor joint constraint
     const auto& rev_ref = _constraints.template get<Constraint::RevoluteJointConstraint>().back();
     Constraint::RevoluteJointVelocityMotorConstraint motor_constraint(
-        rev_ref, mass_ang_velocity[2]
+        rev_ref, 0
     );
     _constraints.push_back(std::move(motor_constraint));
 }
@@ -111,6 +112,8 @@ void HexBug::velocityUpdate(Real dt)
     auto& motor_constraints = _constraints.template get<Constraint::RevoluteJointVelocityMotorConstraint>();
     for (auto& motor_constraint : motor_constraints)
     {
+        motor_constraint.setVelocity(std::min(Real(_motor_angular_velocity), motor_constraint.velocity() + 100*dt));
+        // std::cout << "Motor velocity: " << motor_constraint.velocity() << std::endl;
         motor_constraint.updateTarget(dt);
     }
 }
