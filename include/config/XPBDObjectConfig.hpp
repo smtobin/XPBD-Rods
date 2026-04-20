@@ -85,6 +85,7 @@ public:
     bool collisions() const { return _collisions.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
+    ObjectRenderConfig& renderConfig() { return _render_config; }
     const std::vector<MeshRenderConfig>& renderMeshConfigs() const { return _render_mesh_configs; }
 
     void addRenderMeshConfig(const MeshRenderConfig& config) { _render_mesh_configs.push_back(config); }

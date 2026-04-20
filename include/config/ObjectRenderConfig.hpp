@@ -85,6 +85,12 @@ class ObjectRenderConfig : public Config_Base
     Real opacity() const { return _opacity.value; }
     Vec3r color() const { return _color.value; }
 
+    void setMetallic(Real metallic) { _metallic.value = metallic; }
+    void setRoughness(Real roughness) { _roughness.value = roughness; }
+    void setOpacity(Real opacity) { _opacity.value = opacity; }
+    void setColor(Vec3r color) { _color.value = color; }
+
+
     bool smoothNormals() const { return _smooth_normals.value; }
 
     protected:

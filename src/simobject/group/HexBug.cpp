@@ -13,7 +13,9 @@ HexBug::HexBug(const Config::HexBugConfig& config)
     _leg_length(config.legLength()),
     _leg_length_increment(config.legLengthIncrement()),
     _leg_diameter(config.legDiameter()),
-    _leg_curvature(config.legCurvature())
+    _leg_curvature(config.legCurvature()),
+    _leg_color(config.legColor()),
+    _body_color(config.bodyColor())
 {
 
 }
@@ -25,7 +27,7 @@ void HexBug::setup()
 
     // create "body" with just a box - 4 cm long, 1.25 cm wide, with a little thickness
     Config::XPBDRigidBoxConfig body_config(
-        "hexbug_body", _body_initial_position, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        "hexbug_body", _body_initial_position, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), true,
         _body_density, false, _body_size
     );
 
@@ -33,7 +35,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_bottom.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 0.5, Vec3r(1.0, 1.0, 0.0),
+        0, 0.5, 0.5, _body_color,
         false,
         true, false,
         Vec3r(0,-2.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
@@ -44,7 +46,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_top.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 1.0, Vec3r(0, 0, 0.0),
+        0, 0.2, 1.0, _leg_color,
         false,
         true, false,
         Vec3r(0,-1.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
@@ -65,7 +67,7 @@ void HexBug::setup()
         Real dx = side == 0 ? -_body_size[0]/2 + _leg_diameter/2 : _body_size[0]/2 - _leg_diameter/2;
         for (int i = 0; i < 6; i++)
         {
-            Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -_body_size[2]/2 + _leg_diameter/2 + (_body_size[2]-_leg_diameter)/(num_legs_per_side-1)*i);
+            Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
@@ -73,6 +75,9 @@ void HexBug::setup()
                 Config::RodElementType::LINEAR, false, false, true,
                 _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, _leg_curvature
             );
+            leg_config.renderConfig().setColor(_leg_color);
+            leg_config.renderConfig().setRoughness(0.2);
+
             auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(leg_config);
             
 
@@ -107,18 +112,21 @@ void HexBug::setup()
     }
 
     // create eccentric rotating mass
-    Vec3r mass_size(0.006, 0.002, 0.006);
+    Vec3r mass_size(0.004, 0.002, 0.004);
     Vec3r mass_ang_velocity(0,0,100);
+    Vec3r mass_position_loc = Vec3r(0, -3e-3, 10e-3);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
-        "hexbug_eccentric_mass", _body_initial_position - Vec3r(0,mass_size[1]/2,0), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false,
-        2700, false, mass_size
+        "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false,
+        5400, false, mass_size
     );
+    eccentric_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
+    eccentric_mass_config.renderConfig().setMetallic(1.0);
     auto& ecc_mass = _objects.template emplace_back<XPBDRigidBox>(eccentric_mass_config);
     std::cout << "Eccentric mass: " << ecc_mass.com().mass *1000 << " grams" << std::endl;
     
     // create revolute joint joining eccentric mass to body
     Constraint::RevoluteJointConstraint rev_constraint(
-        &body.com(), Vec3r::Zero(), Mat3r::Identity(),
+        &body.com(), mass_position_loc + Vec3r(0,mass_size[1]/2,0), Mat3r::Identity(),
         &ecc_mass.com(), Vec3r(0,mass_size[1]/2,0), Mat3r::Identity()
     );
     _constraints.push_back(std::move(rev_constraint));
@@ -138,7 +146,7 @@ void HexBug::velocityUpdate(Real dt)
     auto& motor_constraints = _constraints.template get<Constraint::RevoluteJointVelocityMotorConstraint>();
     for (auto& motor_constraint : motor_constraints)
     {
-        motor_constraint.setVelocity(std::min(Real(_motor_angular_velocity), motor_constraint.velocity() + 100*dt));
+        motor_constraint.setVelocity(std::min(Real(_motor_angular_velocity), motor_constraint.velocity() + 1000*dt));
         // std::cout << "Motor velocity: " << motor_constraint.velocity() << std::endl;
         motor_constraint.updateTarget(dt);
     }

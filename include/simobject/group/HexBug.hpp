@@ -36,6 +36,9 @@ private:
     Real _leg_diameter;
     Vec3r _leg_curvature;
 
+    Vec3r _leg_color;
+    Vec3r _body_color;
+
 };
 
 } // namespace SimObject
