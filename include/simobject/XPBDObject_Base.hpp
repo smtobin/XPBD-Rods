@@ -30,6 +30,8 @@ public:
     
     const std::string& name() const { return _name; }
 
+    const Config::XPBDObjectConfig& config() const { return _config; }
+
     Real staticFrictionCoeff() const { return _mu_s; }
     Real dynamicFrictionCoeff() const { return _mu_d; }
 
@@ -78,6 +80,11 @@ protected:
      * It is up to the derived classes to allocated an appropriate amount of space and update this during a solve.
      */
     VecXr _internal_lambda;
+
+    /** Store the base config used to create this object.
+     * Especially useful for extracting rendering options.
+     */
+    Config::XPBDObjectConfig _config;
 
 };
 

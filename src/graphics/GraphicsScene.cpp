@@ -225,43 +225,83 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& config)
 {
-    std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, render_config);
+    if (!config.renderMeshConfigs().empty())
+    {
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(sphere, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, config.renderConfig());
 
-    _renderer->AddActor(sphere_go->actor());
-    _graphics_objects.push_back(std::move(sphere_go));
-}
-
-void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<BoxGraphicsObject> box_go = std::make_unique<BoxGraphicsObject>(box, render_config);
-
-    _renderer->AddActor(box_go->actor());
-    _graphics_objects.push_back(std::move(box_go));
-}
-
-void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<PlaneGraphicsObject> plane_go = std::make_unique<PlaneGraphicsObject>(plane, render_config);
+        _renderer->AddActor(sphere_go->actor());
+        _graphics_objects.push_back(std::move(sphere_go));
+    }
     
-    _renderer->AddActor(plane_go->actor());
-    _graphics_objects.push_back(std::move(plane_go));
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::XPBDObjectConfig& config)
+{
+    if (!config.renderMeshConfigs().empty())
+    {
+        std::cout << "Render mesh configs!" << std::endl;
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(box, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<BoxGraphicsObject> box_go = std::make_unique<BoxGraphicsObject>(box, config.renderConfig());
+
+        _renderer->AddActor(box_go->actor());
+        _graphics_objects.push_back(std::move(box_go));
+    }
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& config)
+{
+    if (!config.renderMeshConfigs().empty())
+    {
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(plane, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<PlaneGraphicsObject> plane_go = std::make_unique<PlaneGraphicsObject>(plane, config.renderConfig());
+        
+        _renderer->AddActor(plane_go->actor());
+        _graphics_objects.push_back(std::move(plane_go));
+    }
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::XPBDObjectConfig& config)
 {
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {
-        addObject(&obj, render_config);
+        addObject(&obj, obj.config());
     });
 }
 
 void GraphicsScene::_addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config)
 {
+    std::cout << "Adding mesh for rigid body" << std::endl;
     // load mesh from file and resize and reposition
-    _graphics_meshes.push_back(Mesh::loadFromFile("filename"));
+    _graphics_meshes.push_back(Mesh::loadFromFile(render_config.filename()));
     auto& new_mesh = _graphics_meshes.back();
+
+    // move mesh so that its center of mass is at (0,0,0)
+    Vec3r mesh_com = new_mesh.massCenter();
+    new_mesh.moveDelta(-mesh_com);
+
+    // resize mesh according to the specified scale
+    new_mesh.resize(render_config.scale()[0], render_config.scale()[1], render_config.scale()[2]);
+
+    // rotate mesh according to specified Euler angles (rotation about COM)
+    new_mesh.applyRotation(Math::RotMatFromXYZEulerAngles(render_config.rotation()));
+
+    // translate mesh according to the config file
+    new_mesh.moveDelta(render_config.translation());
 
     std::unique_ptr<MeshGraphicsObject> mesh_go = std::make_unique<MeshGraphicsObject>(&new_mesh, &rb->com(), render_config);
     _renderer->AddActor(mesh_go->actor());

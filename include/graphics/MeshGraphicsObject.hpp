@@ -36,8 +36,6 @@ private:
 
     /** Transform for the mesh COM */
     vtkSmartPointer<vtkTransform> _vtk_transform;
-
-    // vtkSmartPointer<vtkPolyDataNormals> _normals_generator;
 };
 
 } // namespace Graphics

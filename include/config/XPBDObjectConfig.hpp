@@ -85,7 +85,9 @@ public:
     bool collisions() const { return _collisions.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
-    const std::vector<MeshRenderConfig>& renderMeshConfigs() { return _render_mesh_configs; }
+    const std::vector<MeshRenderConfig>& renderMeshConfigs() const { return _render_mesh_configs; }
+
+    void addRenderMeshConfig(const MeshRenderConfig& config) { _render_mesh_configs.push_back(config); }
 
 protected:
     ConfigParameter<Vec3r> _initial_position = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));

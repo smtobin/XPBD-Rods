@@ -47,17 +47,17 @@ class GraphicsScene
     void update();
 
     template <typename ElementType>
-    void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
+    void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::XPBDObjectConfig& config)
     {
-        std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, render_config);
+        std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, config.renderConfig());
 
         _renderer->AddActor(rod_go->actor());
         _graphics_objects.push_back(std::move(rod_go));
     }
-    void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config);
-    void addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config);
-    void addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config);
-    void addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::ObjectRenderConfig& render_config);
+    void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& render_config);
+    void addObject(const SimObject::XPBDRigidBox* box, const Config::XPBDObjectConfig& render_config);
+    void addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& render_config);
+    void addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::XPBDObjectConfig& render_config);
 
     Vec3r cameraPosition() const;
     Vec3r cameraViewDirection() const;

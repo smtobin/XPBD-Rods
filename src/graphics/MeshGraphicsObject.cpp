@@ -52,6 +52,14 @@ MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::Orient
     poly_data->SetPoints(vtk_points);
     poly_data->SetPolys(vtk_faces);
 
+    _vtk_transform = vtkSmartPointer<vtkTransform>::New();
+
+    // IMPORTANT: use row-major ordering since that is what VTKTransform expects (default for Eigen is col-major)
+    Eigen::Matrix<Real, 4, 4, Eigen::RowMajor> mesh_transform_mat = Eigen::Matrix<Real, 4, 4, Eigen::RowMajor>::Identity();
+    mesh_transform_mat.block<3,3>(0,0) = _com->orientation;
+    mesh_transform_mat.block<3,1>(0,3) = _com->position;
+    _vtk_transform->SetMatrix(mesh_transform_mat.data());
+
     if (render_config.drawEdges())
     {
         
@@ -67,10 +75,13 @@ MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::Orient
 
         _edges_vtk_actor->GetProperty()->SetColor(0.0, 0.0, 0.0);
         _edges_vtk_actor->GetProperty()->LightingOff();
+
+        _edges_vtk_actor->SetUserTransform(_vtk_transform);
     }
 
     if (render_config.drawFaces())
     {
+        std::cout << "Setting up faces vtk actor..." << std::endl;
         vtkNew<vtkPolyDataMapper> mapper;
         mapper->SetInputData(poly_data);
 
@@ -102,16 +113,7 @@ MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::Orient
 
         VTKUtils::setupActorFromRenderConfig(_vtk_actor.Get(), render_config);
 
-        _vtk_transform = vtkSmartPointer<vtkTransform>::New();
-
-        // IMPORTANT: use row-major ordering since that is what VTKTransform expects (default for Eigen is col-major)
-        Eigen::Matrix<Real, 4, 4, Eigen::RowMajor> mesh_transform_mat = Eigen::Matrix<Real, 4, 4, Eigen::RowMajor>::Identity();
-        mesh_transform_mat.block<3,3>(0,0) = _com->orientation;
-        mesh_transform_mat.block<3,1>(0,3) = _com->position;
-        _vtk_transform->SetMatrix(mesh_transform_mat.data());
-
         _vtk_actor->SetUserTransform(_vtk_transform);
-        _edges_vtk_actor->SetUserTransform(_vtk_transform);
     }
     
 }

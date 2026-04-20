@@ -28,8 +28,34 @@ void HexBug::setup()
         "hexbug_body", _body_initial_position, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
         _body_density, false, _body_size
     );
+
+    Config::MeshRenderConfig body_plastic_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/hexbug_plastic_bottom.STL",
+        std::nullopt, std::nullopt, std::nullopt,
+        0, 0.5, 1.0, Vec3r(1.0, 1.0, 0.0),
+        false,
+        true, false,
+        Vec3r(0,-2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+    );
+    body_config.addRenderMeshConfig(body_plastic_mesh_config);
+
+    Config::MeshRenderConfig body_rim_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/hexbug_plastic_top.STL",
+        std::nullopt, std::nullopt, std::nullopt,
+        0, 0.5, 1.0, Vec3r(0, 0, 0.0),
+        false,
+        true, false,
+        Vec3r(0,-1.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+    );
+    body_config.addRenderMeshConfig(body_rim_mesh_config);
+
     auto& body = _objects.template emplace_back<XPBDRigidBox>(body_config);
     std::cout << "Body mass: " << body.com().mass*1000 << " grams" << std::endl;
+
+    
+
 
     // create legs out of 12 rods - 6 on each side of body
     int num_legs_per_side = 6;
