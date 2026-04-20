@@ -3,6 +3,12 @@
 
 #include "simulation/Simulation.hpp"
 
+#include "graphics/PlaneGraphicsObject.hpp"
+#include "graphics/MeshGraphicsObject.hpp"
+#include "graphics/SphereGraphicsObject.hpp"
+#include "graphics/BoxGraphicsObject.hpp"
+#include "graphics/RodGraphicsObject.hpp"
+
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCubeSource.h>
@@ -247,9 +253,21 @@ void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const 
 {
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {
-        std::cout << "Adding object to graphics scene with name " << obj.name() << " and addr: " << &obj << std::endl;
         addObject(&obj, render_config);
     });
+}
+
+void GraphicsScene::_addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config)
+{
+    // load mesh from file and resize and reposition
+    auto& new_mesh = _graphics_meshes.push_back(Mesh::loadFromFile("filename"));
+
+    std::unique_ptr<MeshGraphicsObject> mesh_go = std::make_unique<MeshGraphicsObject>(&new_mesh, &rb->com(), render_config);
+    _renderer->AddActor(mesh_go->actor());
+    _renderer->AddActor(mesh_go->edgesActor());
+
+    _graphics_objects.push_back(std::move(mesh_go));
+    
 }
 
 Vec3r GraphicsScene::cameraPosition() const

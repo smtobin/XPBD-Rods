@@ -52,9 +52,6 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("color", node, _color);
 
         _extractParameter("smooth-normals", node, _smooth_normals);
-        _extractParameter("draw-faces", node, _draw_faces);
-        _extractParameter("draw-edges", node, _draw_edges);
-        _extractParameter("draw-points", node, _draw_points);
     }
 
     explicit ObjectRenderConfig(
@@ -76,9 +73,6 @@ class ObjectRenderConfig : public Config_Base
         _color.value = color;
 
         _smooth_normals.value = smooth_normals;
-        _draw_faces.value = draw_faces;
-        _draw_edges.value = draw_edges;
-        _draw_points.value = draw_points;
     }
 
     RenderType renderType() const { return _render_type.value; }
@@ -92,9 +86,6 @@ class ObjectRenderConfig : public Config_Base
     Vec3r color() const { return _color.value; }
 
     bool smoothNormals() const { return _smooth_normals.value; }
-    bool drawFaces() const { return _draw_faces.value; }
-    bool drawEdges() const { return _draw_edges.value; }
-    bool drawPoints() const { return _draw_points.value; }
 
     protected:
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
@@ -110,9 +101,7 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<Vec3r> _color = ConfigParameter<Vec3r>(Vec3r(1.0, 1.0, 1.0));
 
     ConfigParameter<bool> _smooth_normals = ConfigParameter<bool>(true);
-    ConfigParameter<bool> _draw_faces = ConfigParameter<bool>(true);
-    ConfigParameter<bool> _draw_edges = ConfigParameter<bool>(false);
-    ConfigParameter<bool> _draw_points = ConfigParameter<bool>(false);
+    
 };
 
 } // namespace Config

@@ -4,13 +4,13 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/group/XPBDObjectGroup_Base.hpp"
 #include "graphics/GraphicsObject.hpp"
-#include "graphics/SphereGraphicsObject.hpp"
-#include "graphics/BoxGraphicsObject.hpp"
-#include "graphics/RodGraphicsObject.hpp"
 #include "graphics/HigherOrderRodGraphicsObject.hpp"
-#include "graphics/PlaneGraphicsObject.hpp"
+
+#include "common/Mesh.hpp"
+
 
 #include "config/SimulationRenderConfig.hpp"
+#include "config/MeshRenderConfig.hpp"
 
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -63,12 +63,21 @@ class GraphicsScene
     Vec3r cameraUpDirection() const;
     Vec2r worldCoordinatesToPixelCoordinates(const Vec3r& world) const;
 
-    private:
+private:
+    void _addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config);
+
     vtkSmartPointer<vtkOpenGLRenderer> _renderer;
     vtkSmartPointer<vtkRenderWindow> _render_window;
     vtkSmartPointer<vtkRenderWindowInteractor> _interactor;
 
     std::vector<std::unique_ptr<GraphicsObject>> _graphics_objects;
+
+    /** Stores meshes that are used as additional visualization representations of other objects.
+     * I.e. objects may have multiple meshes associated with them for visualization purposes
+     * 
+     * Store in a deque so that pointers to meshes are valid upon resize
+     */
+    std::deque<Mesh> _graphics_meshes;
 
     std::atomic<bool> _should_render;
 

@@ -14,7 +14,7 @@ namespace Graphics
 class PlaneGraphicsObject : public GraphicsObject
 {
 public:
-    explicit PlaneGraphicsObject(const SimObject::XPBDPlane* sphere, const Config::ObjectRenderConfig& render_config);
+    explicit PlaneGraphicsObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config);
 
     virtual void update() override;
 

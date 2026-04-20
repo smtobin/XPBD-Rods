@@ -31,7 +31,14 @@ if (NOT VTK_FOUND)
   message(FATAL_ERROR "Unable to find the VTK build folder.")
 endif()
 
+# find assimp
+find_package(assimp REQUIRED)
+
 include_directories("./include")
+
+add_library(Common)
+add_subdirectory("src/common")
+target_link_libraries(Common Eigen3::Eigen)
 
 add_library(Collision)
 add_subdirectory("src/collision")
