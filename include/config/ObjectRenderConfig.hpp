@@ -58,7 +58,7 @@ class ObjectRenderConfig : public Config_Base
         RenderType render_type,
         std::optional<std::string> orm_texture_filename, std::optional<std::string> normals_texture_filename, std::optional<std::string> base_color_texture_filename,
         Real metallic, Real roughness, Real opacity, const Vec3r& color,
-        bool smooth_normals, bool draw_faces, bool draw_edges, bool draw_points
+        bool smooth_normals
     )
     {
         _render_type.value = render_type;

@@ -260,7 +260,8 @@ void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const 
 void GraphicsScene::_addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config)
 {
     // load mesh from file and resize and reposition
-    auto& new_mesh = _graphics_meshes.push_back(Mesh::loadFromFile("filename"));
+    _graphics_meshes.push_back(Mesh::loadFromFile("filename"));
+    auto& new_mesh = _graphics_meshes.back();
 
     std::unique_ptr<MeshGraphicsObject> mesh_go = std::make_unique<MeshGraphicsObject>(&new_mesh, &rb->com(), render_config);
     _renderer->AddActor(mesh_go->actor());

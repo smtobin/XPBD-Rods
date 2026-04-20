@@ -1,5 +1,5 @@
 #include "graphics/MeshGraphicsObject.hpp"
-#include "graphics/vtk/VTKUtils.hpp"
+#include "graphics/VTKUtils.hpp"
 
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
@@ -24,20 +24,17 @@
 namespace Graphics
 {
 
-MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::OrientedParticle* com, const Config::ObjectRenderConfig& render_config)
+MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::OrientedParticle* com, const Config::MeshRenderConfig& render_config)
     : GraphicsObject(render_config), _mesh(mesh), _com(com)
 {
 
-    vtkNew<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
+    vtkNew<vtkPolyData> poly_data;
 
     // create points
     vtkNew<vtkPoints> vtk_points;
-    for (int i = 0; i < _mesh->vertices().totalSize(); i++)
+    for (const auto& vertex : _mesh->vertices())
     {
-        // even if the vertex is invalid we still need to insert it so that the faces have proper indexing
-        /** TODO: is there a better way? */
-        const Vec3r& vert = _mesh->vertices()[i];
-        vtk_points->InsertNextPoint(vert[0], vert[1], vert[2]);
+        vtk_points->InsertNextPoint(vertex[0], vertex[1], vertex[2]);
     }
 
     // create faces
@@ -63,7 +60,7 @@ MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::Orient
         edge_extractor->Update();
 
         vtkNew<vtkPolyDataMapper> edge_mapper;
-        edge_mapper->SetInputConnection(_edge_extractor->GetOutputPort());
+        edge_mapper->SetInputConnection(edge_extractor->GetOutputPort());
 
         _edges_vtk_actor = vtkSmartPointer<vtkActor>::New();
         _edges_vtk_actor->SetMapper(edge_mapper);

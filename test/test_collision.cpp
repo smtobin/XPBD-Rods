@@ -35,14 +35,14 @@ void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBo
         Config::ObjectRenderConfig::RenderType::PBR, 
         std::nullopt, std::nullopt, std::nullopt,
         0.0, 0.5, 1.0,
-        box1_color, false, true, false, false
+        box1_color, false
     );
 
     Config::ObjectRenderConfig box2_graphics_config(
         Config::ObjectRenderConfig::RenderType::PBR, 
         std::nullopt, std::nullopt, std::nullopt,
         0.0, 0.5, 1.0,
-        box2_color, false, true, false, false
+        box2_color, false
     );
 
     Graphics::BoxGraphicsObject box1_graphics_obj(&box1, box1_graphics_config);

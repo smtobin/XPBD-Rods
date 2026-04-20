@@ -20,6 +20,7 @@
 #include <vtkCallbackCommand.h>
 
 #include <vector>
+#include <deque>
 #include <atomic>
 #include <memory>
 
