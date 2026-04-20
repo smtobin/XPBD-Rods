@@ -43,6 +43,7 @@
 #include <vtkToneMappingPass.h>
 #include <vtkLightsPass.h>
 #include <vtkOpaquePass.h>
+#include <vtkTranslucentPass.h>
 
 #include <vtkCoordinate.h>
 
@@ -180,10 +181,14 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     /////////////////////////////////////////////////////////
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
-    _render_window->SetMultiSamples(5);
+    _renderer->SetUseDepthPeeling(true);
+    _renderer->SetMaximumNumberOfPeels(4);
+    _render_window->SetAlphaBitPlanes(true);
+    _render_window->SetMultiSamples(0);
     
     vtkNew<vtkSequencePass> seqP;
     vtkNew<vtkOpaquePass> opaqueP;
+    vtkNew<vtkTranslucentPass> translucentP;
     vtkNew<vtkLightsPass> lightsP;
 
     vtkNew<vtkShadowMapPass> shadows;
@@ -194,6 +199,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     passes->AddItem(lightsP);
     passes->AddItem(opaqueP);
     passes->AddItem(shadows);
+    passes->AddItem(translucentP);
     seqP->SetPasses(passes);
 
     vtkNew<vtkCameraPass> cameraP;
