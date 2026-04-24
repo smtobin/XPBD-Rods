@@ -214,6 +214,33 @@ static Mat3r RotMatFromXYZEulerAngles(const Vec3r& euler_xyz)
     return rot_mat;
 }
 
+static Vec3r XYZEulerAnglesFromRotMat(const Mat3r& R)
+{
+    Real theta_y = std::asin(-R(2,0));
+    Real theta_x, theta_z;
+    if (std::abs(R(2,0)) < 1)
+    {
+        theta_x = std::atan2(R(2,1), R(2,2));
+        theta_z = std::atan2(R(1,0), R(0,0));
+    }
+    else
+    {
+        theta_x = 0;
+        if (R(2,0) == -1)
+        {
+            theta_y = M_PI/2;
+            theta_z = std::atan2(-R(0,1), R(0,2));
+        }
+        else
+        {
+            theta_y = -M_PI/2;
+            theta_z = std::atan2(R(0,1), -R(0,2));
+        }
+    }
+
+    return 180/M_PI * Vec3r(theta_x, theta_y, theta_z);
+}
+
 /** Projects a point p onto the line segment defined by ab.
  * Returns the interpolation factor - i.e. if in [0,1] the projected point is between a and b.
  * To get the projected point: p_proj = a + projectPointOnLine(p, a, b) * (b-a);

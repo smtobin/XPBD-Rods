@@ -8,7 +8,7 @@ namespace Config
 class RPSRobotConfig : public XPBDObjectConfig
 {
 public:
-    using SimObjectType = SimObject::HexBug;
+    using SimObjectType = SimObject::RPSRobot;
 
     explicit RPSRobotConfig()
         : XPBDObjectConfig()

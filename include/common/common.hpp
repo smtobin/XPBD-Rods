@@ -335,6 +335,7 @@ namespace Config
     class XPBDConcentricTubeRobotConfig;
 
     class HexBugConfig;
+    class RPSRobotConfig;
 
     class FixedJointConfig;
     class PrismaticJointConfig;
@@ -349,7 +350,8 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::XPBDPlaneConfig,
     Config::XPBDPendulumConfig,
     Config::XPBDConcentricTubeRobotConfig,
-    Config::HexBugConfig
+    Config::HexBugConfig,
+    Config::RPSRobotConfig
 >;
 using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObjectConfigs_TypeList>::type;
 
