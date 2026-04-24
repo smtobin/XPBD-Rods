@@ -182,16 +182,16 @@ namespace Constraint
 }
 
 using XPBDOneSidedJointConstraints_TypeList = TypeList<
-    Constraint::OneSidedFixedJointConstraint,
-    Constraint::OneSidedRevoluteJointConstraint,
     Constraint::OneSidedSphericalJointConstraint,
-    Constraint::OneSidedPrismaticJointConstraint
+    Constraint::OneSidedPrismaticJointConstraint,
+    Constraint::OneSidedRevoluteJointConstraint,
+    Constraint::OneSidedFixedJointConstraint
 >;
 
 using XPBDNormedOneSidedJointConstraints_TypeList = TypeList<
-    Constraint::NormedOneSidedRevoluteJointConstraint,
     Constraint::NormedOneSidedSphericalJointConstraint,
-    Constraint::NormedOneSidedPrismaticJointConstraint
+    Constraint::NormedOneSidedPrismaticJointConstraint,
+    Constraint::NormedOneSidedRevoluteJointConstraint
 >;
 
 using XPBDTwoSidedJointConstraints_TypeList = TypeList<
@@ -212,10 +212,10 @@ using XPBDJointVelocityMotorConstraints_TypeList = TypeList<
 >;
 
 using XPBDJointConstraints_TypeList = ConcatenateTypeLists<
-    XPBDOneSidedJointConstraints_TypeList,
-    XPBDNormedOneSidedJointConstraints_TypeList,
     XPBDTwoSidedJointConstraints_TypeList,
-    XPBDNormedTwoSidedJointConstraints_TypeList
+    XPBDNormedTwoSidedJointConstraints_TypeList,
+    XPBDOneSidedJointConstraints_TypeList,
+    XPBDNormedOneSidedJointConstraints_TypeList
 >::type;
 
 using XPBDJointLimitConstraints_TypeList = TypeList<

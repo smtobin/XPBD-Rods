@@ -3,11 +3,10 @@ name: "RPS Sim"
 # sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 100
-solver-iters: 10
 
 logging: False
 logging-output-folder: "../output/convergence"
-logging-interval: 1
+logging-interval: 0.01
 log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
@@ -18,5 +17,8 @@ ground-plane: True
 objects:
   -
     type: "RPSRobot"
+    log-particles: False
+
+    use-normed-constraints: False
 
     color: [1.0, 0.5, 0.0]

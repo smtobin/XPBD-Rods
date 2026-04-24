@@ -6,7 +6,7 @@ namespace SimObject
 RPSRobot::RPSRobot(const Config::RPSRobotConfig& config)
     : XPBDObjectGroup_Base(config)
 {
-
+    _normed_constraints = config.normedConstraints();
 }
 
 void RPSRobot::setup()
@@ -87,38 +87,82 @@ void RPSRobot::setup()
 
         /** Joints */
         Mat3r base_rev_joint_rot_offset = Math::RotMatFromXYZEulerAngles(first_link_rot) * Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0));
-        Constraint::RevoluteJointConstraint revolute_constraint(
-            &first_links[i]->com(), Vec3r(0,0,first_link_length/2), Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0)),
-            &base.com(), Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0)), base_rev_joint_rot_offset
-        );
-        _constraints.template push_back<Constraint::RevoluteJointConstraint>(std::move(revolute_constraint));
+        if (_normed_constraints)
+        {
+            Constraint::OneSidedRevoluteJointConstraint revolute_constraint(
+                base.com().position + Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0)), base.com().orientation * base_rev_joint_rot_offset,
+                &first_links[i]->com(), Vec3r(0,0,first_link_length/2), Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0))
+            );
+            _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(revolute_constraint));
 
-        Constraint::PrismaticJointConstraint prismatic_constraint(
-            &first_links[i]->com(), Vec3r(0,0,-first_link_length/2), Mat3r::Identity(),
-            &second_links[i]->com(), Vec3r(0,0,second_link_length/2), Mat3r::Identity()
-        );
-        Constraint::PrismaticJointLimitConstraint prismatic_joint_limit_constraint(
-            prismatic_constraint, -0.1, 0.1
-        );
-        _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-        _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            Constraint::PrismaticJointConstraint prismatic_constraint(
+                &first_links[i]->com(), Vec3r(0,0,-first_link_length/2), Mat3r::Identity(),
+                &second_links[i]->com(), Vec3r(0,0,second_link_length/2), Mat3r::Identity()
+            );
+            Constraint::PrismaticJointLimitConstraint prismatic_joint_limit_constraint(
+                prismatic_constraint, -0.1, 0.1
+            );
+            _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
+            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
-        Constraint::SphericalJointConstraint spherical_constraint(
-            &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
-            &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
-        );
-        _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
+            Constraint::SphericalJointConstraint spherical_constraint(
+                &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
+                &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
+            );
+            _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
+        }
+        else
+        {
+            Constraint::OneSidedRevoluteJointConstraint revolute_constraint(
+                base.com().position + Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0)), base.com().orientation * base_rev_joint_rot_offset,
+                &first_links[i]->com(), Vec3r(0,0,first_link_length/2), Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0))
+            );
+            _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(revolute_constraint));
+
+            Constraint::PrismaticJointConstraint prismatic_constraint(
+                &first_links[i]->com(), Vec3r(0,0,-first_link_length/2), Mat3r::Identity(),
+                &second_links[i]->com(), Vec3r(0,0,second_link_length/2), Mat3r::Identity()
+            );
+            Constraint::PrismaticJointLimitConstraint prismatic_joint_limit_constraint(
+                prismatic_constraint, -0.1, 0.1
+            );
+            _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
+            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+
+            Constraint::SphericalJointConstraint spherical_constraint(
+                &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
+                &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
+            );
+            _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
+        }
+        
     }
 
     /** Platform normal constraint */
+
     // a revolute joint constraint basically just aligns the axes of two poses
-    Mat3r normal_rot = Math::RotMatFromXYZEulerAngles(Vec3r(-70,0,0));
-    Constraint::OneSidedRevoluteJointConstraint normal_constraint(
-        top_position, normal_rot,
-        &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
-    );
-    _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(normal_constraint));
-    _platform_normal_constraint = &_constraints.template get<Constraint::OneSidedRevoluteJointConstraint>().back();
+    Mat3r normal_rot = Math::RotMatFromXYZEulerAngles(Vec3r(-80,0,0));
+
+    if (_normed_constraints)
+    {
+        Constraint::NormedOneSidedRevoluteJointConstraint normal_constraint(
+            top_position, normal_rot,
+            &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
+        );
+        _constraints.template push_back<Constraint::NormedOneSidedRevoluteJointConstraint>(std::move(normal_constraint));
+        _normed_platform_normal_constraint = &_constraints.template get<Constraint::NormedOneSidedRevoluteJointConstraint>().back();
+    }
+    else
+    {
+        Constraint::OneSidedRevoluteJointConstraint normal_constraint(
+            top_position, normal_rot,
+            &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
+        );
+        _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(normal_constraint));
+        _platform_normal_constraint = &_constraints.template get<Constraint::OneSidedRevoluteJointConstraint>().back();
+    }
+
+    
 }
 
 void RPSRobot::inertialUpdate(Real dt)
@@ -126,9 +170,21 @@ void RPSRobot::inertialUpdate(Real dt)
     XPBDObjectGroup_Base::inertialUpdate(dt);
 
     // update the normal constraint
-    Mat3r current_rot = _platform_normal_constraint->jointOrientation2();
-    Mat3r new_rot = Math::RotMatFromXYZEulerAngles(Vec3r(0,0.5,0)) * current_rot;
-    _platform_normal_constraint->setFixedOrientation(new_rot );
+    
+    Real rot_rate = 500;
+    if (_normed_constraints)
+    {
+        Mat3r current_rot = _normed_platform_normal_constraint->jointOrientation2();
+        Mat3r new_rot = Math::RotMatFromXYZEulerAngles(Vec3r(0,rot_rate*dt,0)) * current_rot;
+        _normed_platform_normal_constraint->setFixedOrientation(new_rot);
+    }
+    else
+    {
+        Mat3r current_rot = _platform_normal_constraint->jointOrientation2();
+        Mat3r new_rot = Math::RotMatFromXYZEulerAngles(Vec3r(0,rot_rate*dt,0)) * current_rot;
+        _platform_normal_constraint->setFixedOrientation(new_rot);
+    }
+    
 }
 
 } // namespace SimObject

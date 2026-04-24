@@ -123,6 +123,9 @@ public:
     const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
     Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
+    void setFixedPosition(const Vec3r& pos) { _base_pos = pos; }
+    void setFixedOrientation(const Mat3r& ori) { _base_or = ori; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 

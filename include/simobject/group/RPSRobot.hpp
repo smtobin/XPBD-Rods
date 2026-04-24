@@ -25,6 +25,10 @@ public:
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
 private:
     Constraint::OneSidedRevoluteJointConstraint* _platform_normal_constraint;
+    Constraint::NormedOneSidedRevoluteJointConstraint* _normed_platform_normal_constraint;
+
+    /** If true, use normed version of joint constraints.  */
+    bool _normed_constraints;
 
 };
 
