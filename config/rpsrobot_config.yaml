@@ -1,8 +1,9 @@
-name: "RodSim"
+name: "RPS Sim"
 # sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 100
+solver-iters: 10
 
 logging: False
 logging-output-folder: "../output/convergence"

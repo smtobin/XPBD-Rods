@@ -16,7 +16,7 @@ void RPSRobot::setup()
 
     // create bottom platform
     Real base_radius = 0.25;
-    Vec3r base_position(0,1,0);
+    Vec3r base_position(0,0.025,0);
     Vec3r base_size(2*base_radius, 0.05, 2*base_radius);
     Config::XPBDRigidBoxConfig base_config(
         "rps_base", base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
@@ -108,12 +108,27 @@ void RPSRobot::setup()
             &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
         );
         _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
-
-        
     }
 
+    /** Platform normal constraint */
+    // a revolute joint constraint basically just aligns the axes of two poses
+    Mat3r normal_rot = Math::RotMatFromXYZEulerAngles(Vec3r(-70,0,0));
+    Constraint::OneSidedRevoluteJointConstraint normal_constraint(
+        top_position, normal_rot,
+        &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
+    );
+    _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(normal_constraint));
+    _platform_normal_constraint = &_constraints.template get<Constraint::OneSidedRevoluteJointConstraint>().back();
+}
 
-    
+void RPSRobot::inertialUpdate(Real dt)
+{
+    XPBDObjectGroup_Base::inertialUpdate(dt);
+
+    // update the normal constraint
+    Mat3r current_rot = _platform_normal_constraint->jointOrientation2();
+    Mat3r new_rot = Math::RotMatFromXYZEulerAngles(Vec3r(0,0.5,0)) * current_rot;
+    _platform_normal_constraint->setFixedOrientation(new_rot );
 }
 
 } // namespace SimObject

@@ -16,11 +16,15 @@ public:
 
     virtual void setup() override;
 
+    virtual void inertialUpdate(Real dt) override;
+
     // virtual void internalConstraintSolve(Real dt) override;
 
     // virtual void velocityUpdate(Real dt) override;
 
-    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override {}
+    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
+private:
+    Constraint::OneSidedRevoluteJointConstraint* _platform_normal_constraint;
 
 };
 
