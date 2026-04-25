@@ -15,18 +15,30 @@ void RPSRobot::setup()
     _objects.template reserve<XPBDRigidBox>(15);
 
     // create bottom platform
-    Real base_radius = 0.25;
+    Real base_radius = 0.3;
     Vec3r base_position(0,0.025,0);
-    Vec3r base_size(2*base_radius, 0.05, 2*base_radius);
+    Vec3r base_size(2*base_radius, 0.025, 2*base_radius);
     Config::XPBDRigidBoxConfig base_config(
         "rps_base", base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
         false, 1000, true, base_size
     );
+
+    Config::MeshRenderConfig base_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/RPS_Robot/Base.stl",
+        std::nullopt, std::nullopt, std::nullopt,
+        0, 0.5, 1.0, Vec3r(0.4, 0.4, 0.4),
+        false,
+        true, false,
+        Vec3r(0,0,0), Vec3r(0,180,0), Vec3r::Ones()
+    );
+    base_config.addRenderMeshConfig(base_mesh_config);
+
     auto& base = _objects.template emplace_back<XPBDRigidBox>(base_config);
     base.setup();
 
     // create top platform
-    Real top_radius = 0.15;
+    Real top_radius = 0.25;
     Real robot_height = 0.5;
     Vec3r top_position = base_position + Vec3r(0, robot_height, 0);
     Vec3r top_size(2*top_radius, 0.05, 2*top_radius);
@@ -34,6 +46,17 @@ void RPSRobot::setup()
         "rps_top", top_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
         false, 1000, false, top_size
     );
+    Config::MeshRenderConfig top_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/RPS_Robot/Top.stl",
+        std::nullopt, std::nullopt, std::nullopt,
+        0, 0.5, 1.0, Vec3r(1.0, 0.5, 0.1),
+        false,
+        true, false,
+        Vec3r(0,0,0), Vec3r(0,180,0), Vec3r::Ones()
+    );
+    top_config.addRenderMeshConfig(top_mesh_config);
+
     auto& top = _objects.template emplace_back<XPBDRigidBox>(top_config);
     top.setup();
 
@@ -46,11 +69,13 @@ void RPSRobot::setup()
     for (int i = 0; i < 3; i++)
     {
         // given the length of the first link, the top and bottom radii, and the height of the robot, find the angle that the next two links need to be at
-        Vec3r first_link_base_pos = base_position + Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0));
+        Vec3r first_link_base_pos = base_position + 
+            Vec3r((base_radius-0.02)*std::sin(angles[i]*M_PI/180.0), 0, (base_radius-0.02)*std::cos(angles[i]*M_PI/180.0)) +
+            Vec3r(0, 0.07, 0);
         Vec3r second_link_end_pos(
-            (top_position[0]+top_radius)*std::sin(angles[i]*M_PI/180.0),
-            top_position[1],
-            (top_position[2]+top_radius)*std::cos(angles[i]*M_PI/180.0)
+            (top_position[0]+top_radius-0.027)*std::sin(angles[i]*M_PI/180.0),
+            top_position[1]-0.01,
+            (top_position[2]+top_radius-0.027)*std::cos(angles[i]*M_PI/180.0)
         );
         
         // find necessary angle
@@ -65,8 +90,20 @@ void RPSRobot::setup()
         Config::XPBDRigidBoxConfig first_link_config(
             "rps_chain" + std::to_string(i) + "_first",
             first_link_pos, first_link_rot, Vec3r(0,0,0), Vec3r(0,0,0),
-            false, 1000, false, Vec3r(0.05, 0.05, first_link_length)
+            false, 1000, false, Vec3r(0.03, 0.03, first_link_length)
         );
+
+        Config::MeshRenderConfig first_link_mesh_config(
+            Config::ObjectRenderConfig::RenderType::PBR,
+            "../resource/meshes/RPS_Robot/LinearActuatorBottom.stl",
+            std::nullopt, std::nullopt, std::nullopt,
+            0.0, 0.4, 1.0, Vec3r(0.2, 0.2, 0.2),
+            true,
+            true, false,
+            Vec3r(0,0,0), Vec3r(-90,0,0), Vec3r::Ones()
+        );
+        first_link_config.addRenderMeshConfig(first_link_mesh_config);
+
         first_links[i] = &_objects.template emplace_back<XPBDRigidBox>(first_link_config);
         first_links[i]->setup();
 
@@ -79,8 +116,20 @@ void RPSRobot::setup()
         Config::XPBDRigidBoxConfig second_link_config(
             "rps_chain" + std::to_string(i) + "_second",
             second_link_pos, second_link_rot, Vec3r(0,0,0), Vec3r(0,0,0),
-            false, 1000, false, Vec3r(0.05, 0.05, second_link_length)
+            false, 1000, false, Vec3r(0.03, 0.03, second_link_length)
         );
+
+        Config::MeshRenderConfig second_link_mesh_config(
+            Config::ObjectRenderConfig::RenderType::PBR,
+            "../resource/meshes/RPS_Robot/LinearActuatorTop.stl",
+            std::nullopt, std::nullopt, std::nullopt,
+            0.0, 0.4, 1.0, Vec3r(0.8, 0.8, 0.8),
+            true,
+            true, false,
+            Vec3r(0,0,0.07), Vec3r(-90,0,0), Vec3r::Ones()
+        );
+        second_link_config.addRenderMeshConfig(second_link_mesh_config);
+
         second_links[i] = &_objects.template emplace_back<XPBDRigidBox>(second_link_config);
         second_links[i]->setup();
 
@@ -103,18 +152,18 @@ void RPSRobot::setup()
                 prismatic_constraint, -0.1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
-                &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
+                &top.com(), second_link_end_pos-top.com().position, Mat3r::Identity()
             );
             _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
         }
         else
         {
             Constraint::OneSidedRevoluteJointConstraint revolute_constraint(
-                base.com().position + Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0)), base.com().orientation * base_rev_joint_rot_offset,
+                first_link_base_pos - base.com().position, base.com().orientation * base_rev_joint_rot_offset,
                 &first_links[i]->com(), Vec3r(0,0,first_link_length/2), Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0))
             );
             _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(revolute_constraint));
@@ -127,11 +176,11 @@ void RPSRobot::setup()
                 prismatic_constraint, -0.1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
-                &top.com(), Vec3r(top_radius*std::sin(angles[i]*M_PI/180.0), 0, top_radius*std::cos(angles[i]*M_PI/180.0)), Mat3r::Identity()
+                &top.com(), second_link_end_pos-top.com().position, Mat3r::Identity()
             );
             _constraints.template push_back<Constraint::SphericalJointConstraint>(std::move(spherical_constraint));
         }
