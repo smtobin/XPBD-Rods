@@ -91,7 +91,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     }
     
 
-    _renderer->SetBackground(0.3, 0.3, 0.3);
+    _renderer->SetBackground(0.8, 0.8, 0.8);
     _renderer->SetAutomaticLightCreation(false);
 
     // set camera to look at (0,0,0) from its current position
@@ -116,6 +116,8 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
     camera->SetViewUp(0, 1, 0);
     camera->SetClippingRange(0.01, 1000.0);
+
+    camera->SetParallelProjection(_render_config.cameraOrthographic());
 
     //////////////////////////////////////////////////////////
     // Create HDR lighting (if specified in the config)

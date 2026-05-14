@@ -11,12 +11,13 @@ logging-interval: 10
 log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
+create-skybox: False
 
 ground-plane: True
 
 camera-focal-point: [0.25,1.5,0]
 camera-position: [0.25,1.5,4]
+camera-orthographic: True
 
 objects:
   - 

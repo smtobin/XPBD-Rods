@@ -26,6 +26,7 @@ class SimulationRenderConfig : public Config_Base
 
         _extractParameter("camera-position", node, _camera_position);
         _extractParameter("camera-focal-point", node, _camera_focal_point);
+        _extractParameter("camera-orthographic", node, _camera_orthographic);
     }
 
     const std::optional<std::string>& hdrImageFilename() const { return _hdr_image_filename.value; }
@@ -33,6 +34,7 @@ class SimulationRenderConfig : public Config_Base
     Real hdrScaling() const { return _hdr_scaling.value; }
     Vec3r cameraPosition() const { return _camera_position.value; }
     Vec3r cameraFocalPoint() const { return _camera_focal_point.value; }
+    bool cameraOrthographic() const { return _camera_orthographic.value; }
 
 
     protected:
@@ -42,6 +44,7 @@ class SimulationRenderConfig : public Config_Base
 
     ConfigParameter<Vec3r> _camera_position = ConfigParameter<Vec3r>(Vec3r(3, 4, 3));
     ConfigParameter<Vec3r> _camera_focal_point = ConfigParameter<Vec3r>(Vec3r(0, 0, 0));
+    ConfigParameter<bool> _camera_orthographic = ConfigParameter<bool>(false);
 
 };
 
