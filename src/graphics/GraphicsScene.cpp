@@ -99,17 +99,18 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     double focal_point[3];
     camera->GetFocalPoint(focal_point);
 
-    // Set focal point to ground level (or slightly above)
-    focal_point[1] = 0.0;  // assuming y is up
-    camera->SetFocalPoint(focal_point[0], focal_point[1], focal_point[2]);
+    // set focal point
+    camera->SetFocalPoint(
+        _render_config.cameraFocalPoint()[0],
+        _render_config.cameraFocalPoint()[1],
+        _render_config.cameraFocalPoint()[2]
+    );
 
-    // position camera above and back from the focal point
-    double distance = 5*camera->GetDistance();
-    double angle = 30.0 * M_PI / 180.0;
+    // position camera
     camera->SetPosition(
-        focal_point[0],
-        distance * sin(angle),           // height above ground
-        focal_point[2] + distance * cos(angle)  // distance back
+        _render_config.cameraPosition()[0],
+        _render_config.cameraPosition()[1],
+        _render_config.cameraPosition()[2]
     );
 
     camera->SetViewUp(0, 1, 0);
@@ -127,7 +128,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         reader->SetFileName(hdr_filename.value().c_str());
         vtkNew<vtkImageShiftScale> scale;
         scale->SetInputConnection(reader->GetOutputPort());
-        scale->SetScale(0.2); // darker HDRI
+        scale->SetScale(_render_config.hdrScaling()); // darker HDRI
 
         hdr_texture->SetInputConnection(scale->GetOutputPort());
         hdr_texture->SetColorModeToDirectScalars();

@@ -1,6 +1,6 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
-sim-mode: "AFAP"
+# sim-mode: "AFAP"
 time-step: 1e-2
 end-time: 100
 
@@ -11,7 +11,7 @@ log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
-exposure: 0.0
+hdr-scaling: 0.2
 
 ground-plane: True
 
