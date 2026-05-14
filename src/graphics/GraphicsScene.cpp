@@ -164,7 +164,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
-    light->SetShadowAttenuation(1);
+    light->SetShadowAttenuation(0.5);
     _renderer->AddLight(light);
 
 
@@ -190,7 +190,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
     _render_window->SetAlphaBitPlanes(1);
-    _render_window->SetMultiSamples(0);
+    // _render_window->SetMultiSamples(0);
 
     _renderer->SetUseDepthPeeling(true);
     _renderer->SetMaximumNumberOfPeels(50);
@@ -205,7 +205,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
     // Shadow map
     vtkNew<vtkShadowMapPass> shadowPass;
-    shadowPass->GetShadowMapBakerPass()->SetResolution(2048);
+    shadowPass->GetShadowMapBakerPass()->SetResolution(4096);
 
     // IMPORTANT: depth peeling must wrap translucent pass
     vtkNew<vtkDepthPeelingPass> peelingPass;

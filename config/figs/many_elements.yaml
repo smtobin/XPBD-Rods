@@ -29,7 +29,7 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 1
+    elements: 100
     global-solve: true
     base-fixed: True
     tip-fixed: False
@@ -56,7 +56,7 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 1
+    elements: 10
     global-solve: true
     base-fixed: True
     tip-fixed: False
@@ -82,7 +82,7 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 1
+    elements: 5
     global-solve: true
     base-fixed: True
     tip-fixed: False
@@ -105,6 +105,7 @@ objects:
     size: [0.05, 0.4, 1.25]
     fixed: True
     collisions: False
+    log-particles: False
     render-type: "PBR"
     metallic: 0.0
     roughness: 0.5

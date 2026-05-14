@@ -255,10 +255,15 @@ class Simulation
         // if the particles of this object should be logged, only log the first and last particle (rods may have many particles)
         if (rod_config.logParticles() && _logger)
         {
-            const std::string var_name_0 = new_obj_ptr->name() + "_particle0";
-            const std::string var_name_end = new_obj_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
-            _logger->addOutput(var_name_0, obj_particles[0]);
-            _logger->addOutput(var_name_end, obj_particles.back());   
+            for (unsigned i = 0; i < obj_particles.size(); i++)
+            {
+                const std::string var_name = new_obj_ptr->name() + "_particle" + std::to_string(i);
+                _logger->addOutput(var_name, obj_particles[i]);
+            }
+            // const std::string var_name_0 = new_obj_ptr->name() + "_particle0";
+            // const std::string var_name_end = new_obj_ptr->name() + "_particle" + std::to_string(obj_particles.size()-1);
+            // _logger->addOutput(var_name_0, obj_particles[0]);
+            // _logger->addOutput(var_name_end, obj_particles.back());   
         }
     }
 
