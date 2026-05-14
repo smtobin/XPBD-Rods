@@ -16,7 +16,7 @@ class RodElement : public RodElement_Base
 {
 public:
     static constexpr int NumNodes = std::max(2,Order_+1);  // number of nodes in the element
-    static constexpr int NumGP = Order_;     // number of Gauss points per element
+    static constexpr int NumGP = std::max(1,Order_);     // number of Gauss points per element
     static constexpr int Order = Order_;     // the order of the polynomial bases
 
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;

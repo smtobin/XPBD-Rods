@@ -1,70 +1,91 @@
-name: "Rod-Rod Collision"
+name: "RodSim"
 # sim-mode: "Frame-by-frame"
-time-step: 1e-3
+sim-mode: "AFAP"
+time-step: 1e-2
 end-time: 100
-solver-iters: 1
+
+logging: False
+logging-output-folder: "../output/convergence"
+logging-interval: 1
+log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
-exposure: 0.5
+create-skybox: False
+
+ground-plane: False
+
 objects:
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Cubic"
-    initial-position: [-0.2, 1, 0.0]
-    initial-rotation: [0, 0, 0]
-    elements: 5
-    E: 1e5
+    element-type: "Linear"
+    initial-position: [0, 1, 0.0]
+    initial-rotation: [0, 90, 0]
+    E: 5e6
+    nu: 0.4
     diameter: 0.1
     length: 1
-    nu: 0.3
+    density: 1000
+    elements: 1
+    global-solve: true
     base-fixed: True
-    tip-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
     metallic: 0.0
     roughness: 0.5
-    color: [1.0, 0.0, 0.0]
+    color: [1.0, 0, 0]
+    opacity: 0.8
 
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Linear"
-    initial-position: [0.2, 1, 0.0]
-    initial-rotation: [0, 0, 0]
-    elements: 20
-    E: 1e5
-    diameter: 0.1
-    length: 1
-    nu: 0.3
-    base-fixed: True
-    tip-fixed: True
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [1.0, 0.0, 0.0]
-
-  - 
-    type: "Rod"
-    name: "rod2"
-    element-type: "Cubic"
-    initial-position: [-0.5, 1.3, 0.5]
+    element-type: "Quadratic"
+    initial-position: [0, 1, 0.0]
     initial-rotation: [0, 90, 0]
-    elements: 5
-    E: 1e5
+    E: 5e6
+    nu: 0.4
     diameter: 0.1
     length: 1
-    nu: 0.3
-    base-fixed: False
+    density: 1000
+    elements: 1
+    global-solve: true
+    base-fixed: True
     tip-fixed: False
+    collisions: False
+    log-particles: True
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
     metallic: 0.0
     roughness: 0.5
     color: [0.0, 0.0, 1.0]
-   
+    opacity: 0.8
+
+  - 
+    type: "Rod"
+    name: "rod1"
+    element-type: "Cubic"
+    initial-position: [0, 1, 0.0]
+    initial-rotation: [0, 90, 0]
+    E: 5e6
+    nu: 0.4
+    diameter: 0.1
+    length: 1
+    density: 1000
+    elements: 1
+    global-solve: true
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [0.0, 1.0, 0]
+    opacity: 0.8

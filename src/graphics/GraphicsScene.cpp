@@ -44,6 +44,7 @@
 #include <vtkLightsPass.h>
 #include <vtkOpaquePass.h>
 #include <vtkTranslucentPass.h>
+#include <vtkImageShiftScale.h>
 
 #include <vtkCoordinate.h>
 
@@ -124,10 +125,18 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         vtkNew<vtkTexture> hdr_texture;
         vtkNew<vtkHDRReader> reader;
         reader->SetFileName(hdr_filename.value().c_str());
-        hdr_texture->SetInputConnection(reader->GetOutputPort());
+        vtkNew<vtkImageShiftScale> scale;
+        scale->SetInputConnection(reader->GetOutputPort());
+        scale->SetScale(0.2); // darker HDRI
+
+        hdr_texture->SetInputConnection(scale->GetOutputPort());
         hdr_texture->SetColorModeToDirectScalars();
         hdr_texture->MipmapOn();
         hdr_texture->InterpolateOn();
+
+        
+
+hdr_texture->SetInputConnection(scale->GetOutputPort());
 
         if (_render_config.createSkybox())
         {
@@ -156,7 +165,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
-    light->SetShadowAttenuation(3.0);
+    light->SetShadowAttenuation(1);
     _renderer->AddLight(light);
 
 
@@ -182,36 +191,40 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
     _renderer->SetUseDepthPeeling(true);
-    _renderer->SetMaximumNumberOfPeels(4);
-    _render_window->SetAlphaBitPlanes(true);
+    _renderer->SetMaximumNumberOfPeels(100);
+    _renderer->SetOcclusionRatio(0.0);
+
+    _render_window->SetAlphaBitPlanes(1);
     _render_window->SetMultiSamples(0);
+
+    _renderer->UseShadowsOn();
     
-    vtkNew<vtkSequencePass> seqP;
-    vtkNew<vtkOpaquePass> opaqueP;
-    vtkNew<vtkTranslucentPass> translucentP;
-    vtkNew<vtkLightsPass> lightsP;
+    // vtkNew<vtkSequencePass> seqP;
+    // vtkNew<vtkOpaquePass> opaqueP;
+    // vtkNew<vtkTranslucentPass> translucentP;
+    // vtkNew<vtkLightsPass> lightsP;
 
-    vtkNew<vtkShadowMapPass> shadows;
-    shadows->GetShadowMapBakerPass()->SetResolution(4096);
+    // vtkNew<vtkShadowMapPass> shadows;
+    // shadows->GetShadowMapBakerPass()->SetResolution(4096);
 
-    vtkNew<vtkRenderPassCollection> passes;
-    passes->AddItem(shadows->GetShadowMapBakerPass());
-    passes->AddItem(lightsP);
-    passes->AddItem(opaqueP);
-    passes->AddItem(shadows);
-    passes->AddItem(translucentP);
-    seqP->SetPasses(passes);
+    // vtkNew<vtkRenderPassCollection> passes;
+    // passes->AddItem(shadows->GetShadowMapBakerPass());
+    // passes->AddItem(lightsP);
+    // passes->AddItem(opaqueP);
+    // passes->AddItem(shadows);
+    // passes->AddItem(translucentP);
+    // seqP->SetPasses(passes);
 
-    vtkNew<vtkCameraPass> cameraP;
-    cameraP->SetDelegatePass(seqP);
+    // vtkNew<vtkCameraPass> cameraP;
+    // cameraP->SetDelegatePass(seqP);
 
-    vtkNew<vtkToneMappingPass> toneMappingP;
-    toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
-    toneMappingP->SetGenericFilmicDefaultPresets();
-    toneMappingP->SetDelegatePass(cameraP);
-    toneMappingP->SetExposure(_render_config.exposure());
+    // vtkNew<vtkToneMappingPass> toneMappingP;
+    // toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
+    // toneMappingP->SetGenericFilmicDefaultPresets();
+    // toneMappingP->SetDelegatePass(cameraP);
+    // toneMappingP->SetExposure(_render_config.exposure());
 
-    _renderer->SetPass(toneMappingP);
+    // _renderer->SetPass(toneMappingP);
 
     vtkNew<vtkCallbackCommand> render_callback;
     render_callback->SetCallback(GraphicsScene::renderCallback);
