@@ -24,6 +24,8 @@ public:
 
     virtual void update() override;
 
+    vtkSmartPointer<vtkActor> centerlineActor() { return _vtk_centerline_actor; }
+
 private:
     void _generateInitialPolyData();
     void _updatePolyData();
@@ -35,6 +37,9 @@ private:
     vtkSmartPointer<vtkPolyDataNormals> _vtk_poly_data_normals;
     vtkSmartPointer<vtkPolyDataMapper> _vtk_poly_data_mapper;
 
+    vtkSmartPointer<vtkActor> _vtk_centerline_actor;
+    vtkSmartPointer<vtkPolyData> _vtk_centerline_poly_data;
+
     Config::ObjectRenderConfig _render_config;
 
     /** Points (in the XY plane) for the cross-section of the rod */
@@ -44,7 +49,10 @@ private:
     int _sample_points_per_element;
 
     /** Number of cross-sections to use along the rod. */
-    int _num_samples = 50;
+    int _num_samples;
+
+    /** Whether or not to visualize the centerline of the rod. */
+    bool _draw_centerline;
 
 
 

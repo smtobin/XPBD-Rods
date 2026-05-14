@@ -52,6 +52,9 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("color", node, _color);
 
         _extractParameter("smooth-normals", node, _smooth_normals);
+
+        _extractParameter("draw-centerline", node, _draw_centerline);
+        _extractParameter("centerline-samples", node, _num_centerline_samples);
     }
 
     explicit ObjectRenderConfig(
@@ -90,8 +93,10 @@ class ObjectRenderConfig : public Config_Base
     void setOpacity(Real opacity) { _opacity.value = opacity; }
     void setColor(Vec3r color) { _color.value = color; }
 
-
     bool smoothNormals() const { return _smooth_normals.value; }
+
+    bool drawCenterline() const { return _draw_centerline.value; }
+    int numCenterlineSamples() const { return _num_centerline_samples.value; }
 
     protected:
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
@@ -107,6 +112,10 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<Vec3r> _color = ConfigParameter<Vec3r>(Vec3r(1.0, 1.0, 1.0));
 
     ConfigParameter<bool> _smooth_normals = ConfigParameter<bool>(true);
+
+    /** Rod-specific options */
+    ConfigParameter<bool> _draw_centerline = ConfigParameter<bool>(false);
+    ConfigParameter<int> _num_centerline_samples = ConfigParameter<int>(50);
     
 };
 

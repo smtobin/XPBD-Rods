@@ -39,7 +39,9 @@ objects:
     metallic: 0.0
     roughness: 0.5
     color: [1.0, 0, 0]
-    opacity: 1
+    opacity: 0.5
+    draw-centerline: True
+    centerline-samples: 50
 
   # - 
   #   type: "Rod"

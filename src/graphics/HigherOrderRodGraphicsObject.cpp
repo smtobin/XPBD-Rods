@@ -15,6 +15,8 @@
 #include <vtkPNGReader.h>
 #include <vtkCleanPolyData.h>
 #include <vtkImageData.h>
+#include <vtkPolyLine.h>
+#include <vtkTubeFilter.h>
 
 #include <filesystem>
 #include <optional>
@@ -24,7 +26,8 @@ namespace Graphics
 
 template<typename ElementType>
 HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
-    : GraphicsObject(render_config), _rod(rod), _render_config(render_config)
+    : GraphicsObject(render_config), _rod(rod), _render_config(render_config), 
+    _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline())
 {
     _vtk_poly_data = vtkSmartPointer<vtkPolyData>::New();
     _vtk_poly_data_normals = vtkSmartPointer<vtkPolyDataNormals>::New();
@@ -57,6 +60,57 @@ HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const Si
 
     VTKUtils::setupActorFromRenderConfig(_vtk_actor.Get(), render_config);
 
+    // create centerline if enabled
+    if (_draw_centerline)
+    {
+        vtkNew<vtkPoints> centerline_points;
+        const std::vector<ElementType>& elements = _rod->elements();
+        const std::vector<SimObject::OrientedParticle>& nodes = _rod->nodes();
+        for (int si = 0; si < _num_samples; si++)
+        {
+            // position along rod in [0, 1]
+            Real s = (Real)si / (_num_samples - 1);
+            // the element index that s corresponds to
+            int elem_ind = std::clamp(static_cast<int>(s * elements.size()), 0, static_cast<int>(elements.size()-1));
+            // the "local" s within the element
+            Real s_hat = s * elements.size() - (Real)elem_ind;
+
+            Vec3r position = elements[elem_ind].position(s_hat);
+
+            centerline_points->InsertNextPoint(position[0], position[1], position[2]);
+            
+        }
+
+        vtkNew<vtkPolyLine> line;
+        line->GetPointIds()->SetNumberOfIds(_num_samples);
+        for (int i = 0; i < _num_samples; i++)
+        {
+            line->GetPointIds()->SetId(i, i);
+        }
+
+        vtkNew<vtkCellArray> cells;
+        cells->InsertNextCell(line);
+
+        _vtk_centerline_poly_data = vtkSmartPointer<vtkPolyData>::New();
+        _vtk_centerline_poly_data->SetPoints(centerline_points);
+        _vtk_centerline_poly_data->SetLines(cells);
+
+        vtkNew<vtkTubeFilter> tube;
+        tube->SetInputData(_vtk_centerline_poly_data);
+
+        tube->SetRadius(_rod->radius()/10);
+        tube->SetNumberOfSides(12);
+        tube->CappingOn();
+
+        vtkNew<vtkPolyDataMapper> mapper;
+        mapper->SetInputConnection(tube->GetOutputPort());
+
+        _vtk_centerline_actor = vtkSmartPointer<vtkActor>::New();
+        _vtk_centerline_actor->SetMapper(mapper);
+        VTKUtils::setupActorFromRenderConfig(_vtk_centerline_actor.Get(), render_config);
+        _vtk_centerline_actor->GetProperty()->SetOpacity(1.0); // opacity of centerline is always 1
+    }
+
     // Add this step for smooth normals
     // vtkNew<vtkPolyDataNormals> normalGenerator;
     // normalGenerator->SetInputData(_vtk_poly_data);
@@ -84,6 +138,25 @@ void HigherOrderRodGraphicsObject<ElementType>::update()
 {
     _updatePolyData();
 
+    const std::vector<ElementType>& elements = _rod->elements();
+    if (_draw_centerline)
+    {
+        vtkPoints* points = _vtk_centerline_poly_data->GetPoints();
+        for (int si = 0; si < _num_samples; si++)
+        {
+            // position along rod in [0, 1]
+            Real s = (Real)si / (_num_samples - 1);
+            // the element index that s corresponds to
+            int elem_ind = std::clamp(static_cast<int>(s * elements.size()), 0, static_cast<int>(elements.size()-1));
+            // the "local" s within the element
+            Real s_hat = s * elements.size() - (Real)elem_ind;
+
+            Vec3r position = elements[elem_ind].position(s_hat);
+            points->SetPoint( si, position[0], position[1], position[2] );
+        }
+        points->Modified();
+    }
+
 }
 
 template<typename ElementType>
@@ -104,7 +177,7 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
 
     // insert cross-section vertices
     vtkNew<vtkPoints> points;
-    for (unsigned si = 0; si < _num_samples; si++)
+    for (int si = 0; si < _num_samples; si++)
     {
         // position along rod in [0, 1]
         Real s = (Real)si / (_num_samples - 1);
@@ -126,7 +199,7 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
 
     // create faces inbetween nodes
     vtkNew<vtkCellArray> faces;
-    for (unsigned si = 0; si < _num_samples-1; si++)
+    for (int si = 0; si < _num_samples-1; si++)
     {
         for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
         {

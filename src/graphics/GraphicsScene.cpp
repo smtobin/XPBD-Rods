@@ -45,6 +45,7 @@
 #include <vtkOpaquePass.h>
 #include <vtkTranslucentPass.h>
 #include <vtkImageShiftScale.h>
+#include <vtkDepthPeelingPass.h>
 
 #include <vtkCoordinate.h>
 
@@ -134,10 +135,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         hdr_texture->SetColorModeToDirectScalars();
         hdr_texture->MipmapOn();
         hdr_texture->InterpolateOn();
-
-        
-
-hdr_texture->SetInputConnection(scale->GetOutputPort());
+        hdr_texture->SetInputConnection(scale->GetOutputPort());
 
         if (_render_config.createSkybox())
         {
@@ -191,41 +189,44 @@ hdr_texture->SetInputConnection(scale->GetOutputPort());
     /////////////////////////////////////////////////////////
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
-    _renderer->SetUseDepthPeeling(true);
-    _renderer->SetMaximumNumberOfPeels(100);
-    _renderer->SetOcclusionRatio(0.0);
-
     _render_window->SetAlphaBitPlanes(1);
     _render_window->SetMultiSamples(0);
 
-    _renderer->UseShadowsOn();
-    
-    // vtkNew<vtkSequencePass> seqP;
-    // vtkNew<vtkOpaquePass> opaqueP;
-    // vtkNew<vtkTranslucentPass> translucentP;
-    // vtkNew<vtkLightsPass> lightsP;
+    _renderer->SetUseDepthPeeling(true);
+    _renderer->SetMaximumNumberOfPeels(50);
+    _renderer->SetOcclusionRatio(0.1);
 
-    // vtkNew<vtkShadowMapPass> shadows;
-    // shadows->GetShadowMapBakerPass()->SetResolution(4096);
+    // Core passes
+    vtkNew<vtkRenderPassCollection> passes;
 
-    // vtkNew<vtkRenderPassCollection> passes;
-    // passes->AddItem(shadows->GetShadowMapBakerPass());
-    // passes->AddItem(lightsP);
-    // passes->AddItem(opaqueP);
-    // passes->AddItem(shadows);
-    // passes->AddItem(translucentP);
-    // seqP->SetPasses(passes);
+    vtkNew<vtkLightsPass> lightsPass;
+    vtkNew<vtkOpaquePass> opaquePass;
+    vtkNew<vtkTranslucentPass> translucentPass;
 
-    // vtkNew<vtkCameraPass> cameraP;
-    // cameraP->SetDelegatePass(seqP);
+    // Shadow map
+    vtkNew<vtkShadowMapPass> shadowPass;
+    shadowPass->GetShadowMapBakerPass()->SetResolution(2048);
 
-    // vtkNew<vtkToneMappingPass> toneMappingP;
-    // toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
-    // toneMappingP->SetGenericFilmicDefaultPresets();
-    // toneMappingP->SetDelegatePass(cameraP);
-    // toneMappingP->SetExposure(_render_config.exposure());
+    // IMPORTANT: depth peeling must wrap translucent pass
+    vtkNew<vtkDepthPeelingPass> peelingPass;
+    peelingPass->SetTranslucentPass(translucentPass);
+    peelingPass->SetMaximumNumberOfPeels(50);
+    peelingPass->SetOcclusionRatio(0.1);
 
-    // _renderer->SetPass(toneMappingP);
+    // Order matters
+    passes->AddItem(shadowPass->GetShadowMapBakerPass());
+    passes->AddItem(lightsPass);
+    passes->AddItem(opaquePass);
+    passes->AddItem(shadowPass);
+    passes->AddItem(peelingPass);
+
+    vtkNew<vtkSequencePass> seq;
+    seq->SetPasses(passes);
+
+    vtkNew<vtkCameraPass> cameraP;
+    cameraP->SetDelegatePass(seq);
+
+    _renderer->SetPass(cameraP);
 
     vtkNew<vtkCallbackCommand> render_callback;
     render_callback->SetCallback(GraphicsScene::renderCallback);
@@ -305,7 +306,6 @@ void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const 
 
 void GraphicsScene::_addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config)
 {
-    std::cout << "Adding mesh for rigid body" << std::endl;
     // load mesh from file and resize and reposition
     _graphics_meshes.push_back(Mesh::loadFromFile(render_config.filename()));
     auto& new_mesh = _graphics_meshes.back();

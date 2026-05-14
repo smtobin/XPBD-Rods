@@ -52,6 +52,10 @@ class GraphicsScene
         std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, config.renderConfig());
 
         _renderer->AddActor(rod_go->actor());
+
+        if (config.renderConfig().drawCenterline())
+            _renderer->AddActor(rod_go->centerlineActor());
+
         _graphics_objects.push_back(std::move(rod_go));
     }
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& render_config);
