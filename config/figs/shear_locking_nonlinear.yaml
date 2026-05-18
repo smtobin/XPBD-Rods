@@ -5,7 +5,7 @@ time-step: 1e-2
 end-time: 100
 
 logging: True
-logging-output-folder: "../output/single_element"
+logging-output-folder: "../output/shear_locking"
 logging-interval: 1
 log-residuals: True
 
@@ -23,14 +23,14 @@ objects:
   #   type: "Rod"
   #   name: "linear_rod"
   #   element-type: "Linear"
-  #   initial-position: [0, 1.5, 0.7]
+  #   initial-position: [0, 1.0, 0.7]
   #   initial-rotation: [0, 90, 0]
   #   E: 5e6
   #   nu: 0.4
   #   diameter: 0.1
   #   length: 1
   #   density: 1000
-  #   elements: 100
+  #   elements: 3
   #   global-solve: true
   #   base-fixed: True
   #   tip-fixed: False
@@ -46,44 +46,44 @@ objects:
   #   draw-centerline: False
   #   centerline-samples: 50
 
-  - 
-    type: "Rod"
-    name: "quadratic_rod"
-    element-type: "Quadratic"
-    initial-position: [0, 1.5, 0.2]
-    initial-rotation: [0, 90, 0]
-    E: 5e6
-    nu: 0.4
-    diameter: 0.1
-    length: 1
-    density: 1000
-    elements: 10
-    global-solve: true
-    base-fixed: True
-    tip-fixed: False
-    collisions: False
-    log-particles: True
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [1.0, 0.0, 0.0]
-    opacity: 1
-    centerline-samples: 50
+  # - 
+  #   type: "Rod"
+  #   name: "quadratic_rod"
+  #   element-type: "Quadratic"
+  #   initial-position: [0, 1.0, 0.2]
+  #   initial-rotation: [0, 90, 0]
+  #   E: 5e6
+  #   nu: 0.4
+  #   diameter: 0.1
+  #   length: 1
+  #   density: 1000
+  #   elements: 1
+  #   global-solve: true
+  #   base-fixed: True
+  #   tip-fixed: False
+  #   collisions: False
+  #   log-particles: True
+  #   render-type: "PBR"
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.0
+  #   roughness: 0.5
+  #   color: [1.0, 0.0, 0.0]
+  #   opacity: 1
+  #   centerline-samples: 50
 
   - 
     type: "Rod"
     name: "cubic_rod"
     element-type: "Cubic"
-    initial-position: [0, 1.5, -0.3]
+    initial-position: [0, 1.0, -0.3]
     initial-rotation: [0, 90, 0]
     E: 5e6
     nu: 0.4
     diameter: 0.1
     length: 1
     density: 1000
-    elements: 5
+    elements: 1
     global-solve: true
     base-fixed: True
     tip-fixed: False
@@ -101,7 +101,7 @@ objects:
   -
     type: "RigidBox"
     name: "wall"
-    initial-position: [-0.025,1.5,0.2]
+    initial-position: [-0.025,1.0,0.2]
     initial-velocity: [0,0,0]
     size: [0.05, 0.2, 1.25]
     fixed: True

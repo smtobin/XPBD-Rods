@@ -50,6 +50,8 @@ class RodConfig : public XPBDObjectConfig
         _extractParameter("nu", node, _nu);
 
         _extractParameter("curvature", node, _curvature);
+
+        _extractParameter("tip-force", node, _tip_force);
         
     }
 
@@ -96,6 +98,8 @@ class RodConfig : public XPBDObjectConfig
 
     Vec3r curvature() const { return _curvature.value; }
 
+    Vec3r tipForce() const { return _tip_force.value; }
+
     protected:
     ConfigParameter<RodElementType> _element_type = ConfigParameter<RodElementType>(RodElementType::LINEAR);
 
@@ -113,6 +117,8 @@ class RodConfig : public XPBDObjectConfig
     ConfigParameter<Real> _nu = ConfigParameter<Real>(0.45);
 
     ConfigParameter<Vec3r> _curvature = ConfigParameter<Vec3r>(Vec3r(0,0,0));
+
+    ConfigParameter<Vec3r> _tip_force = ConfigParameter<Vec3r>(Vec3r(0,0,0));
 };
 
 } // namespace Config

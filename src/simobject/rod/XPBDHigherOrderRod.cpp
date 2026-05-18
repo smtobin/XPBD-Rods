@@ -65,6 +65,9 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     _fixed_base_constraint = (const Constraint::FixedJointConstraint*)nullptr;
     _fixed_tip_constraint = (const Constraint::OneSidedFixedJointConstraint*)nullptr;
 
+    // set the tip force from the config
+    _tip_force = config.tipForce();
+
 }
 
 template <typename ElementType>
@@ -306,6 +309,12 @@ void XPBDRod_<ElementType>::inertialUpdate(Real dt)
         Vec3r T_ext = Vec3r::Zero();
         // if (i == _num_nodes-1)
         //     T_ext = _nodes[i].orientation.transpose() * Vec3r(20,0,0);
+
+        // apply the tip force
+        if (i == _num_nodes-1)
+        {
+            F_ext += _tip_force;
+        }
         node.inertialUpdate(dt, F_ext, T_ext);
     }
 }

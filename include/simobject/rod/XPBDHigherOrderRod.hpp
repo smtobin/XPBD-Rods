@@ -97,6 +97,9 @@ protected:
     bool _base_fixed;
     bool _tip_fixed;
 
+    /** Applied tip force (applied at the last node) */
+    Vec3r _tip_force;
+
     /** Base/tip fixed constraints.
      * These are either one-sided or two-sided fixed joint constraints
      */
