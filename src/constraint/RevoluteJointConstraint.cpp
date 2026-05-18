@@ -97,7 +97,7 @@ NormedRevoluteJointConstraint::ConstraintVecType NormedRevoluteJointConstraint::
     const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
     const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * joint_or2.col(2);
     
-    // const Vec3r dtheta = Math::Minus_SO3(joint_or2, joint_or1);
+    const Vec3r dtheta = Math::Minus_SO3(joint_or2, joint_or1);
 
     ConstraintVecType C_vec;
     C_vec[0] = dp.norm();
@@ -109,6 +109,7 @@ NormedRevoluteJointConstraint::ConstraintVecType NormedRevoluteJointConstraint::
 NormedRevoluteJointConstraint::GradientMatType NormedRevoluteJointConstraint::gradient() const
 {
     GradientMatType grad;
+
     // gradients of positional constraints
     const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
     const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
@@ -129,8 +130,6 @@ NormedRevoluteJointConstraint::GradientMatType NormedRevoluteJointConstraint::gr
         dCp_dor1 = dp.transpose()/dp.norm() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
         dCp_dor2 = -dp.transpose()/dp.norm() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
     }
-
-    
 
     // gradients of rotational constraints
     const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;

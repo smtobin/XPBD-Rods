@@ -1,11 +1,15 @@
 name: "RPS Sim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
+sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 100
 
-logging: False
-logging-output-folder: "../output/convergence"
+camera-focal-point: [0,0,0]
+# camera-position: [0.25,1.5,4]
+camera-position: [2,1.5,2]
+
+logging: True
+logging-output-folder: "../output/rps_robot"
 logging-interval: 0.01
 log-residuals: True
 
@@ -20,5 +24,6 @@ objects:
     log-particles: False
 
     use-normed-constraints: False
+    projector-type: "block"
 
     color: [1.0, 0.5, 0.0]

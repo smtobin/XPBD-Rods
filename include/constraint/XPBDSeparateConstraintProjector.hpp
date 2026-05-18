@@ -33,12 +33,12 @@ public:
             inertia_inverse.template block<6,1>(6*i, 0) = 
                 Vec6r(1/particle->mass, 1/particle->mass, 1/particle->mass, 1/particle->Ib[0], 1/particle->Ib[1], 1/particle->Ib[2]);
         }
+        // std::cout << "Inertia inverse: " << inertia_inverse.transpose()  << std::endl;
 
         // std::cout << "\n" << std::endl;
         for (int i = 0; i < Constraint::ConstraintDim; i++)
         {
             typename Constraint::ConstraintVecType C = _constraint->evaluate();
-            // std::cout << "========\nC: " << C.transpose() << std::endl;
 
             // special handling for inequality constraints
             if (_constraint->isInequality())
@@ -59,11 +59,15 @@ public:
             Real dlam = RHS/LHS;
             _lambda[i] += dlam;
 
+            // std::cout << "Dlam: " << dlam << std::endl;
+
             // update nodes
             for (int j = 0; j < Constraint::NumOrientedParticles; j++)
             {
                 using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
-                SingleOrientedParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
+                SingleOrientedParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*j);
+                // std::cout << "Particle j grad: \n" << particle_j_grad << std::endl;
+                // std::cout << "Inertia inverse block: " << inertia_inverse.template block<6,1>(6*j, 0).transpose() << std::endl;
                 SimObject::OrientedParticle* particle_j = _constraint->orientedParticles()[j];
                 const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * particle_j_grad.row(i).transpose() * dlam;
                 // std::cout << "Position update: " << position_update.transpose() << std::endl;

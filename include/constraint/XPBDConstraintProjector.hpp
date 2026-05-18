@@ -28,6 +28,7 @@ public:
     virtual void project() override
     {
         typename Constraint::ConstraintVecType C = _constraint->evaluate();
+        // std::cout << "========\nC: " << C.transpose() << std::endl;
 
         // special handling for inequality constraints
         if (_constraint->isInequality())

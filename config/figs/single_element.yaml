@@ -14,15 +14,16 @@ create-skybox: True
 
 ground-plane: True
 
-camera-focal-point: [0,0.5,0]
-camera-position: [3,4,3]
+camera-focal-point: [0.25,1.5,0]
+# camera-position: [0.25,1.5,4]
+camera-position: [4,3,4]
 
 objects:
   - 
     type: "Rod"
     name: "linear_rod"
     element-type: "Linear"
-    initial-position: [0, 1, 0.7]
+    initial-position: [0, 1.5, 0.7]
     initial-rotation: [0, 90, 0]
     E: 5e6
     nu: 0.4
@@ -49,7 +50,7 @@ objects:
     type: "Rod"
     name: "quadratic_rod"
     element-type: "Quadratic"
-    initial-position: [0, 1, 0.2]
+    initial-position: [0, 1.5, 0.2]
     initial-rotation: [0, 90, 0]
     E: 5e6
     nu: 0.4
@@ -75,7 +76,7 @@ objects:
     type: "Rod"
     name: "cubic_rod"
     element-type: "Cubic"
-    initial-position: [0, 1, -0.3]
+    initial-position: [0, 1.5, -0.3]
     initial-rotation: [0, 90, 0]
     E: 5e6
     nu: 0.4
@@ -100,9 +101,9 @@ objects:
   -
     type: "RigidBox"
     name: "wall"
-    initial-position: [-0.025,1,0.2]
+    initial-position: [-0.025,1.5,0.2]
     initial-velocity: [0,0,0]
-    size: [0.05, 0.4, 1.25]
+    size: [0.05, 0.2, 1.25]
     fixed: True
     collisions: False
     render-type: "PBR"
