@@ -49,15 +49,7 @@ RevoluteJointConstraint::GradientMatType RevoluteJointConstraint::gradient() con
 
     const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
     const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
-    // const Vec3r dtheta = Math::Log_SO3(joint_or1.transpose() * joint_or2);
-    // const Mat3r jac_inv = Math::ExpMap_InvRightJacobian(dtheta);
-    // const Mat3r dCor_dor1 = -jac_inv.transpose() * _or1.transpose();   /** TODO: check this! */
-    // const Mat3r dCor_dor2 = jac_inv * _or2.transpose();
-    // const Vec3r joint_axis1 = _oriented_particles[0]->orientation * _or1 * Vec3r(0,0,1);
-    // const Vec3r joint_axis2 = _oriented_particles[1]->orientation * _or2 * Vec3r(0,0,1);
-    // const Mat3r dCor_dor1 = Math::Skew3(joint_axis2) * _oriented_particles[0]->orientation * Math::Skew3(_or1.col(2));
     const Mat3r dCor_dor1 = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _oriented_particles[0]->orientation;
-    // const Mat3r dCor_dor2 = -Math::Skew3(joint_axis1) * _oriented_particles[1]->orientation * Math::Skew3(_or2.col(2));
     const Mat3r dCor_dor2 = -Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_or2.col(2));
 
     grad.block<3,3>(0,0) = dCp_dp1;
@@ -71,7 +63,53 @@ RevoluteJointConstraint::GradientMatType RevoluteJointConstraint::gradient() con
     
 
     return grad;
+}
 
+Real RevoluteJointConstraint::evaluateSingle(int index) const
+{
+    if (index < 3)
+    {
+        const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
+        const Vec3r dp = joint_pos2 - joint_pos1;
+        return dp[index];
+    }
+    else
+    {
+        const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+        const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * joint_or2.col(2);
+        return dor[index-3];
+    }
+}
+
+Eigen::Matrix<Real, 1, RevoluteJointConstraint::StateDim> RevoluteJointConstraint::gradientSingle(int index) const
+{
+    Eigen::Matrix<Real, 1, RevoluteJointConstraint::StateDim> grad_row;
+    if (index < 3)
+    {
+        // gradients of positional constraints
+        grad_row.block<1,3>(0,0) = -Mat3r::Identity().row(index); 
+        grad_row.block<1,3>(0,6) = Mat3r::Identity().row(index);
+        const Mat3r dCp_dor1 = _oriented_particles[0]->orientation * Math::Skew3(_r1);
+        const Mat3r dCp_dor2 = -_oriented_particles[1]->orientation * Math::Skew3(_r2);
+        grad_row.block<1,3>(0,3) = dCp_dor1.row(index);
+        grad_row.block<1,3>(0,9) = dCp_dor2.row(index);
+    }
+    else
+    {
+        const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+        const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
+        const Mat3r dCor_dor1 = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _oriented_particles[0]->orientation;
+        const Mat3r dCor_dor2 = -Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_or2.col(2));
+
+        grad_row.block<1,3>(0,0) = Vec3r::Zero();
+        grad_row.block<1,3>(0,3) = dCor_dor1.row(index-3);
+        grad_row.block<1,3>(0,6) = Vec3r::Zero();
+        grad_row.block<1,3>(0,9) = dCor_dor2.row(index-3);
+    }
+
+    return grad_row;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,6 +253,46 @@ OneSidedRevoluteJointConstraint::GradientMatType OneSidedRevoluteJointConstraint
 
     return grad;
 
+}
+
+Real OneSidedRevoluteJointConstraint::evaluateSingle(int index) const
+{
+    if (index < 3)
+    {
+        const Vec3r joint_pos = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r dp = _base_pos - joint_pos;
+        return dp[index];
+    }
+    else
+    {
+        const Mat3r joint_or = _oriented_particles[0]->orientation * _or1;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * _base_or.col(2);
+        return dor[index-3];
+    }
+}
+
+Eigen::Matrix<Real, 1, OneSidedRevoluteJointConstraint::StateDim> OneSidedRevoluteJointConstraint::gradientSingle(int index) const
+{
+    Eigen::Matrix<Real, 1, StateDim> grad_row;
+    
+    if (index < 3)
+    {
+        // gradients of positional constraints
+        grad_row.block<1,3>(0,0) = -Mat3r::Identity().row(index);
+        const Mat3r dCp_dor = _oriented_particles[0]->orientation * Math::Skew3(_r1);
+        grad_row.block<1,3>(0,3) = dCp_dor.row(index);
+    }
+    else
+    {
+        // gradients of rotational constraints
+        grad_row.block<1,3>(0,0) = Vec3r::Zero();
+
+        const Mat3r joint_or = _oriented_particles[0]->orientation * _or1;
+        const Mat3r dCor_dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * Math::Skew3(_base_or.col(2)) * _oriented_particles[0]->orientation;
+        grad_row.block<1,3>(0,3) = dCor_dor.row(index-3);
+    }
+    
+    return grad_row;
 }
 
 

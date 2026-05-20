@@ -2,9 +2,9 @@ name: "Pendulum Sim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 100
+end-time: 1000
 
-logging: True
+logging: False
 logging-output-folder: "../output/pendulum"
 logging-interval: 1e-2
 log-residuals: True

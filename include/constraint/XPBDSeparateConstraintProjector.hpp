@@ -4,6 +4,22 @@
 #include "constraint/XPBDConstraintProjector_Base.hpp"
 #include "simobject/OrientedParticle.hpp"
 
+/** Helper struct to determine if the constraint class has evaluateSingle() */
+template<typename, typename = void>
+struct has_evaluate_single : std::false_type {};
+
+template<typename T>
+struct has_evaluate_single<
+    T,
+    std::void_t<
+        decltype(std::declval<T>().evaluateSingle(std::declval<int>()))
+    >
+> : std::true_type {};
+
+template<typename T>
+constexpr bool has_evaluate_single_v = has_evaluate_single<T>::value;
+
+
 namespace Constraint
 {
 
@@ -38,21 +54,38 @@ public:
         // std::cout << "\n" << std::endl;
         for (int i = 0; i < Constraint::ConstraintDim; i++)
         {
-            typename Constraint::ConstraintVecType C = _constraint->evaluate();
+            Real Ci;
+            if constexpr(has_evaluate_single_v<Constraint>)
+                Ci = _constraint->evaluateSingle(i);
+            else
+            {
+                typename Constraint::ConstraintVecType C = _constraint->evaluate();
+                Ci = C[i];
+            }
+            
 
             // special handling for inequality constraints
             if (_constraint->isInequality())
             {
                 // skip projecting this constraint if > 0 (i.e. constraint is not violated)
-                if (C[i] >= 0)
+                if (Ci >= 0)
                     continue;
             }
             
-            typename Constraint::GradientMatType delC = _constraint->gradient();
+            Eigen::Matrix<Real, 1, Constraint::StateDim> delCi;
+
+            if constexpr(has_evaluate_single_v<Constraint>)
+                delCi = _constraint->gradientSingle(i);
+            else
+            {
+                typename Constraint::GradientMatType delC = _constraint->gradient();
+                delCi = delC.row(i);
+            }
+            
             // std::cout << "delC:\n" << delC.transpose() << std::endl;
 
-            Real RHS = -C[i] - _constraint->alpha()[i] * _lambda[i] / (_dt*_dt);
-            Real LHS = delC.row(i) * inertia_inverse.asDiagonal() * delC.row(i).transpose() + _constraint->alpha()[i] / (_dt * _dt);
+            Real RHS = -Ci - _constraint->alpha()[i] * _lambda[i] / (_dt*_dt);
+            Real LHS = delCi * inertia_inverse.asDiagonal() * delCi.transpose() + _constraint->alpha()[i] / (_dt * _dt);
 
             // std::cout << "RHS: " << RHS << "  LHS: " << LHS << std::endl;
 
@@ -64,12 +97,11 @@ public:
             // update nodes
             for (int j = 0; j < Constraint::NumOrientedParticles; j++)
             {
-                using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
-                SingleOrientedParticleGradientMatType particle_j_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*j);
+                Vec6r delCi_particle_j = delCi.template block<1,6>(0,6*j);
                 // std::cout << "Particle j grad: \n" << particle_j_grad << std::endl;
                 // std::cout << "Inertia inverse block: " << inertia_inverse.template block<6,1>(6*j, 0).transpose() << std::endl;
                 SimObject::OrientedParticle* particle_j = _constraint->orientedParticles()[j];
-                const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * particle_j_grad.row(i).transpose() * dlam;
+                const Vec6r position_update = inertia_inverse.template block<6,1>(6*j, 0).asDiagonal() * delCi_particle_j * dlam;
                 // std::cout << "Position update: " << position_update.transpose() << std::endl;
                 particle_j->positionUpdate(position_update);
             }
