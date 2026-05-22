@@ -273,20 +273,20 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
     _vtk_poly_data->SetPolys(faces);
 
     // Create and set texture coordinates
-    // vtkNew<vtkFloatArray> textureCoords;
-    // textureCoords->SetNumberOfComponents(2);
-    // textureCoords->SetNumberOfTuples(nodes.size()*_cross_section_points.size());
-    // textureCoords->SetName("TextureCoordinates");
-    // for (unsigned ni = 0; ni < nodes.size(); ni++)
-    // {
-    //     float x_coord = (ni % 2 == 0) ? 0.0f : 0.5f;
-    //     for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
-    //     {
-    //         float y_coord = static_cast<float>(pi) / _cross_section_points.size();
-    //         textureCoords->SetTuple2(ni*_cross_section_points.size() + pi, x_coord, y_coord);
-    //     }
-    // }
-    // _vtk_poly_data->GetPointData()->SetTCoords(textureCoords);
+    vtkNew<vtkFloatArray> textureCoords;
+    textureCoords->SetNumberOfComponents(2);
+    textureCoords->SetNumberOfTuples(nodes.size()*_cross_section_points.size());
+    textureCoords->SetName("TextureCoordinates");
+    for (unsigned ni = 0; ni < nodes.size(); ni++)
+    {
+        float x_coord = (ni % 2 == 0) ? 0.0f : 0.5f;
+        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        {
+            float y_coord = static_cast<float>(pi) / _cross_section_points.size();
+            textureCoords->SetTuple2(ni*_cross_section_points.size() + pi, x_coord, y_coord);
+        }
+    }
+    _vtk_poly_data->GetPointData()->SetTCoords(textureCoords);
 }
 
 template<typename ElementType>

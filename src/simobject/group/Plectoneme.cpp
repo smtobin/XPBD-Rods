@@ -10,21 +10,21 @@ Plectoneme::Plectoneme(const Config::PlectonemeConfig& config)
     _cur_displacement = 0;
 
     _max_twist = config.revolutions() * 2 * M_PI;
-    _max_displacement = 0.6;
+    _max_displacement = 6;
 }
 
 void Plectoneme::setup()
 {
     Config::RodConfig rod_config(
-        "plectoneme", Vec3r(0,1,0), Vec3r(0,90,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
+        "plectoneme", Vec3r(0,10,0), Vec3r(0,90,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
         Config::RodElementType::QUADRATIC, true, true, true,
-        1, 0.01, 10, 1000, 5e6, 0.48, Vec3r(0,0,0)
+        10, 0.1, 50, 1000, 5e7, 0.4, Vec3r(0,0,0)
     );
 
     rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
     rod_config.renderConfig().setRoughness(0.2);
 
-    auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(rod_config);
+    auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(rod_config);
     rod.setup();
 
     // store pointer to rod for convenience
@@ -40,9 +40,19 @@ void Plectoneme::velocityUpdate(Real dt)
         auto& fixed_joints = rod->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>();
 
         // if we haven't reached the max twist, update the twist angle
-        if (_cur_twist < _max_twist)
+        
+        if (_cur_displacement < _max_displacement)
         {
-            Real twist_increment = 0.5*dt;
+            Real pos_increment = dt;
+
+            Vec3r cur_pos = fixed_joints.back().referencePosition();
+            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
+
+            _cur_displacement += pos_increment;
+        }
+        else if (_cur_twist < _max_twist)
+        {
+            Real twist_increment = dt;
 
             Mat3r cur_rot = fixed_joints.back().referenceOrientation();
             fixed_joints.back().setReferenceOrientation(Math::Plus_SO3(cur_rot, Vec3r(0, 0, twist_increment)));
@@ -50,15 +60,6 @@ void Plectoneme::velocityUpdate(Real dt)
             _cur_twist += twist_increment;
 
             std::cout << "Cur twist: " << _cur_twist << std::endl;
-        }
-        else if (_cur_displacement < _max_displacement)
-        {
-            Real pos_increment = dt/100;
-
-            Vec3r cur_pos = fixed_joints.back().referencePosition();
-            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
-
-            _cur_displacement += pos_increment;
         }
         
     }, _rod);

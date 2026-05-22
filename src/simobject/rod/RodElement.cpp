@@ -131,6 +131,12 @@ Mat3r RodElement<Order>::orientation(Real s_hat) const
         theta += _bases[i](s_hat) * Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
     }
 
+    Vec3r R2_min_R1 = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
+    // if (R2_min_R1.norm() > 1)
+    // {
+    //     std::cout << "R2_min_R1 close to PI! Mag: " << R2_min_R1.norm() << std::endl;
+    // }
+
     // use exponential map to get interpolated rotation
     return Math::Plus_SO3(_nodes[0]->orientation, theta);
 }

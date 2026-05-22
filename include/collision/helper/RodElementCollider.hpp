@@ -157,6 +157,10 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
             // std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
         }
     }
+    if (order1 == 1 && order2 == 1)
+    {
+        return seeds;
+    }
 
     for (unsigned i = 0; i < seeds.size(); i++)
     {
@@ -210,7 +214,6 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
          * 
          * where J is the jacobian of r, the residual vector (p1 - p2)
          */
-        Real damping = 0.5;
         for (int iter = 0; iter < num_iters; iter++)
         {
             Vec3r p1 = elem1->position(s1);
@@ -225,18 +228,30 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
 
 
             Mat2r JTJ = J.transpose()*J;
-            Real det = JTJ(0,0)*JTJ(1,1) - JTJ(0,1)*JTJ(1,0);
+            Real lambda = 0.1 * JTJ.trace();
+            JTJ += lambda*Mat2r::Identity();
 
-            if (std::abs(det) < 1e-12)
-                break;
+            Real det = JTJ(0,0)*JTJ(1,1) - JTJ(0,1)*JTJ(1,0);
             
             Vec2r ds = Vec2r(
                 JTJ(1,1)*res(0) - JTJ(0,1)*res(1),
                 -JTJ(1,0)*res(0) + JTJ(0,0)*res(1)
             ) / det;
 
-            s1 = std::clamp(s1 + damping*ds[0], 0.0, 1.0);
-            s2 = std::clamp(s2 + damping*ds[1], 0.0, 1.0);
+            // trust region
+            Real max_step = 0.1;
+            Real n = ds.norm();
+            if (n > max_step)
+                ds = ds * (max_step / n);
+            
+            Real ns1 = s1 + ds[0];
+            Real ns2 = s2 + ds[1];
+
+            if (ns1 < 0 || ns1 > 1 || ns2 < 0 || ns2 > 1)
+                break;
+
+            s1 = ns1;
+            s2 = ns2;
 
             // std::cout << "New s1, s2: " << s1 << ", " << s2 << std::endl;
 

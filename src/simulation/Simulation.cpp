@@ -698,7 +698,6 @@ void Simulation::_timeStep()
 
     for (int iter = 0; iter < _solver_iters; iter++)
     {
-
         _objects.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
         _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
 
