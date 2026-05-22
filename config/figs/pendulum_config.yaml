@@ -1,6 +1,6 @@
 name: "Pendulum Sim"
 # sim-mode: "Frame-by-frame"
-sim-mode: "AFAP"
+# sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 1000
 
@@ -21,7 +21,7 @@ objects:
     name: "pendulum"
     num-bodies: 3
     initial-angle: 80
-    projector-type: "block"
+    projector-type: "separate"
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

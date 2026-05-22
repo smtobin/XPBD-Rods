@@ -41,6 +41,29 @@ SphericalJointConstraint::GradientMatType SphericalJointConstraint::gradient() c
 
 }
 
+Real SphericalJointConstraint::evaluateSingle(int index) const
+{
+    const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+    const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
+    const Vec3r dp = joint_pos1 - joint_pos2;
+    
+    return dp[index];
+}
+
+Eigen::Matrix<Real, 1, SphericalJointConstraint::StateDim> SphericalJointConstraint::gradientSingle(int index) const
+{
+    Eigen::Matrix<Real, 1, StateDim> grad_row;
+    grad_row.block<1,3>(0,0) = Mat3r::Identity().row(index); 
+    const Mat3r dCp_dor1 = -_oriented_particles[0]->orientation * Math::Skew3(_r1);
+    grad_row.block<1,3>(0,3) = dCp_dor1.row(index);
+
+    grad_row.block<1,3>(0,6) = -Mat3r::Identity().row(index);
+    const Mat3r dCp_dor2 = _oriented_particles[1]->orientation * Math::Skew3(_r2);
+    grad_row.block<1,3>(0,9) = dCp_dor2.row(index);
+
+    return grad_row;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -95,7 +118,6 @@ NormedSphericalJointConstraint::GradientMatType NormedSphericalJointConstraint::
     
 
     return grad;
-
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

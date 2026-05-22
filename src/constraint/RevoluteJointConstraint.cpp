@@ -204,6 +204,78 @@ NormedRevoluteJointConstraint::GradientMatType NormedRevoluteJointConstraint::gr
 
 }
 
+Real NormedRevoluteJointConstraint::evaluateSingle(int index) const
+{
+    if (index == 0)
+    {
+        const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
+        const Vec3r dp = joint_pos2 - joint_pos1;
+        return dp.norm();
+    }
+    else
+    {
+        const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+        const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * joint_or2.col(2);
+        return dor.norm();
+    }
+}
+
+Eigen::Matrix<Real, 1, NormedRevoluteJointConstraint::StateDim> NormedRevoluteJointConstraint::gradientSingle(int index) const
+{
+    Eigen::Matrix<Real, 1, StateDim> grad_row;
+
+    if (index == 0)
+    {
+        // gradients of positional constraints
+        const Vec3r joint_pos1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r joint_pos2 = _oriented_particles[1]->position + _oriented_particles[1]->orientation * _r2;
+        const Vec3r dp = joint_pos2 - joint_pos1;
+
+        if (dp.norm() < CONSTRAINT_EPS)
+        {
+            grad_row.block<1,3>(0,0) = Vec3r(1,0,0);
+            grad_row.block<1,3>(0,3) = Vec3r(1,0,0);
+            grad_row.block<1,3>(0,6) = Vec3r(1,0,0);
+            grad_row.block<1,3>(0,9) = Vec3r(1,0,0);
+        }
+        else
+        {
+            grad_row.block<1,3>(0,0) = -dp/dp.norm(); 
+            grad_row.block<1,3>(0,3) = dp.transpose()/dp.norm() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+            grad_row.block<1,3>(0,6) = dp/dp.norm();
+            grad_row.block<1,3>(0,9) = -dp.transpose()/dp.norm() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
+        }
+    }
+    else
+    {
+        // gradients of rotational constraints
+        const Mat3r joint_or1 = _oriented_particles[0]->orientation * _or1;
+        const Mat3r joint_or2 = _oriented_particles[1]->orientation * _or2;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * joint_or2.col(2);
+
+        const Vec3r dCor_dp1 = Vec3r::Zero();
+        const Vec3r dCor_dp2 = Vec3r::Zero();
+
+        grad_row.block<1,3>(0,0) = Vec3r::Zero();
+        grad_row.block<1,3>(0,6) = Vec3r::Zero();
+
+        if (dor.norm() < CONSTRAINT_EPS)
+        {
+            grad_row.block<1,3>(0,3) = Vec3r(1,0,0);
+            grad_row.block<1,3>(0,9) = Vec3r(1,0,0);
+        }
+        else
+        {
+            grad_row.block<1,3>(0,3) = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * Math::Skew3(joint_or2.col(2)) * _oriented_particles[0]->orientation;
+            grad_row.block<1,3>(0,9) = -dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or1.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_or2.col(2));
+        }
+    }
+
+    return grad_row;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -365,6 +437,64 @@ NormedOneSidedRevoluteJointConstraint::GradientMatType NormedOneSidedRevoluteJoi
 
     return grad;
 
+}
+
+Real NormedOneSidedRevoluteJointConstraint::evaluateSingle(int index) const
+{
+    if (index == 0)
+    {
+        const Vec3r joint_pos = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r dp = _base_pos - joint_pos;
+        return dp.norm();
+    }
+    else
+    {
+        const Mat3r joint_or = _oriented_particles[0]->orientation * _or1;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * _base_or.col(2);
+        return dor.norm();
+    }
+}
+
+Eigen::Matrix<Real, 1, NormedOneSidedRevoluteJointConstraint::StateDim> NormedOneSidedRevoluteJointConstraint::gradientSingle(int index) const
+{
+    Eigen::Matrix<Real, 1, StateDim> grad_row;
+    if (index == 0)
+    {
+        // gradient of positional constraint
+        const Vec3r joint_pos = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
+        const Vec3r dp = _base_pos - joint_pos;
+
+        if (dp.norm() < CONSTRAINT_EPS)
+        {
+            grad_row.block<1,3>(0,0) = Vec3r(1,0,0);
+            grad_row.block<1,3>(0,3) = Vec3r(1,0,0);
+        }
+        else
+        {
+            grad_row.block<1,3>(0,0) = -dp / dp.norm();
+            grad_row.block<1,3>(0,3) =  dp.transpose()/dp.norm() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+        }
+    }
+    else
+    {
+        // gradient of rotational constraint
+        const Mat3r joint_or = _oriented_particles[0]->orientation * _or1;
+        const Vec3r dor = Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * _base_or.col(2);
+        
+        grad_row.block<1,3>(0,0) = Vec3r::Zero();
+
+        Vec3r dCor_dor;
+        if (dor.norm() < CONSTRAINT_EPS)
+        {
+            grad_row.block<1,3>(0,3) = Vec3r(1,0,0);
+        }
+        else
+        {
+            grad_row.block<1,3>(0,3) = dor.transpose()/dor.norm() * Math::Skew3(Vec3r(0,0,1)) * joint_or.transpose() * Math::Skew3(_base_or.col(2)) * _oriented_particles[0]->orientation;
+        }
+    }
+
+    return grad_row;
 }
 
 } // namespace Constraint

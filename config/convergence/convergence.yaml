@@ -8,7 +8,7 @@ ground-plane: False
 
 output-strains: True
 
-E: 5e7
+E: 5e6
 nu: 0.4
 diameter: 0.1
 length: 1
