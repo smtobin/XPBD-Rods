@@ -19,6 +19,7 @@
 #include "simobject/group/XPBDConcentricTubeRobot.hpp"
 #include "simobject/group/HexBug.hpp"
 #include "simobject/group/RPSRobot.hpp"
+#include "simobject/group/Plectoneme.hpp"
 
 #include "solver/GaussSeidelSolver.hpp"
 

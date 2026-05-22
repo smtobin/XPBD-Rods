@@ -96,6 +96,10 @@ class SimulationConfig : public Config_Base
             {
                 _object_configs.template emplace_back<Config::RPSRobotConfig>(obj_node);
             }
+            else if (type == "Plectoneme")
+            {
+                _object_configs.template emplace_back<Config::PlectonemeConfig>(obj_node);
+            }
             else
             {
                 std::cerr << "Unknown type of object! \"" << type << "\" is not a type of simulation object." << std::endl;

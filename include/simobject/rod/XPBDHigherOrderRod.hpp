@@ -56,6 +56,7 @@ public:
     const std::vector<ElementType>& elements() const { return _elements; }
 
     const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
+    XPBDConstraints_Container& internalConstraints() { return _internal_constraints; }
 
     const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
     std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }

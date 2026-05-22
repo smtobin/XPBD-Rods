@@ -5,6 +5,7 @@
 #include "config/XPBDPendulumConfig.hpp"
 #include "config/HexBugConfig.hpp"
 #include "config/RPSRobotConfig.hpp"
+#include "config/PlectonemeConfig.hpp"
 #include "config/XPBDRigidBoxConfig.hpp"
 #include "config/XPBDRigidSphereConfig.hpp"
 #include "config/XPBDPlaneConfig.hpp"
