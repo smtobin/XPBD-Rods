@@ -43,6 +43,8 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     _nodes[0].Ib = Vec3r::Zero();
     _nodes[0].prev_position = _nodes[0].position;
     _nodes[0].prev_orientation = _nodes[0].orientation;
+    _nodes[0].prev_lin_velocity = _nodes[0].lin_velocity;
+    _nodes[0].prev_ang_velocity = _nodes[0].ang_velocity;
 
     // create the rest of the nodes
     // leave inertial properties empty - will fill in later
@@ -59,6 +61,8 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
         _nodes[i].Ib = Vec3r::Zero();
         _nodes[i].prev_position = _nodes[i].position;
         _nodes[i].prev_orientation = _nodes[i].orientation;
+        _nodes[i].prev_lin_velocity = _nodes[i].lin_velocity;
+        _nodes[i].prev_ang_velocity = _nodes[i].ang_velocity;
     }
 
     // initialize fixed base/tip constraints to null
@@ -289,6 +293,17 @@ void XPBDRod_<ElementType>::setFixedTipConstraint(const Constraint::FixedJointCo
     _fixed_tip_constraint = new_fixed_tip_constraint;
 
     _allocateSpace();
+}
+
+template <typename ElementType>
+Vec3r XPBDRod_<ElementType>::totalRotation() const
+{
+    Vec3r total_rotation = Vec3r::Zero();
+    for (unsigned i = 0; i < _nodes.size()-1; i++)
+    {
+        total_rotation += Math::Minus_SO3(_nodes[i+1].orientation, _nodes[i].orientation);
+    }
+    return total_rotation;
 }
 
 template <typename ElementType>

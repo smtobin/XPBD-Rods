@@ -19,7 +19,7 @@ Simulation::Simulation()
       _graphics_scene(),
       _collision_scene()
 {
-
+    _last_collision_check_time = std::numeric_limits<Real>::lowest();
 }
 
 Simulation::Simulation(const Config::SimulationConfig& sim_config)
@@ -32,6 +32,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _collision_scene(),
     _config(sim_config)
 {
+    _last_collision_check_time = std::numeric_limits<Real>::lowest();
 }
 
 SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
@@ -681,10 +682,22 @@ void Simulation::notifyLeftMouseButtonReleased()
 
 void Simulation::_timeStep()
 {
+    /** HACK TO REMOVE OLD COLLISION CONSTRAINTS FOR THE PLECTONEME
+     * 
+     * TODO: actually getthe plectoneme
+     */
+    if (_time > _last_collision_check_time)
+    {
+        // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().clearCollisionConstraints();
+        // _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back()->clearCollisionConstraints();
+
+        _detectCollisions();
+
+        _last_collision_check_time = _time;
+    }
+
     _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
-
-    _detectCollisions();
 
     // std::cout << "t=" << _time << std::endl;
 
@@ -708,6 +721,8 @@ void Simulation::_timeStep()
     
     _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
+
+    _solver.applyRestitution();
 
     // log quantities
     if (_logger)
@@ -913,6 +928,13 @@ void Simulation::_processRodRodCollision(SimObject::RodElement<Order1>* elem1, R
             );
             ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
             _solver.addConstraint(constraint_ref);
+
+
+            /** THIS IS A TEMPORARY HACK! NEED TO FIND A BETTER WAY TO DO THIS
+             * For now, I just need to get the collision constraint into the rod somehow
+             */
+            // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().addInternalConstraint(constraint_vec.back());
+    
         }
     }
     if constexpr (Order1 < 3)

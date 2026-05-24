@@ -9,7 +9,7 @@ objects:
   - 
     type: "RigidSphere"
     name: "sphere1"
-    initial-position: [0, 10, 0.0]
+    initial-position: [0, 1.5, 0.0]
     initial-rotation: [0, 0, 0]
     radius: 0.1
     render-type: "PBR"
@@ -22,10 +22,10 @@ objects:
   -
     type: "RigidBox"
     name: "box1"
-    initial-position: [0,0,0]
-    initial-velocity: [0,12,0]
-    initial-angular-velocity: [2,0,3]
-    fixed: true
+    initial-position: [0,0.25,0]
+    initial-velocity: [0,0,0]
+    initial-angular-velocity: [0,0,0]
+    fixed: false
     size: [1.2, 0.5, 1.8]
     render-type: "PBR"
     metallic: 0.2

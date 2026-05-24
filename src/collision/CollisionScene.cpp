@@ -274,8 +274,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     if (sq_dist <= sphere->radius() * sphere->radius() + COLLISION_TOL * COLLISION_TOL)
     {
         // collision!
-        std::cout << "\n\n\n COLLISION BETWEEN SPHERE AND BOX!\n\n\n" << std::endl;
-
         Real dist = std::sqrt(sq_dist);
         
         // edge case: sphere center inside box

@@ -334,6 +334,8 @@ class Simulation
     Real _g_accel;
     int _viewer_refresh_time_ms;
 
+    Real _last_collision_check_time;
+
     XPBDConstraints_Container _constraints;
     XPBDObjects_UniquePtrContainer _objects;
     XPBDObjectGroups_UniquePtrContainer _object_groups;

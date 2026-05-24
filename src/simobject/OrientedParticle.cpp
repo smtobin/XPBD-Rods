@@ -53,6 +53,9 @@ void OrientedParticle::positionUpdate(const Vec6r& dp)
 
 void OrientedParticle::velocityUpdate(Real dt)
 {
+    prev_lin_velocity = lin_velocity;
+    prev_ang_velocity = ang_velocity;
+
     lin_velocity = (position - prev_position)/dt;
     ang_velocity = Math::Minus_SO3(orientation, prev_orientation)/dt;
     

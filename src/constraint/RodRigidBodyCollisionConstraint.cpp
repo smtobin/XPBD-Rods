@@ -138,6 +138,12 @@ void RodRigidBodyCollisionConstraint<Order>::applyFriction(Real lambda_n) const
     }
 }
 
+template <int Order>
+void RodRigidBodyCollisionConstraint<Order>::applyRestitution() const
+{
+    // TODO
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -250,6 +256,12 @@ void OneSidedRodRigidBodyCollisionConstraint<Order>::applyFriction(Real lambda_n
         // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
         _oriented_particles[i]->positionUpdate(position_update);
     }
+}
+
+template <int Order>
+void OneSidedRodRigidBodyCollisionConstraint<Order>::applyRestitution() const
+{
+    // TODO
 }
 
 template class RodRigidBodyCollisionConstraint<1>;

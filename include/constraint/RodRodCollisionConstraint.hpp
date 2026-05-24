@@ -34,6 +34,7 @@ public:
     virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
+    void applyRestitution() const;
 
 private:
     using BaseConstraintType::_oriented_particles;

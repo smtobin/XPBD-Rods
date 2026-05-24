@@ -50,6 +50,20 @@ public:
     void setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint);
     void setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint);
 
+    /** Duplicates constraints into the internal constraints of the rod */
+    template <typename ConstraintType>
+    void addInternalConstraint(const ConstraintType& constraint)
+    {
+        _internal_constraints.template push_back<ConstraintType>(constraint);
+    }
+    void clearCollisionConstraints()
+    {
+        _internal_constraints.clear_types(XPBDCollisionConstraints_TypeList{});
+    }
+
+    /** Total rotation from one end of the rod to the other. */
+    Vec3r totalRotation() const;
+
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 

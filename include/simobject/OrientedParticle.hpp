@@ -21,6 +21,8 @@ struct OrientedParticle
     Vec3r Ib;               // body rotational inertia of the particle (diagonal, so represented by a 3-vector)
     Vec3r prev_position;    // previous position (at the end of the last time step) of the particle
     Mat3r prev_orientation; // previous orientation (at the end of the last time step) of the particle
+    Vec3r prev_lin_velocity; // previous translational velocity (global frame)
+    Vec3r prev_ang_velocity; // previous angular velocity (body frame)
     bool fixed=false;             // if true, the particle is "fixed" and should not move
 
     /** Updates the particle based on its current velocity (in the absence of constraints) and applied external wrench.
