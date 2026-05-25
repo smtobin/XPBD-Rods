@@ -331,12 +331,17 @@ void OneSidedRodRigidBodyCollisionConstraint<Order>::applyRestitution() const
 
     Real v_norm_mag_prev = _n.dot(v_rel_prev);
 
+    std::cout << "\ns hat: " << _s_hat << "cp local: " << _cp_local_rod.transpose() << std::endl;
+    std::cout << "v norm mag prev: " << v_norm_mag_prev << std::endl;
+
 
      // get current relative velocity between contact points, in the normal direction
     Vec3r v_cp_rod = _element->contactPointVelocity(_s_hat, _cp_local_rod);
     Vec3r v_rel = v_cp_rod;
 
     Real v_norm_mag = _n.dot(v_rel);
+
+    std::cout << "v norm mag: " << v_norm_mag << std::endl;
 
     // CHECK FOR V_NORM_MAG < 0 HERE ??
 
@@ -345,6 +350,9 @@ void OneSidedRodRigidBodyCollisionConstraint<Order>::applyRestitution() const
     Real v_norm_new_mag = std::min(Real(0.0), -e*v_norm_mag_prev);
     if (std::abs(v_norm_new_mag) < 1e-2)
         v_norm_new_mag = 0;
+
+    std::cout << "v norm mag new: " << v_norm_new_mag << std::endl;
+    std::cout << "normal: " << _n.transpose() << std::endl;
 
     // velocity-level constraint
     Real C_vel = v_norm_mag - v_norm_new_mag;
