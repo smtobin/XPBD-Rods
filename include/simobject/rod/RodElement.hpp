@@ -57,8 +57,10 @@ public:
 
     Vec3r contactPoint(Real s_hat, const Vec3r& cp_local) const;
     ContactPointGradientMatType contactPointGradient(Real s_hat, const Vec3r& cp_local) const;
+    ContactPointGradientMatType contactPointVelocityGradient(Real s_hat, const Vec3r& cp_local) const;
     Vec3r previousContactPoint(Real s_hat, const Vec3r& cp_local) const;
     Vec3r contactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
+    Vec3r previousContactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
 
 
 private:

@@ -36,7 +36,7 @@ RodRodCollisionConstraint<Order1, Order2>::evaluate() const
     ConstraintVecType C;
     C[0] = (cp_rod2 - cp_rod1).dot(_n);
     // std::cout << "Nominal C: " << C[0] << std::endl;
-    return 0.1*C;
+    return C;
 }
 
 template <int Order1, int Order2>

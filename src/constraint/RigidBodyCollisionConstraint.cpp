@@ -345,7 +345,7 @@ void OneSidedRigidBodyCollisionConstraint::applyRestitution() const
 
     // CHECK FOR V_NORM_MAG < 0 HERE ??
 
-    std::cout << "v_norm_mag: " << v_norm_mag << std::endl;
+    // std::cout << "v_norm_mag: " << v_norm_mag << std::endl;
 
     // the new relative velocity in the normal direction should be the previous normal velocity "reflected" to point in the opposite direction, and
     //   scaled by the coefficient of restitution
@@ -353,7 +353,7 @@ void OneSidedRigidBodyCollisionConstraint::applyRestitution() const
     if (std::abs(v_norm_new_mag) < 1e-2)
         v_norm_new_mag = 0;
 
-    std::cout << "v_norm_new_mag: " << v_norm_new_mag << std::endl;
+    // std::cout << "v_norm_new_mag: " << v_norm_new_mag << std::endl;
 
     // velocity-level constraint
     Real C_vel = v_norm_mag - v_norm_new_mag;

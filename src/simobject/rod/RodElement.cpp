@@ -437,6 +437,60 @@ Vec3r RodElement<Order>::contactPointVelocity(Real s_hat, const Vec3r& cp_local)
 }
 
 template <int Order>
+Vec3r RodElement<Order>::previousContactPointVelocity(Real s_hat, const Vec3r& cp_local) const
+{
+    // linear velocity contribution
+    Vec3r v = _bases[0](s_hat) * _nodes[0]->prev_lin_velocity;
+    for (int i = 1; i < Order+1; i++)
+    {
+        v += _bases[i](s_hat) * _nodes[i]->prev_lin_velocity;
+    }
+
+    // stores (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Vec3r, Order+1> Ri_minus_R1;
+    // stores Gamma^{-1} (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> gam_inv_Ri_minus_R1;
+    // stores d theta(s) / d Ri for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> dtheta_dRi;
+
+    // theta(s)
+    Vec3r theta = Vec3r::Zero();
+
+    // precompute quantities
+    dtheta_dRi[0] = Mat3r::Zero();
+    for (int i = 1; i < Order+1; i++)
+    {
+        Ri_minus_R1[i] = Math::Minus_SO3(_nodes[i]->prev_orientation, _nodes[0]->prev_orientation);
+        gam_inv_Ri_minus_R1[i] = Math::ExpMap_InvRightJacobian(Ri_minus_R1[i]);
+        dtheta_dRi[i] = _bases[i](s_hat) * gam_inv_Ri_minus_R1[i];
+
+        theta += _bases[i](s_hat) * Ri_minus_R1[i];
+
+        // add contribution to dtheta_dR0 and dtheta_ds_dR0
+        dtheta_dRi[0] -= dtheta_dRi[i].transpose();
+    }
+
+    /** gradient of cp w.r.t. rotation * angular velocity */
+    Mat3r exp_theta = Math::Exp_so3(theta);
+    Mat3r gam_theta = Math::ExpMap_RightJacobian(theta);
+    Mat3r R = _nodes[0]->prev_orientation * exp_theta;
+
+    for (int i = 0; i < Order+1; i++)
+    {
+        if (i == 0)
+        {
+            v += -R * Math::Skew3(cp_local) * (exp_theta.transpose() + gam_theta * dtheta_dRi[i]) * _nodes[i]->prev_ang_velocity;
+        }
+        else
+        {
+            v += -R * Math::Skew3(cp_local) * gam_theta * dtheta_dRi[i] * _nodes[i]->prev_ang_velocity;
+        }
+    }
+
+    return v;
+}
+
+template <int Order>
 typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::contactPointGradient(Real s_hat, const Vec3r& cp_local) const
 {
     ContactPointGradientMatType grad;
@@ -492,6 +546,13 @@ typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::conta
     
 
     return grad;
+}
+
+template <int Order>
+typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::contactPointVelocityGradient(Real s_hat, const Vec3r& cp_local) const
+{
+    // DOUBLE CHECK: gradient of contact point velocity w.r.t. velocities the same as contact point gradient?
+    return contactPointGradient(s_hat, cp_local);
 }
 
 
