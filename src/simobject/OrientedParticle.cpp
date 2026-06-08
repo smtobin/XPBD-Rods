@@ -8,7 +8,7 @@ void OrientedParticle::inertialUpdate(Real dt, const Vec3r& F_ext, const Vec3r& 
 {
     if (fixed)
         return;
-
+    
     // positional update
     position += dt*lin_velocity + dt*dt/mass*F_ext;
 

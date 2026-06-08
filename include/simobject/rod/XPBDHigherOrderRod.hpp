@@ -144,7 +144,6 @@ protected:
     VecXr _RHS_vec;
     VecXr _inertia_mat_inv;
     VecXr _dlam;
-    VecXr _dmu;
     VecXr _dx;
 
 
@@ -169,11 +168,23 @@ protected:
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;
+    
 
     /** Solves the linear lambda system.
      * The lambda system matrix has a block-banded structure, so we can solve the linear system in O(n) time.
      */
     Solver::SymmetricBlockBandedSolver<OrientedParticle::DOF> _solver;
+
+    /** Data structures needed for the velocity-level solve.
+     * These are the same as for the position solve.
+     * 
+     * Use a separate data structure for the diagonal blocks and the solver because the velocity solve only deals with the elastic constraints,
+     * so the diagonals will have a different sparsity pattern.
+     */
+    VecXr _dmu;
+    VecXr _RHS_vel_vec;
+    std::vector<std::vector<Mat6r>> _velocity_diagonals;
+    Solver::SymmetricBlockBandedSolver<OrientedParticle::DOF> _velocity_solver;
 
     /** All constraints will be "ordered" based on which nodes they affect.
      *   i.e. constraints that affect node 0 will come before constraints that affect node 1, etc.

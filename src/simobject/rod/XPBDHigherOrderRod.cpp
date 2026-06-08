@@ -16,7 +16,8 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
     _base_fixed(config.baseFixed()), _tip_fixed(config.tipFixed()),
     _global_solve(config.globalSolve()),
     _density(config.density()), _E(config.E()), _nu(config.nu()), _beta(config.beta()),
-    _solver((3*NUM_GP)/2, _num_nodes)
+    _solver((3*NUM_GP)/2, _num_nodes),
+    _velocity_solver(1,1)
 {
     // compute shear modulus
     _G = _E / (2 * (1+_nu));
@@ -253,9 +254,13 @@ void XPBDRod_<ElementType>::_allocateSpace()
     _alpha.conservativeResize(6*_num_constraints);
     _internal_lambda = VecXr::Zero(6*_num_constraints);
     _dlam = VecXr::Zero(6*_num_constraints);
-    _dmu = VecXr::Zero(6*elastic_constraints.size());
     _dx.conservativeResize(6*_num_nodes);
     _delC_mat = MatXr::Zero(6*_num_constraints, 6*_num_nodes);
+
+    // velocity solve
+    _RHS_vel_vec = VecXr::Zero(6*elastic_constraints.size());
+    _dmu = VecXr::Zero(6*elastic_constraints.size());
+
 
     /** Assemble global inertia vector */
     _inertia_mat_inv = VecXr::Zero(6*_num_nodes);
@@ -276,6 +281,14 @@ void XPBDRod_<ElementType>::_allocateSpace()
 
     _solver.setBandwidth(bandwidth);
     _solver.setNumDiagBlocks(_num_constraints);
+
+    // velocity solver
+    _velocity_diagonals.resize(bandwidth+1);
+    for (int i = 0; i < bandwidth+1; i++)
+        _velocity_diagonals[i].resize(elastic_constraints.size(), Mat6r::Zero());
+    
+    _velocity_solver.setBandwidth(bandwidth);
+    _velocity_solver.setNumDiagBlocks(elastic_constraints.size());
 }
 
 template <typename ElementType>
@@ -384,6 +397,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
             // compute the RHS associated with the constraint
             typename ConstraintType::ConstraintVecType fixed_C = fixed_base_constraint->evaluate();
             typename ConstraintType::AlphaVecType fixed_alpha_tilde = fixed_base_constraint->alpha() / (dt * dt);
+            // typename ConstraintType::AlphaVecType fixed_gamma = ConstraintType::AlphaVecType::Ones() + fixed_alpha_tilde * _beta * dt;
             
             _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
 
@@ -424,10 +438,19 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     {
         // assemble element inertia
         Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
+        // for (int k = 0; k < NUM_EN; k++)
+        // {
+        //     int node_ind = i*(NUM_EN-1) + k;
+        //     element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
+        // }
+
+        // Eigen::Vector<Real, 6*NUM_EN> node_velocities = Eigen::Vector<Real, 6*NUM_EN>::Zero();
         for (int k = 0; k < NUM_EN; k++)
         {
             int node_ind = i*(NUM_EN-1) + k;
             element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
+            // node_velocities.template block<3,1>(6*k, 0) = _nodes[node_ind].lin_velocity;
+            // node_velocities.template block<3,1>(6*k+3, 0) = _nodes[node_ind].ang_velocity;
         }
 
         for (int j = 0; j < NUM_GP; j++)
@@ -437,7 +460,12 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
             // compute RHS
             typename ElasticConstraintType::AlphaVecType alpha_tilde = elastic_constraints[this_ind].alpha() / (dt*dt);
-            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+            // typename ElasticConstraintType::AlphaVecType gamma = ElasticConstraintType::AlphaVecType::Ones() + alpha_tilde * _beta * dt;
+            // typename ElasticConstraintType::ConstraintVecType delC_v = _gradient_buffer[this_ind] * node_velocities;
+            
+            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -elastic_constraints[this_ind].evaluate() 
+                                                                - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*diag_block_ind, 0);
+                                                                // - _beta * dt * dt * alpha_tilde.asDiagonal() * delC_v;
 
             // last constraint index that is still in this same element (element i)
             int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
@@ -717,7 +745,7 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
     {
         // assemble element inertia and particle velocities
         Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
-        Eigen::Vector<Real, 6*NUM_EN> node_velocities;
+        Eigen::Vector<Real, 6*NUM_EN> node_velocities = Eigen::Vector<Real, 6*NUM_EN>::Zero();
         for (int k = 0; k < NUM_EN; k++)
         {
             int node_ind = i*(NUM_EN-1) + k;
@@ -726,6 +754,8 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
             node_velocities.template block<3,1>(6*k+3, 0) = _nodes[node_ind].ang_velocity;
         }
 
+        // std::cout << "Node velocities: " << node_velocities.transpose() << std::endl;
+
         for (int j = 0; j < NUM_GP; j++)
         {
             // index of the current elastic constraint we are on
@@ -733,8 +763,7 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
 
             // compute RHS
             // for the velocity solve, this is: -delC * v
-            
-            _RHS_vec.template block<6,1>(6*diag_block_ind, 0) = -_gradient_buffer[this_ind] * node_velocities;
+            _RHS_vel_vec.template block<6,1>(6*diag_block_ind, 0) = -_gradient_buffer[this_ind] * node_velocities;
 
             // last constraint index that is still in this same element (element i)
             int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
@@ -746,7 +775,7 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
             for (int other = this_ind; other <= end_of_this_element_ind; other++)
             {
                 int diag_index = other - this_ind;
-                _diagonals[diag_index][diag_block_ind] = 
+                _velocity_diagonals[diag_index][diag_block_ind] = 
                     _gradient_buffer[other] * element_inverse_inertia.asDiagonal() * _gradient_buffer[this_ind].transpose();
             }
 
@@ -764,22 +793,24 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
                 // extract the block associated with the "first" node affected by the constraint
                 Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
 
-                _diagonals[diag_index][diag_block_ind] = other_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * this_block.transpose();
+                _velocity_diagonals[diag_index][diag_block_ind] = other_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * this_block.transpose();
             }
 
             // add alpha to main diagonal
             typename ElasticConstraintType::AlphaVecType beta_tilde = dt * _beta * elastic_constraints[this_ind].alpha();
             typename ElasticConstraintType::AlphaVecType beta_tilde_inv = 1/beta_tilde.array();
-            _diagonals[0][diag_block_ind].diagonal() += beta_tilde_inv;
+            _velocity_diagonals[0][diag_block_ind].diagonal() += beta_tilde_inv;
 
             diag_block_ind++;
         }
     }
 
     // solve system
-    _solver.setNumDiagBlocks(_num_elements * NUM_GP);
-    _solver.solveInPlace(_diagonals, _RHS_vec, _dmu);
-    // std::cout << "\ndlam banded solver: " << _dlam.transpose() << std::endl;
+    // std::cout << "RHS vec: " << _RHS_vec.transpose() << std::endl;
+    // std::cout << "Diag block ind: " << diag_block_ind << std::endl;
+    // std::cout << "num elements * NUM_GP: " << _num_elements * NUM_GP << std::endl;
+    _velocity_solver.solveInPlace(_velocity_diagonals, _RHS_vel_vec, _dmu);
+    // std::cout << "\n dmu banded solver: " << _dmu.transpose() << std::endl;
 
     // compute velocity updates
     _dx = VecXr::Zero(6*_num_nodes);
@@ -809,13 +840,14 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
         }
     }
 
+    // std::cout << "dx: " << _dx.transpose() << std::endl;
+
     for (int i = 0; i < _num_nodes; i++)
     {
         const Vec3r d_lin = _dx( Eigen::seqN(6*i,3) );
         const Vec3r d_ang = _dx( Eigen::seqN(6*i+3,3) );
         _nodes[i].lin_velocity += d_lin;
         _nodes[i].ang_velocity += d_ang;
-
     }
 }
 

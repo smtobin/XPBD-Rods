@@ -4,7 +4,7 @@ name: "RodSim"
 time-step: 1e-3
 end-time: 100
 
-logging: True
+logging: False
 logging-output-folder: "../output/convergence"
 logging-interval: 10
 log-residuals: True
@@ -19,12 +19,12 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Linear"
+    element-type: "Quadratic"
     initial-position: [0, 1, 0.0]
     initial-rotation: [0, 90, 0]
     E: 5e6
     nu: 0.4
-    beta: 1e6
+    beta: 1e4
     diameter: 0.1
     length: 1
     density: 1000
