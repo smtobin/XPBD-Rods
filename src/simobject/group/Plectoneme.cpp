@@ -20,7 +20,7 @@ void Plectoneme::setup()
         Config::RodElementType::QUADRATIC, true, true, true,
         10,     // length
         0.1,    // diameter
-        40,     // num elements
+        10,     // num elements
         1000,   // density
         5e7,    // E
         0.4,    // nu
@@ -32,7 +32,7 @@ void Plectoneme::setup()
     rod_config.renderConfig().setRoughness(0.2);
     rod_config.renderConfig().setCenterlineSamples(100);
 
-    auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(rod_config);
+    auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(rod_config);
     rod.setup();
 
     // store pointer to rod for convenience
@@ -146,9 +146,18 @@ void Plectoneme::velocityUpdate(Real dt)
         auto& fixed_joints = rod->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>();
 
         // if we haven't reached the max twist, update the twist angle
-        if (_cur_twist < _max_twist)
+        if (_cur_displacement < _max_displacement)
         {
-            Real twist_increment = dt;
+            Real pos_increment = dt;
+
+            Vec3r cur_pos = fixed_joints.back().referencePosition();
+            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
+
+            _cur_displacement += pos_increment;
+        }
+        else if (_cur_twist < _max_twist)
+        {
+            Real twist_increment = 2*dt;
 
             Mat3r cur_rot = fixed_joints.back().referenceOrientation();
             fixed_joints.back().setReferenceOrientation(Math::Plus_SO3(cur_rot, Vec3r(0, 0, twist_increment)));
@@ -158,15 +167,7 @@ void Plectoneme::velocityUpdate(Real dt)
             std::cout << "Cur twist: " << _cur_twist << std::endl;
         }
 
-        else if (_cur_displacement < _max_displacement)
-        {
-            Real pos_increment = 0.1*dt;
-
-            Vec3r cur_pos = fixed_joints.back().referencePosition();
-            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
-
-            _cur_displacement += pos_increment;
-        }
+        
         
         
         

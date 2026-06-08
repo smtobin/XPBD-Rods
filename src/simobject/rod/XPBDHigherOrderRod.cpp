@@ -549,7 +549,6 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     }
 
     // solve system
-    _solver.setNumDiagBlocks(_num_constraints);
     _solver.solveInPlace(_diagonals, _RHS_vec, _dlam);
     // std::cout << "\ndlam banded solver: " << _dlam.transpose() << std::endl;
 
