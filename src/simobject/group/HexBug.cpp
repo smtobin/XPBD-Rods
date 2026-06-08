@@ -73,7 +73,7 @@ void HexBug::setup()
             Config::RodConfig leg_config(
                 "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
                 Config::RodElementType::LINEAR, false, false, true,
-                _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, _leg_curvature
+                _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, 0, _leg_curvature
             );
             leg_config.renderConfig().setColor(_leg_color);
             leg_config.renderConfig().setRoughness(0.2);

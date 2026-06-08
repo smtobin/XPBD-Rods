@@ -37,7 +37,7 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::RIGID_BODY, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
 
         _addObjectFromConfig(config);
@@ -49,7 +49,7 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::LINEAR, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
 
         _addObjectFromConfig(config);
@@ -61,7 +61,7 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::QUADRATIC, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
@@ -72,7 +72,7 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::CUBIC, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
@@ -83,7 +83,7 @@ void RodConvergenceSimulation::setup()
         Config::RodConfig config(
             name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
             Config::RodElementType::CUBIC_HERMITE, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
@@ -92,7 +92,7 @@ void RodConvergenceSimulation::setup()
     Config::RodConfig ground_truth_config(
         "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
         Config::RodElementType::QUADRATIC, true, false, true,
-        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu, Vec3r(0,0,0)
+        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
     );
     _addObjectFromConfig(ground_truth_config);
 

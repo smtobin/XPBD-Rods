@@ -61,7 +61,7 @@ class RodConfig : public XPBDObjectConfig
                         RodElementType element_type,
                         bool base_fixed, bool tip_fixed, bool global_solve,
                         Real length, Real diameter, int elements,
-                        Real density, Real E, Real nu, Vec3r curvature)
+                        Real density, Real E, Real nu, Real beta, Vec3r curvature)
         : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity, collisions)
     {
         _element_type.value = element_type;
@@ -78,6 +78,7 @@ class RodConfig : public XPBDObjectConfig
         _density.value = density;
         _E.value = E;
         _nu.value = nu;
+        _beta.value = beta;
 
         _curvature.value = curvature;
     }

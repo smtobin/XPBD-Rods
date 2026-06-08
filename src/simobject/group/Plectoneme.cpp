@@ -18,11 +18,19 @@ void Plectoneme::setup()
     Config::RodConfig rod_config(
         "plectoneme", Vec3r(0,10,0), Vec3r(0,90,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
         Config::RodElementType::QUADRATIC, true, true, true,
-        10, 0.1, 40, 1000, 5e7, 0.4, Vec3r(0,0,0)
+        10,     // length
+        0.1,    // diameter
+        40,     // num elements
+        1000,   // density
+        5e7,    // E
+        0.4,    // nu
+        1e3,    // beta (damping coeff)
+        Vec3r(0,0,0)    // curvature
     );
 
     rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
     rod_config.renderConfig().setRoughness(0.2);
+    rod_config.renderConfig().setCenterlineSamples(100);
 
     auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(rod_config);
     rod.setup();
@@ -138,16 +146,7 @@ void Plectoneme::velocityUpdate(Real dt)
         auto& fixed_joints = rod->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>();
 
         // if we haven't reached the max twist, update the twist angle
-        if (_cur_displacement < _max_displacement)
-        {
-            Real pos_increment = dt;
-
-            Vec3r cur_pos = fixed_joints.back().referencePosition();
-            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
-
-            _cur_displacement += pos_increment;
-        }
-        else if (_cur_twist < _max_twist)
+        if (_cur_twist < _max_twist)
         {
             Real twist_increment = dt;
 
@@ -158,6 +157,17 @@ void Plectoneme::velocityUpdate(Real dt)
 
             std::cout << "Cur twist: " << _cur_twist << std::endl;
         }
+
+        else if (_cur_displacement < _max_displacement)
+        {
+            Real pos_increment = 0.1*dt;
+
+            Vec3r cur_pos = fixed_joints.back().referencePosition();
+            fixed_joints.back().setReferencePosition(cur_pos - Vec3r(pos_increment, 0, 0));
+
+            _cur_displacement += pos_increment;
+        }
+        
         
         
 

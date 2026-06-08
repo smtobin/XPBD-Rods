@@ -170,7 +170,7 @@ void RodRodCollisionConstraint<Order1, Order2>::applyRestitution() const
 
     Real v_norm_mag = _n.dot(v_rel);
 
-    std::cout << "v norm mag: " << v_norm_mag << std::endl;
+    // std::cout << "v norm mag: " << v_norm_mag << std::endl;
 
     // CHECK FOR V_NORM_MAG < 0 HERE ??
 
@@ -180,7 +180,7 @@ void RodRodCollisionConstraint<Order1, Order2>::applyRestitution() const
     if (std::abs(v_norm_new_mag) < 1e-2)
         v_norm_new_mag = 0;
 
-    std::cout << "v norm mag new: " << v_norm_new_mag << std::endl;
+    // std::cout << "v norm mag new: " << v_norm_new_mag << std::endl;
     // std::cout << "normal: " << _n.transpose() << std::endl;
 
     // velocity-level constraint
@@ -224,7 +224,7 @@ void RodRodCollisionConstraint<Order1, Order2>::applyRestitution() const
 
     Real new_v_norm_mag = _n.dot(v_rel_new);
 
-    std::cout << "Desired v norm mag: " << v_norm_new_mag << "  Actual new v norm mag: " << new_v_norm_mag << std::endl;
+    // std::cout << "Desired v norm mag: " << v_norm_new_mag << "  Actual new v norm mag: " << new_v_norm_mag << std::endl;
 }
 
 template class RodRodCollisionConstraint<1,1>;

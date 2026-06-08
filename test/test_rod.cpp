@@ -116,6 +116,7 @@ int main()
         num_nodes,
         1000,
         1e8, 0.4,
+        0,
         Vec3r(0,0,0)
     );
 
@@ -149,6 +150,7 @@ int main()
         10,
         1000,
         1e7, 0.4,
+        0,
         Vec3r(0,0,0)
     );
     SimObject::XPBDRod_<SimObject::RodElement<1>> rod1(rod_config1);
@@ -163,6 +165,7 @@ int main()
         10,
         1000,
         1e6, 0.4,
+        0,
         Vec3r(0,0,0)
     );
     SimObject::XPBDRod_<SimObject::RodElement<1>> rod2(rod_config2);
