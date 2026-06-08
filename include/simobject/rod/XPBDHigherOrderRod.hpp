@@ -82,11 +82,6 @@ protected:
     /** Allocates space based on the number of constraints. */
     void _allocateSpace();
 
-    /** Helper function to solve the rod system.
-     * The velocity solve and position solve have the same structure, so we can reuse a lot of the same code.
-     */
-    void _solveRodSystem(Real dt, bool velocity_solve);
-
     /** Number of elements the rod is discretized into. */
     int _num_elements;
 
@@ -140,6 +135,8 @@ protected:
     Real _nu;   // Poisson ratio
     Real _G;    // shear modulus
 
+    Real _beta; // damping coefficient
+
     /** Pre-allocated vectors to store constraints and constraint gradients */
     VecXr _C_vec;
     VecXr _alpha;
@@ -147,6 +144,7 @@ protected:
     VecXr _RHS_vec;
     VecXr _inertia_mat_inv;
     VecXr _dlam;
+    VecXr _dmu;
     VecXr _dx;
 
 

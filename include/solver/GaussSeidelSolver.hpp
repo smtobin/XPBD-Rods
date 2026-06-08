@@ -50,6 +50,7 @@ public:
     }
 
     void solve(bool initialize=true);
+    void velocitySolve(bool initialize=true);
 
     /** Applies friction for collision constraints. */
     void applyFriction();

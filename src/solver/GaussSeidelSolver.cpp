@@ -42,6 +42,28 @@ void GaussSeidelSolver::solve(bool initialize)
     }
 }
 
+void GaussSeidelSolver::velocitySolve(bool initialize)
+{
+    if (initialize)
+    {
+        _constraint_projectors.for_each_element([&](auto& projector) {
+            projector.initializeVelocity();
+        });
+
+        _separate_constraint_projectors.for_each_element([&](auto& projector) {
+            projector.initializeVelocity();
+        });
+    }
+
+    _constraint_projectors.for_each_element([&](auto& projector) {
+        projector.projectVelocity();
+    });
+
+    _separate_constraint_projectors.for_each_element([&](auto& projector) {
+        projector.projectVelocity();
+    });
+}
+
 template <typename ConstraintList>
 struct XPBDConstraintProjectorsTypeListFromConstraintTypeList;
 

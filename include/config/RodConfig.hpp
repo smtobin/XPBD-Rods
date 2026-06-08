@@ -48,6 +48,7 @@ class RodConfig : public XPBDObjectConfig
         _extractParameter("density", node, _density);
         _extractParameter("E", node, _E);
         _extractParameter("nu", node, _nu);
+        _extractParameter("beta", node, _beta);
 
         _extractParameter("curvature", node, _curvature);
 
@@ -95,6 +96,7 @@ class RodConfig : public XPBDObjectConfig
     Real density() const { return _density.value; }
     Real E() const { return _E.value; }
     Real nu() const { return _nu.value; }
+    Real beta() const { return _beta.value; }
 
     Vec3r curvature() const { return _curvature.value; }
 
@@ -115,6 +117,8 @@ class RodConfig : public XPBDObjectConfig
     ConfigParameter<Real> _density = ConfigParameter<Real>(1000);
     ConfigParameter<Real> _E = ConfigParameter<Real>(3e6);
     ConfigParameter<Real> _nu = ConfigParameter<Real>(0.45);
+
+    ConfigParameter<Real> _beta = ConfigParameter<Real>(0);
 
     ConfigParameter<Vec3r> _curvature = ConfigParameter<Vec3r>(Vec3r(0,0,0));
 

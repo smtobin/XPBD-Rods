@@ -96,14 +96,30 @@ public:
         // assert(0);
     }
 
+    virtual void initializeVelocity() override
+    {
+        _mu = Constraint::ConstraintVecType::Zero();
+    }
+
     virtual void projectVelocity() override
     {
+        // don't do the velocity solve if beta is 0 or any of the alphas are 0
+        // then beta^-1 is undefined
+        Real beta = _constraint->beta();
+        if (beta == 0)
+            return;
+        
+        const typename Constraint::AlphaVecType alpha = _constraint->alpha();
+        if ((alpha.array() == Real(0)).any())
+            return;
+
         typename Constraint::GradientMatType delC = _constraint->gradient();
 
+
+        // assemble inverse inertia and the velocity vector
         Eigen::Vector<Real, Constraint::StateDim> inertia_inverse;
         Eigen::Vector<Real, Constraint::StateDim> velocity_vec;
 
-        // for (const auto& particle : _constraint->orientedParticles())
         for (int i = 0; i < Constraint::NumOrientedParticles; i++)
         {
             const SimObject::OrientedParticle* particle = _constraint->orientedParticles()[i];
@@ -113,13 +129,19 @@ public:
             velocity_vec.template block<3,1>(6*i+3, 0) = particle->ang_velocity;
         }
 
-        /** TODO: check this */
-        const typename Constraint::ConstraintVecType RHS = -_constraint->beta() * _dt * _constraint->alpha().asDiagonal() * delC * velocity_vec;       
+        // compute the inverse of beta tilde
+        const typename Constraint::AlphaVecType beta_tilde = _dt * beta * _constraint->alpha();
+        const typename Constraint::AlphaVecType beta_tilde_inv =  1/beta_tilde.array();   
 
-        const Eigen::Matrix<Real, Constraint::ConstraintDim, Constraint::ConstraintDim> LHS =
+        const typename Constraint::ConstraintVecType RHS = -delC * velocity_vec - beta_tilde.asDiagonal() * _mu;
+
+        // compute LHS
+        Eigen::Matrix<Real, Constraint::ConstraintDim, Constraint::ConstraintDim> LHS =
             delC * inertia_inverse.asDiagonal() * delC.transpose();
+        LHS.diagonal() += beta_tilde_inv;
 
         const typename Constraint::ConstraintVecType dmu = LHS.llt().solve(RHS);
+        _mu += dmu;
 
         // update nodes
         for (int i = 0; i < Constraint::NumOrientedParticles; i++)
@@ -137,11 +159,15 @@ public:
     }
 
     const typename Constraint::ConstraintVecType& lambda() const { return _lambda; }
+    const typename Constraint::ConstraintVecType& mu() const { return _mu; }
     ConstVectorHandle<Constraint> constraint() const { return _constraint; }
 
 private:
     /** Positional Lagrange multipliers */
     typename Constraint::ConstraintVecType _lambda;
+
+    /** Velocity Lagrange multipliers */
+    typename Constraint::ConstraintVecType _mu;
 
     /** The constraint we are projecting */
     ConstVectorHandle<Constraint> _constraint;

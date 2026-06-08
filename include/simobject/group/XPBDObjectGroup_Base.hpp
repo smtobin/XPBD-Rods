@@ -29,7 +29,7 @@ public:
     virtual void inertialUpdate(Real dt) override;
 
     virtual void internalConstraintSolve(Real dt) override;
-    virtual void interanlConstraintVelocitySolve(Real dt) override;
+    virtual void internalConstraintVelocitySolve(Real dt) override;
 
     virtual void velocityUpdate(Real dt) override;
 

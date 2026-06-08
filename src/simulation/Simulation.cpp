@@ -722,6 +722,10 @@ void Simulation::_timeStep()
     _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
 
+    _objects.for_each_element([&](auto& obj) { obj->internalConstraintVelocitySolve(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintVelocitySolve(_dt); });
+    _solver.velocitySolve(true);
+
     _solver.applyRestitution();
 
     // log quantities
