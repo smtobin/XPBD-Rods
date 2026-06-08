@@ -18,7 +18,7 @@ void Plectoneme::setup()
     Config::RodConfig rod_config(
         "plectoneme", Vec3r(0,10,0), Vec3r(0,90,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
         Config::RodElementType::QUADRATIC, true, true, true,
-        10, 0.1, 20, 1000, 5e7, 0.4, Vec3r(0,0,0)
+        10, 0.1, 40, 1000, 5e7, 0.4, Vec3r(0,0,0)
     );
 
     rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));

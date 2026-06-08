@@ -16,7 +16,7 @@ RodRodCollisionConstraint<Order1, Order2>::RodRodCollisionConstraint(
     Real mu_s, Real mu_d
 )
     : XPBDConstraint<1, Order1+1 + Order2+1,0>(concat_arrays(element1->nodes(), element2->nodes()),
-     1e-12*AlphaVecType::Ones()),
+     1e-8*AlphaVecType::Ones()),
     _element1(element1), _element2(element2),
     _s_hat1(s_hat1), _s_hat2(s_hat2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n), _mu_s(mu_s), _mu_d(mu_d)

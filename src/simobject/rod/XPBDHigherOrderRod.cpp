@@ -348,6 +348,18 @@ void XPBDRod_<ElementType>::velocityUpdate(Real dt)
 template <typename ElementType>
 void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 {
+    _solveRodSystem(dt, false);
+}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
+{
+    _solveRodSystem(dt, true);
+}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::_solveRodSystem(Real dt, bool velocity_solve)
+{
     // if we are not solving the system globally (i.e. using Gauss-Seidel or other iterative method instead),
     // don't do the internal constraint solve
     // assume that we have added the constraints to the top-level Gauss-Seidel solver, and let it do the work
@@ -383,9 +395,19 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
             // compute the RHS associated with the constraint
             typename ConstraintType::ConstraintVecType fixed_C = fixed_base_constraint->evaluate();
             typename ConstraintType::AlphaVecType fixed_alpha_tilde = fixed_base_constraint->alpha() / (dt * dt);
-            _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
 
-            // compute the gradient of the fixed base constraint
+            if (velocity_solve)
+            {
+                // no damping on the fixed base constraint
+                _RHS_vec.block<6,1>(6*diag_block_ind, 0) = Vec6r::Zero();
+            }
+            else
+            {
+                _RHS_vec.block<6,1>(6*diag_block_ind, 0) = -fixed_C - fixed_alpha_tilde.asDiagonal() * _internal_lambda.block<6,1>(6*diag_block_ind, 0);
+            }
+
+            // compute gradient w.r.t. the first node
+            // (fixed base constraint may involve an attachment between the first node and another body)
             typename ConstraintType::GradientMatType fixed_grad_full = fixed_base_constraint->gradient();
             Mat6r fixed_grad = Mat6r::Zero();
             for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
@@ -396,11 +418,18 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
                     fixed_grad = fixed_grad_full.template block<6,6>(0,6*i);
                     break;
                 }
-            }            
+            } 
+                       
             
             // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
             _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
-            _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+
+            // add alpha tilde only for the position solve
+            if (!velocity_solve)
+            {
+                _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+            }
+            
 
             // off diagonals are just the blocks of the gradients corresponding to the first node in the
             //  delC_element * M1^-1 * delC_fixed^T
@@ -678,6 +707,10 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
 template<>
 void XPBDRod_<CubicHermiteRodElement>::internalConstraintSolve(Real /* dt */)
+{}
+
+template<>
+void XPBDRod_<CubicHermiteRodElement>::internalConstraintVelocitySolve(Real /* dt */)
 {}
 
 template class XPBDRod_<RodElement<0>>;

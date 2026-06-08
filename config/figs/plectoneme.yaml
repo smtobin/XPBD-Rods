@@ -1,8 +1,8 @@
 name: "Plectoneme Sim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
-time-step: 1e-2
-solver-iters: 100
+sim-mode: "AFAP"
+time-step: 5e-4
+solver-iters: 1
 end-time: 1000
 
 camera-focal-point: [0,10,0]
@@ -22,6 +22,6 @@ ground-plane: True
 objects:
   -
     type: "Plectoneme"
-    revolutions: 4
+    revolutions: 6
 
     color: [1.0, 0.5, 0.0]

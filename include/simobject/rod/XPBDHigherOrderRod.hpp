@@ -37,6 +37,9 @@ public:
     /** Steps the rod forward in time by dt. */
     virtual void internalConstraintSolve(Real dt) override;
 
+    /** Velocity damping solve for the rod constraints. */
+    virtual void internalConstraintVelocitySolve(Real dt) override;
+
     /** Computes the new translational and angular velocities of each node. */
     virtual void velocityUpdate(Real dt) override;
 
@@ -78,6 +81,11 @@ public:
 protected:
     /** Allocates space based on the number of constraints. */
     void _allocateSpace();
+
+    /** Helper function to solve the rod system.
+     * The velocity solve and position solve have the same structure, so we can reuse a lot of the same code.
+     */
+    void _solveRodSystem(Real dt, bool velocity_solve);
 
     /** Number of elements the rod is discretized into. */
     int _num_elements;

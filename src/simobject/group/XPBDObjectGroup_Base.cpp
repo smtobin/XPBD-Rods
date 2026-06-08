@@ -41,6 +41,13 @@ void XPBDObjectGroup_Base::internalConstraintSolve(Real dt)
     });
 }
 
+void XPBDObjectGroup_Base::internalConstraintVelocitySolve(Real dt)
+{
+    _objects.for_each_element([&](auto& obj){
+        obj.internalConstraintVelocitySolve(dt);
+    });
+}
+
 void XPBDObjectGroup_Base::velocityUpdate(Real dt)
 {
     _objects.for_each_element([&](auto& obj){

@@ -46,6 +46,9 @@ public:
     /** Solves constraints defined within the object. */
     virtual void internalConstraintSolve(Real dt) = 0;
 
+    /** Velocity solve for constraints defined within the object. */
+    virtual void internalConstraintVelocitySolve(Real dt) = 0;
+
     /** Updates the object's velocity. Should be called at the end of a time step. */
     virtual void velocityUpdate(Real dt) = 0;
 

@@ -96,11 +96,54 @@ public:
         // assert(0);
     }
 
+    virtual void projectVelocity() override
+    {
+        typename Constraint::GradientMatType delC = _constraint->gradient();
+
+        Eigen::Vector<Real, Constraint::StateDim> inertia_inverse;
+        Eigen::Vector<Real, Constraint::StateDim> velocity_vec;
+
+        // for (const auto& particle : _constraint->orientedParticles())
+        for (int i = 0; i < Constraint::NumOrientedParticles; i++)
+        {
+            const SimObject::OrientedParticle* particle = _constraint->orientedParticles()[i];
+            inertia_inverse.template block<6,1>(6*i, 0) = 
+                Vec6r(1/particle->mass, 1/particle->mass, 1/particle->mass, 1/particle->Ib[0], 1/particle->Ib[1], 1/particle->Ib[2]);
+            velocity_vec.template block<3,1>(6*i, 0) = particle->lin_velocity;
+            velocity_vec.template block<3,1>(6*i+3, 0) = particle->ang_velocity;
+        }
+
+        /** TODO: check this */
+        const typename Constraint::ConstraintVecType RHS = -_constraint->beta() * _dt * _constraint->alpha().asDiagonal() * delC * velocity_vec;       
+
+        const Eigen::Matrix<Real, Constraint::ConstraintDim, Constraint::ConstraintDim> LHS =
+            delC * inertia_inverse.asDiagonal() * delC.transpose();
+
+        const typename Constraint::ConstraintVecType dmu = LHS.llt().solve(RHS);
+
+        // update nodes
+        for (int i = 0; i < Constraint::NumOrientedParticles; i++)
+        {
+            using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, Constraint::ConstraintDim, 6>;
+            SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<Constraint::ConstraintDim, 6>(0, 6*i);
+            SimObject::OrientedParticle* particle_i = _constraint->orientedParticles()[i];
+            // std::cout << "Single particle gradient:\n" << _constraint->singleParticleGradient(particle_i, true).transpose() << std::endl;
+            const Vec6r velocity_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dmu;
+            // std::cout << "Position update: " << position_update.transpose() << std::endl;
+            particle_i->lin_velocity += velocity_update.head<3>();
+            particle_i->ang_velocity += velocity_update.tail<3>();
+        }
+
+    }
+
     const typename Constraint::ConstraintVecType& lambda() const { return _lambda; }
     ConstVectorHandle<Constraint> constraint() const { return _constraint; }
 
 private:
+    /** Positional Lagrange multipliers */
     typename Constraint::ConstraintVecType _lambda;
+
+    /** The constraint we are projecting */
     ConstVectorHandle<Constraint> _constraint;
 };
 
