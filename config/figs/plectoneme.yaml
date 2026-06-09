@@ -24,4 +24,28 @@ objects:
     type: "Plectoneme"
     revolutions: 6
 
-    color: [1.0, 0.5, 0.0]
+    name: "plectoneme"
+    element-type: "Cubic"
+    initial-position: [0, 10, 0.0]
+    initial-rotation: [0, 90, 0]
+    E: 5e7
+    nu: 0.4
+    beta: 1e6
+    diameter: 0.1
+    length: 10
+    density: 1000
+    elements: 15
+    global-solve: true
+    base-fixed: True
+    tip-fixed: True
+    collisions: True
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.2
+    color: [1.0, 0, 0]
+    opacity: 1
+    draw-centerline: False
+    centerline-samples: 100

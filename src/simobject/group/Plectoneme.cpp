@@ -4,7 +4,7 @@ namespace SimObject
 {
 
 Plectoneme::Plectoneme(const Config::PlectonemeConfig& config)
-    : XPBDObjectGroup_Base(config)
+    : XPBDObjectGroup_Base(config), _rod_config(config.rodConfig())
 {
     _cur_twist = 0;
     _cur_displacement = 0;
@@ -15,28 +15,30 @@ Plectoneme::Plectoneme(const Config::PlectonemeConfig& config)
 
 void Plectoneme::setup()
 {
-    Config::RodConfig rod_config(
-        "plectoneme", Vec3r(0,10,0), Vec3r(0,90,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
-        Config::RodElementType::QUADRATIC, true, true, true,
-        10,     // length
-        0.1,    // diameter
-        20,     // num elements
-        1000,   // density
-        5e7,    // E
-        0.4,    // nu
-        1e6,    // beta (damping coeff)
-        Vec3r(0,0,0)    // curvature
-    );
+    _rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
+    _rod_config.renderConfig().setRoughness(0.2);
+    _rod_config.renderConfig().setCenterlineSamples(100);
 
-    rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
-    rod_config.renderConfig().setRoughness(0.2);
-    rod_config.renderConfig().setCenterlineSamples(100);
+    if (_rod_config.elementType() == Config::RodElementType::LINEAR)
+    {
+        auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<1>>>(_rod_config);
+        rod.setup();
+        _rod = &rod;
+    }
+    else if (_rod_config.elementType() == Config::RodElementType::QUADRATIC)
+    {
+        auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(_rod_config);
+        rod.setup();
+        _rod = &rod;
+    }
+    else if (_rod_config.elementType() == Config::RodElementType::CUBIC)
+    {
+        auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<3>>>(_rod_config);
+        rod.setup();
+        _rod = &rod;
+    }
 
-    auto& rod = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(rod_config);
-    rod.setup();
-
-    // store pointer to rod for convenience
-    _rod = &rod;
+    
 }
 
 // void Plectoneme::internalConstraintSolve(Real dt)
@@ -166,13 +168,6 @@ void Plectoneme::velocityUpdate(Real dt)
 
             std::cout << "Cur twist: " << _cur_twist << std::endl;
         }
-
-        
-        
-        
-        
-
-        std::cout << "Total rotation: " << rod->totalRotation().transpose() << std::endl;
         
     }, _rod);
 

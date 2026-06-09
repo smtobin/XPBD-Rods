@@ -33,6 +33,8 @@ private:
     Real _cur_displacement;
     Real _max_displacement;
 
+    Config::RodConfig _rod_config;
+
 };
 
 } // namespace SimObject
