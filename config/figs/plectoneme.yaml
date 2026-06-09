@@ -1,7 +1,7 @@
 name: "Plectoneme Sim"
 # sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
-time-step: 5e-3
+time-step: 1e-3
 solver-iters: 1
 end-time: 100
 

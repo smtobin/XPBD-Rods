@@ -686,7 +686,7 @@ void Simulation::_timeStep()
      * 
      * TODO: actually getthe plectoneme
      */
-    if (_time > _last_collision_check_time)
+    if (_time > _last_collision_check_time + 1.0/30.0)
     {
         // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().clearCollisionConstraints();
         // _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back()->clearCollisionConstraints();
@@ -739,48 +739,17 @@ void Simulation::_timeStep()
 
 void Simulation::_detectCollisions()
 {
-    /** TODO: make this cleaner */
-    // _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,1>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,2>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,1>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,2>>();
+
     _constraints.clear_types(XPBDCollisionConstraints_TypeList{});
 
-    // _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,1>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,1>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,2>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,2>>();
     _solver.clearProjectorsOfType(XPBDCollisionConstraints_TypeList{});
+    // _solver.clearInactiveProjectorsOfType(XPBDCollisionConstraints_TypeList{});
 
     const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
     for (const auto& detected_collision : detected_collisions)
     {
         std::visit([&](auto&& collision) {
             _processCollision(collision);
-
-            using T = std::decay_t<decltype(collision)>;
-            if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
-            {
-                
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
-            {
-                
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
-            {
-                
-            }
         }, detected_collision);
     }
 }

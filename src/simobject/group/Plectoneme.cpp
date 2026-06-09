@@ -20,11 +20,11 @@ void Plectoneme::setup()
         Config::RodElementType::QUADRATIC, true, true, true,
         10,     // length
         0.1,    // diameter
-        10,     // num elements
+        20,     // num elements
         1000,   // density
         5e7,    // E
         0.4,    // nu
-        1e3,    // beta (damping coeff)
+        1e6,    // beta (damping coeff)
         Vec3r(0,0,0)    // curvature
     );
 

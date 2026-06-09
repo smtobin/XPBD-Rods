@@ -114,6 +114,15 @@ class VariadicVectorContainer<L>
         }
     }
 
+    template<typename Visitor>
+    void _erase_if(Visitor&& visitor)
+    {
+        _vec.erase(
+            std::remove_if(_vec.begin(), _vec.end(), visitor),
+            _vec.end()
+        );
+    }
+
     private:
     std::vector<L> _vec;
 };
@@ -196,6 +205,20 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
     void clear()
     {
         return this->VariadicVectorContainer<T>::_clear();
+    }
+
+    // erase elements if a condition function is true
+    template<typename Visitor>
+    void erase_if(Visitor&& visitor)
+    {
+        _erase_if_helper<L, R...>(std::forward<Visitor>(visitor));
+    }
+
+    template<typename... Ts, typename Visitor>
+    std::enable_if_t<(sizeof...(Ts) > 0), void>
+    erase_if(Visitor&& visitor)
+    {
+        _erase_if_helper<Ts...>(std::forward<Visitor>(visitor));
     }
 
     // clear all elements in a subset of types - only enable this overload if sizeof(Ts) > 0
@@ -332,6 +355,16 @@ class VariadicVectorContainer : public VariadicVectorContainer<L>, public Variad
         if constexpr (sizeof...(Ts) > 0)
         {
             _clear_helper<Ts...>();
+        }
+    }
+
+    template<typename T, typename... Ts, typename Visitor>
+    void _erase_if_helper(Visitor&& visitor)
+    {
+        this->VariadicVectorContainer<T>::_erase_if(std::forward<Visitor>(visitor));
+        if constexpr (sizeof...(Ts) > 0)
+        {
+            _erase_if_helper<Ts...>(std::forward<Visitor>(visitor));
         }
     }
 };

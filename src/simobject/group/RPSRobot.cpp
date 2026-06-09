@@ -73,9 +73,9 @@ void RPSRobot::setup()
             Vec3r((base_radius-0.02)*std::sin(angles[i]*M_PI/180.0), 0, (base_radius-0.02)*std::cos(angles[i]*M_PI/180.0)) +
             Vec3r(0, 0.07, 0);
         Vec3r second_link_end_pos(
-            (top_position[0]+top_radius-0.027)*std::sin(angles[i]*M_PI/180.0),
-            top_position[1]-0.01,
-            (top_position[2]+top_radius-0.027)*std::cos(angles[i]*M_PI/180.0)
+            (top_position[0]+top_radius-0.03)*std::sin(angles[i]*M_PI/180.0),
+            top_position[1]-0.02,
+            (top_position[2]+top_radius-0.03)*std::cos(angles[i]*M_PI/180.0)
         );
         
         // find necessary angle
