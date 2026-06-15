@@ -28,7 +28,7 @@ objects:
     revolutions: 6
 
     name: "plectoneme"
-    element-type: "Cubic"
+    element-type: "Quadratic"
     initial-position: [0, 10, 0.0]
     initial-rotation: [0, 90, 0]
     E: 5e7
@@ -37,7 +37,7 @@ objects:
     diameter: 0.1
     length: 10
     density: 1000
-    elements: 15
+    elements: 20
     global-solve: true
     base-fixed: True
     tip-fixed: True
@@ -50,5 +50,7 @@ objects:
     roughness: 0.2
     color: [1.0, 0, 0]
     opacity: 1
+    smooth-normals: True
     draw-centerline: False
     centerline-samples: 100
+    color-elements: False

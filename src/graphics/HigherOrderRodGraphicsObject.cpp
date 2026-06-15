@@ -17,6 +17,8 @@
 #include <vtkImageData.h>
 #include <vtkPolyLine.h>
 #include <vtkTubeFilter.h>
+#include <vtkLookupTable.h>
+#include <vtkCellData.h>
 
 #include <filesystem>
 #include <optional>
@@ -27,8 +29,16 @@ namespace Graphics
 template<typename ElementType>
 HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
     : GraphicsObject(render_config), _rod(rod), _render_config(render_config), 
+    _color_elements(render_config.colorElements()),
     _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline())
 {
+
+    // if we are coloring the elements individually, the number of centerline samples is a multiple of the elements + 1 so that some samples are at element boundaries
+    if (_color_elements)
+    {
+        _num_samples = _rod->elements().size() * _sample_points_per_element + 1;
+    }
+    
     _vtk_poly_data = vtkSmartPointer<vtkPolyData>::New();
     _vtk_poly_data_normals = vtkSmartPointer<vtkPolyDataNormals>::New();
     _vtk_poly_data_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -51,8 +61,44 @@ HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const Si
         data_mapper->SetInputConnection(normal_generator->GetOutputPort());
     }
     else
-    {
+    {   
         data_mapper->SetInputData(_vtk_poly_data);
+    }
+
+    // set up the lookup table only if color-by-elements is enabled
+    if (_color_elements)
+    {
+        int numElements = (int)_rod->elements().size();
+        vtkNew<vtkLookupTable> lut;
+        lut->SetNumberOfTableValues(numElements);
+        lut->Build();
+
+        // Alternating two colors so adjacent elements are visually distinct
+        // set up the alternate color
+        Vec3r alt_color;
+        for (int i = 0; i < 3; i++)
+        {
+            alt_color[i] = (_render_config.color()[i] > 0.5) ? _render_config.color()[i] - 0.3 : _render_config.color()[i] + 0.3;
+            if (_render_config.color()[i] == 0.0)
+                alt_color[i] = 1.0;
+        }
+            
+        for (int i = 0; i < numElements; i++)
+        {
+            if (i % 2 == 0)
+                lut->SetTableValue(i, _render_config.color()[0], _render_config.color()[1], _render_config.color()[2], 1.0);
+            else
+            {
+                
+                lut->SetTableValue(i, alt_color[0], alt_color[1], alt_color[2], 1.0);
+            }
+                
+        }
+
+        data_mapper->SetScalarRange(0, numElements - 1);
+        data_mapper->SetLookupTable(lut);
+        data_mapper->SetScalarModeToUseCellData();
+        data_mapper->ScalarVisibilityOn();
     }
 
     _vtk_actor = vtkSmartPointer<vtkActor>::New();
@@ -271,6 +317,38 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
     // vtkNew<vtkPolyData> rod_poly_data;
     _vtk_poly_data->SetPoints(points);
     _vtk_poly_data->SetPolys(faces);
+
+    // set per-cell coloring if we are coloring by elements
+    if (_color_elements)
+    {
+        vtkNew<vtkIntArray> elementIds;
+        elementIds->SetName("ElementIds");
+        elementIds->SetNumberOfComponents(1);
+
+        // Tube faces — each quad (2 tris) belongs to a sample interval.
+        // Map sample interval -> element index.
+        for (int si = 0; si < _num_samples - 1; si++)
+        {
+            Real s = (Real)si / (_num_samples - 1);
+            int elem_ind = std::clamp(static_cast<int>(s * elements.size()),
+                                    0, static_cast<int>(elements.size() - 1));
+
+            for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+            {
+                elementIds->InsertNextValue(elem_ind); // tri1
+                elementIds->InsertNextValue(elem_ind); // tri2
+            }
+        }
+
+        // End cap tris — assign to element 0 and last element respectively
+        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+            elementIds->InsertNextValue(0);
+
+        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+            elementIds->InsertNextValue((int)elements.size() - 1);
+
+        _vtk_poly_data->GetCellData()->SetScalars(elementIds);
+    }
 
     // Create and set texture coordinates
     vtkNew<vtkFloatArray> textureCoords;

@@ -45,8 +45,13 @@ private:
     /** Points (in the XY plane) for the cross-section of the rod */
     std::vector<Vec3r> _cross_section_points;
 
+    /** Whether or not to color each rod element individually.
+     * When enabled, a fixed number of samples per element will be used.
+     */
+    bool _color_elements;
+
     /** Number of points to sample for each element */
-    int _sample_points_per_element;
+    int _sample_points_per_element = 10;
 
     /** Number of cross-sections to use along the rod. */
     int _num_samples;
