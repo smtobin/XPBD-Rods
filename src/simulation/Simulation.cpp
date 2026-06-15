@@ -29,7 +29,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _solver_iters(sim_config.solverIters()),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
-    _collision_scene(),
+    _collision_scene(sim_config.hashVoxelSize(), sim_config.numHashBuckets()),
     _config(sim_config)
 {
     _last_collision_check_time = std::numeric_limits<Real>::lowest();

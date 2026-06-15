@@ -49,6 +49,9 @@ class SimulationConfig : public Config_Base
         _extractParameter("log-residuals", node, _log_residuals);
         _extractParameter("solver-iters", node, _solver_iters);
 
+        _extractParameter("hash-voxel-size", node, _hash_voxel_size);
+        _extractParameter("num-hash-buckets", node, _num_hash_buckets);
+
         for (const auto& obj_node : node["objects"])
         {
             std::string type;
@@ -168,6 +171,9 @@ class SimulationConfig : public Config_Base
     Real loggingInterval() const { return _logging_interval.value; }
     bool logResiduals() const { return _log_residuals.value; }
 
+    Real hashVoxelSize() const { return _hash_voxel_size.value; }
+    int numHashBuckets() const { return _num_hash_buckets.value; }
+
     const XPBDObjectConfigs_Container& objectConfigs() const { return _object_configs; }
 
     const XPBDJointConfigs_Container& jointConfigs() const { return _joint_configs; }
@@ -189,6 +195,9 @@ class SimulationConfig : public Config_Base
     ConfigParameter<bool> _log_residuals = ConfigParameter<bool>(false);
 
     ConfigParameter<int> _solver_iters = ConfigParameter<int>(1);
+
+    ConfigParameter<Real> _hash_voxel_size = ConfigParameter<Real>(0.5);
+    ConfigParameter<int> _num_hash_buckets = ConfigParameter<int>(14909);
 
 
     XPBDObjectConfigs_Container _object_configs;

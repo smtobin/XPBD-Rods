@@ -19,6 +19,9 @@ create-skybox: True
 
 ground-plane: True
 
+hash-voxel-size: 1
+num-hash-buckets: 14909
+
 objects:
   -
     type: "Plectoneme"

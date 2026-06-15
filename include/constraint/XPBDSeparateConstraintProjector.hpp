@@ -112,12 +112,12 @@ public:
         }
     }
 
-    virtual void initializeVelocity()
+    virtual void initializeVelocity() override
     {
         _mu = Constraint::ConstraintVecType::Zero();
     }
 
-    virtual void projectVelocity()
+    virtual void projectVelocity() override
     {
         Real beta = _constraint->beta();
         if (beta == Real(0.0))

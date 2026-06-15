@@ -16,7 +16,7 @@
 
 #include <random>
 
-#define COLLISION_TOL 1      // if the distance between objects is less than this, register a collision and generate collision constraints
+#define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
 
 namespace Collision
 {
