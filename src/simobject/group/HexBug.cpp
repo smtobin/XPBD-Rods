@@ -65,16 +65,21 @@ void HexBug::setup()
     for (int side = 0; side < 2; side++)
     {
         Real dx = side == 0 ? -_body_size[0]/2 + _leg_diameter/2 : _body_size[0]/2 - _leg_diameter/2;
+
+        Vec3r curvature = _leg_curvature;
+        // if (side == 0)
+        //     curvature += Vec3r(0,10,0);
+
         for (int i = 0; i < 6; i++)
         {
+            // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
-            // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -_body_size[2]/2 + _leg_diameter/2 + (_body_size[2]- _leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
-                "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true, 0.6, 0.4,
+                "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true, 0.5, 0.2,
                 Config::RodElementType::LINEAR, false, false, true,
-                _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, 0, _leg_curvature
+                _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, 0, curvature
             );
             leg_config.renderConfig().setColor(_leg_color);
             leg_config.renderConfig().setRoughness(0.2);
@@ -116,7 +121,7 @@ void HexBug::setup()
     // create eccentric rotating mass
     Vec3r mass_size(0.004, 0.002, 0.004);
     Vec3r mass_ang_velocity(0,0,100);
-    Vec3r mass_position_loc = Vec3r(0, -3e-3, 10e-3);
+    Vec3r mass_position_loc = Vec3r(0, -8e-3, 0e-3);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
         "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, mass_size
@@ -141,22 +146,22 @@ void HexBug::setup()
     _constraints.push_back(std::move(motor_constraint));
 
     // create motor mass
-    Vec3r motor_size(0.004, 0.004, 0.004);
-    Vec3r motor_position_loc = Vec3r(0, 0, -10e-3);
-    Config::XPBDRigidBoxConfig motor_mass_config(
-        "hexbug_motor_mass", _body_initial_position + motor_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
-        5400, false, mass_size
-    );
-    motor_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
-    motor_mass_config.renderConfig().setMetallic(1.0);
-    auto& motor_mass = _objects.template emplace_back<XPBDRigidBox>(motor_mass_config);
+    // Vec3r motor_size(0.004, 0.004, 0.004);
+    // Vec3r motor_position_loc = Vec3r(0, 0, -10e-3);
+    // Config::XPBDRigidBoxConfig motor_mass_config(
+    //     "hexbug_motor_mass", _body_initial_position + motor_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
+    //     5400, false, mass_size
+    // );
+    // motor_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
+    // motor_mass_config.renderConfig().setMetallic(1.0);
+    // auto& motor_mass = _objects.template emplace_back<XPBDRigidBox>(motor_mass_config);
 
-    // create fixed joint joining eccentric mass to body
-    Constraint::FixedJointConstraint motor_fixed_constraint(
-        &body.com(), motor_position_loc, Mat3r::Identity(),
-        &motor_mass.com(), Vec3r(0,0,0), Mat3r::Identity()
-    );
-    _constraints.push_back(std::move(motor_fixed_constraint));
+    // // create fixed joint joining eccentric mass to body
+    // Constraint::FixedJointConstraint motor_fixed_constraint(
+    //     &body.com(), motor_position_loc, Mat3r::Identity(),
+    //     &motor_mass.com(), Vec3r(0,0,0), Mat3r::Identity()
+    // );
+    // _constraints.push_back(std::move(motor_fixed_constraint));
 }
 
 void HexBug::velocityUpdate(Real dt)
