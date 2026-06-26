@@ -97,7 +97,7 @@ int main()
     groundTruth(&elem1, &elem2);
 
     Config::XPBDRigidBoxConfig box_config(
-        "box", Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 1000, false, Vec3r(0.5, 0.5, 0.5)
+        "box", Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 0.2, 0.1, 1000, false, Vec3r(0.5, 0.5, 0.5)
     );
     SimObject::XPBDRigidBox box(box_config);
     Collision::BoxSDF box_sdf(&box);

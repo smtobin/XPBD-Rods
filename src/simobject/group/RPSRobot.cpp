@@ -20,7 +20,7 @@ void RPSRobot::setup()
     Vec3r base_size(2*base_radius, 0.025, 2*base_radius);
     Config::XPBDRigidBoxConfig base_config(
         "rps_base", base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
-        false, 1000, true, base_size
+        false, 0.2, 0.1, 1000, true, base_size
     );
 
     Config::MeshRenderConfig base_mesh_config(
@@ -44,7 +44,7 @@ void RPSRobot::setup()
     Vec3r top_size(2*top_radius, 0.05, 2*top_radius);
     Config::XPBDRigidBoxConfig top_config(
         "rps_top", top_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0),
-        false, 1000, false, top_size
+        false, 0.2, 0.1, 1000, false, top_size
     );
     Config::MeshRenderConfig top_mesh_config(
         Config::ObjectRenderConfig::RenderType::PBR,
@@ -90,7 +90,7 @@ void RPSRobot::setup()
         Config::XPBDRigidBoxConfig first_link_config(
             "rps_chain" + std::to_string(i) + "_first",
             first_link_pos, first_link_rot, Vec3r(0,0,0), Vec3r(0,0,0),
-            false, 1000, false, Vec3r(0.03, 0.03, first_link_length)
+            false, 0.2, 0.1, 1000, false, Vec3r(0.03, 0.03, first_link_length)
         );
 
         Config::MeshRenderConfig first_link_mesh_config(
@@ -116,7 +116,7 @@ void RPSRobot::setup()
         Config::XPBDRigidBoxConfig second_link_config(
             "rps_chain" + std::to_string(i) + "_second",
             second_link_pos, second_link_rot, Vec3r(0,0,0), Vec3r(0,0,0),
-            false, 1000, false, Vec3r(0.03, 0.03, second_link_length)
+            false, 0.2, 0.1, 1000, false, Vec3r(0.03, 0.03, second_link_length)
         );
 
         Config::MeshRenderConfig second_link_mesh_config(

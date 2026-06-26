@@ -57,12 +57,12 @@ class RodConfig : public XPBDObjectConfig
     }
 
     explicit RodConfig(const std::string& name, const Vec3r& initial_base_position, const Vec3r& initial_base_rotation,
-                          const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions,
+                          const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions, Real mu_s, Real mu_d,
                         RodElementType element_type,
                         bool base_fixed, bool tip_fixed, bool global_solve,
                         Real length, Real diameter, int elements,
                         Real density, Real E, Real nu, Real beta, Vec3r curvature)
-        : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity, collisions)
+        : XPBDObjectConfig(name, initial_base_position, initial_base_rotation, initial_velocity, initial_angular_velocity, collisions, mu_s, mu_d)
     {
         _element_type.value = element_type;
 

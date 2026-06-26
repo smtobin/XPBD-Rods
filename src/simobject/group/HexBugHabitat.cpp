@@ -25,7 +25,7 @@ void HexBugHabitat::setup()
         Real x = wall_length * std::cos(i * M_PI/3.0);
         Real z = wall_length * std::sin(i * M_PI/3.0);
         Config::XPBDRigidBoxConfig wall_config(
-            "wall" + std::to_string(i), Vec3r(x, _wall_size[1]/2, z), Vec3r(0,-i*60,0), Vec3r::Zero(), Vec3r::Zero(), true,
+            "wall" + std::to_string(i), Vec3r(x, _wall_size[1]/2, z), Vec3r(0,-i*60,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.5, 0.3,
             100, true, _wall_size
         );
         _objects.template emplace_back<XPBDRigidBox>(wall_config);

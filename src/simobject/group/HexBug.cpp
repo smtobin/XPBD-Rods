@@ -27,7 +27,7 @@ void HexBug::setup()
 
     // create "body" with just a box - 4 cm long, 1.25 cm wide, with a little thickness
     Config::XPBDRigidBoxConfig body_config(
-        "hexbug_body", _body_initial_position, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), true,
+        "hexbug_body", _body_initial_position, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.5, 0.3,
         _body_density, false, _body_size
     );
 
@@ -72,7 +72,7 @@ void HexBug::setup()
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
-                "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true,
+                "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true, 0.6, 0.4,
                 Config::RodElementType::LINEAR, false, false, true,
                 _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, 0, _leg_curvature
             );
@@ -118,7 +118,7 @@ void HexBug::setup()
     Vec3r mass_ang_velocity(0,0,100);
     Vec3r mass_position_loc = Vec3r(0, -3e-3, 10e-3);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
-        "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false,
+        "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, mass_size
     );
     eccentric_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
@@ -144,7 +144,7 @@ void HexBug::setup()
     Vec3r motor_size(0.004, 0.004, 0.004);
     Vec3r motor_position_loc = Vec3r(0, 0, -10e-3);
     Config::XPBDRigidBoxConfig motor_mass_config(
-        "hexbug_motor_mass", _body_initial_position + motor_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false,
+        "hexbug_motor_mass", _body_initial_position + motor_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, mass_size
     );
     motor_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
