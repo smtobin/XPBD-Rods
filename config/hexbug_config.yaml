@@ -15,10 +15,10 @@ create-skybox: True
 ground-plane: True
 
 camera-focal-point: [0, 0, 0]
-camera-position: [1e-1, 1e-1, 1e-1]
+camera-position: [1e-1, 1e-1, -1e-1]
 camera-orthographic: False
 
-hash-voxel-size: 1e-3
+hash-voxel-size: 1e-2
 num-hash-buckets: 31111
 
 objects:
@@ -29,7 +29,7 @@ objects:
     body-size: [0.0125, 0.007, 0.04]
     body-density: 1030
 
-    motor-angular-velocity: 1000
+    motor-angular-velocity: 750
 
     leg-stiffness: 5e6
     leg-length: 1.5e-2
@@ -38,6 +38,40 @@ objects:
     leg-curvature: [10,0,0]
 
     color: [1.0, 0.5, 0.0]
+
+  -
+    type: "HexBug"
+
+    body-initial-position: [0.0, 0.021, -0.1]
+    body-size: [0.0125, 0.007, 0.04]
+    body-density: 1030
+
+    motor-angular-velocity: 750
+
+    leg-stiffness: 5e6
+    leg-length: 1.5e-2
+    leg-length-increment: 0.2e-3
+    leg-diameter: 2e-3
+    leg-curvature: [10,0,0]
+
+    color: [1.0, 0.5, 0.0]
+
+  -
+    type: "HexBugHabitat"
+  # - 
+  #   type: "RigidBox"
+  #   name: "box1"
+  #   initial-position: [0, 0.001, 0.03]
+  #   initial-rotation: [-5, 0, 0]
+  #   initial-angular-velocity: [0, 0, 0]
+  #   size: [1,0.001,1]
+  #   render-type: "PBR"
+  #   fixed: true
+  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+  #   metallic: 0.2
+  #   roughness: 0.5
+  #   color: [1.0, 1.0, 1.0]
 
   # -
   #   type: "HexBug"
@@ -54,4 +88,4 @@ objects:
   #   leg-diameter: 2e-3
   #   leg-curvature: [10,0,0]
 
-    color: [1.0, 0.5, 0.0]
+  #   color: [1.0, 0.5, 0.0]

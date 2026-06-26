@@ -361,7 +361,7 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2)
 {
-    // return;
+    return;
     /** Step 1: ensure segments should actually be tested for collision */
     // if the segments are the same, obviously don't test them
     if (segment1 == segment2)

@@ -68,6 +68,7 @@ void HexBug::setup()
         for (int i = 0; i < 6; i++)
         {
             Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
+            // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -_body_size[2]/2 + _leg_diameter/2 + (_body_size[2]- _leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
@@ -165,7 +166,7 @@ void HexBug::velocityUpdate(Real dt)
     auto& motor_constraints = _constraints.template get<Constraint::RevoluteJointVelocityMotorConstraint>();
     for (auto& motor_constraint : motor_constraints)
     {
-        motor_constraint.setVelocity(std::max(Real(-_motor_angular_velocity), motor_constraint.velocity() - 100*dt));
+        motor_constraint.setVelocity(std::max(Real(-_motor_angular_velocity), motor_constraint.velocity() - 1000*dt));
         std::cout << "Motor velocity: " << motor_constraint.velocity() << std::endl;
         motor_constraint.updateTarget(dt);
     }

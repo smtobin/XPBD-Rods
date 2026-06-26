@@ -12,6 +12,7 @@ set(SIMOBJECT_HEADERS
     ${SIMOBJECT_INCLUDE_DIR}/group/XPBDObjectGroup_Base.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/XPBDConcentricTubeRobot.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/HexBug.hpp
+    ${SIMOBJECT_INCLUDE_DIR}/group/HexBugHabitat.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/RPSRobot.hpp
     ${SIMOBJECT_INCLUDE_DIR}/group/Plectoneme.hpp
 )
@@ -29,6 +30,7 @@ set(SIMOBJECT_SOURCES
     ${SIMOBJECT_SRC_DIR}/group/XPBDObjectGroup_Base.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDConcentricTubeRobot.cpp
     ${SIMOBJECT_SRC_DIR}/group/HexBug.cpp
+    ${SIMOBJECT_SRC_DIR}/group/HexBugHabitat.cpp
     ${SIMOBJECT_SRC_DIR}/group/RPSRobot.cpp
     ${SIMOBJECT_SRC_DIR}/group/Plectoneme.cpp
     ${SIMOBJECT_SRC_DIR}/group/XPBDPendulum.cpp

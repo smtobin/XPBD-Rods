@@ -50,7 +50,7 @@ public:
     
 private:
     ConfigParameter<Vec3r> _body_initial_position = ConfigParameter<Vec3r>(Vec3r(0,0.023,0));
-    ConfigParameter<Vec3r> _body_size = ConfigParameter<Vec3r>(Vec3r(0.0125, 0.007, 0.04));
+    ConfigParameter<Vec3r> _body_size = ConfigParameter<Vec3r>(Vec3r(0.0125, 0.007, 0.01333));
     ConfigParameter<Real> _body_density = ConfigParameter<Real>(1030);
 
     ConfigParameter<Real> _motor_angular_velocity = ConfigParameter<Real>(220);

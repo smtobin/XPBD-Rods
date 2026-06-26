@@ -111,6 +111,7 @@ namespace SimObject
     class XPBDPendulum;
     class XPBDConcentricTubeRobot;
     class HexBug;
+    class HexBugHabitat;
     class RPSRobot;
     class Plectoneme;
 }
@@ -129,7 +130,7 @@ using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDO
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
 using XPBDObjects_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::const_ptr_type;
 
-using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot, SimObject::HexBug, SimObject::RPSRobot, SimObject::Plectoneme>;
+using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot, SimObject::HexBug, SimObject::HexBugHabitat, SimObject::RPSRobot, SimObject::Plectoneme>;
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
 using XPBDObjectGroups_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
@@ -336,6 +337,7 @@ namespace Config
     class XPBDConcentricTubeRobotConfig;
 
     class HexBugConfig;
+    class HexBugHabitatConfig;
     class RPSRobotConfig;
     class PlectonemeConfig;
 
@@ -353,6 +355,7 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::XPBDPendulumConfig,
     Config::XPBDConcentricTubeRobotConfig,
     Config::HexBugConfig,
+    Config::HexBugHabitatConfig,
     Config::RPSRobotConfig,
     Config::PlectonemeConfig
 >;

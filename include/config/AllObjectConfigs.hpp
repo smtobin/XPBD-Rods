@@ -4,6 +4,7 @@
 #include "config/XPBDConcentricTubeRobotConfig.hpp"
 #include "config/XPBDPendulumConfig.hpp"
 #include "config/HexBugConfig.hpp"
+#include "config/HexBugHabitatConfig.hpp"
 #include "config/RPSRobotConfig.hpp"
 #include "config/PlectonemeConfig.hpp"
 #include "config/XPBDRigidBoxConfig.hpp"
