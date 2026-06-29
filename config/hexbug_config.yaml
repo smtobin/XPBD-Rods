@@ -37,25 +37,26 @@ objects:
     leg-diameter: 2e-3
     leg-curvature: [15,0,0]
 
-    color: [1.0, 0.5, 0.0]
+    body-color: [1.0, 1.0, 0.0]
     leg-color: [0.0, 0.0, 0.0]
 
-  # -
-  #   type: "HexBug"
+  -
+    type: "HexBug"
 
-  #   body-initial-position: [0, 0.018, 0.1]
-  #   body-size: [0.0125, 0.002, 0.03]
-  #   body-density: 1030
+    body-initial-position: [-0.087, 0.018, 0.152]
+    body-size: [0.0125, 0.002, 0.03]
+    body-density: 1030
 
-  #   motor-angular-velocity: 550
+    motor-angular-velocity: 550
 
-  #   leg-stiffness: 4.5e6
-  #   leg-length: 1.3e-2
-  #   leg-length-increment: 0.2e-3
-  #   leg-diameter: 2e-3
-  #   leg-curvature: [15,0,0]
+    leg-stiffness: 4.5e6
+    leg-length: 1.3e-2
+    leg-length-increment: 0.2e-3
+    leg-diameter: 2e-3
+    leg-curvature: [15,0,0]
 
-  #   color: [1.0, 0.5, 0.0]
+    body-color: [0.0, 0.0, 1.0]
+    leg-color: [1.0, 0.5, 0.0]
 
   -
     type: "HexBugHabitat"

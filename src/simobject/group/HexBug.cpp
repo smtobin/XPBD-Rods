@@ -35,7 +35,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_bottom.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 0.5, _body_color,
+        0, 0.5, 1.0, _body_color,
         false,
         true, false,
         Vec3r(0,-4.2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
@@ -101,7 +101,7 @@ void HexBug::setup()
             );
             leg_config.renderConfig().setColor(_leg_color);
             leg_config.renderConfig().setRoughness(0.2);
-            leg_config.renderConfig().setCenterlineSamples(15);
+            leg_config.renderConfig().setCenterlineSamples(10);
 
             auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(leg_config);
             
