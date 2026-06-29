@@ -38,7 +38,7 @@ void HexBug::setup()
         0, 0.5, 0.5, _body_color,
         false,
         true, false,
-        Vec3r(0,-3.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+        Vec3r(0,-4.2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
     );
     body_config.addRenderMeshConfig(body_plastic_mesh_config);
 
@@ -139,7 +139,7 @@ void HexBug::setup()
     // create eccentric rotating mass
     Vec3r mass_size(0.004, 0.002, 0.004);
     Vec3r mass_ang_velocity(0,0,100);
-    Vec3r mass_position_loc = Vec3r(0, -8e-3, 0e-3);
+    Vec3r mass_position_loc = Vec3r(0, -6e-3, 0e-3);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
         "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, mass_size
@@ -165,7 +165,7 @@ void HexBug::setup()
 
     // create motor mass
     Vec3r motor_size(0.007, 0.007, 0.007);
-    Vec3r motor_position_loc = Vec3r(0e-3, -8e-3, -7e-3);
+    Vec3r motor_position_loc = Vec3r(0e-3, -6e-3, -7.5e-3);
     Config::XPBDRigidBoxConfig motor_mass_config(
         "hexbug_motor_mass", _body_initial_position + motor_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, motor_size
