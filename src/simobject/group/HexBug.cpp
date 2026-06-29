@@ -31,27 +31,27 @@ void HexBug::setup()
         _body_density, false, _body_size
     );
 
-    Config::MeshRenderConfig body_plastic_mesh_config(
-        Config::ObjectRenderConfig::RenderType::PBR,
-        "../resource/meshes/hexbug_plastic_bottom.STL",
-        std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 0.0, _body_color,
-        false,
-        true, false,
-        Vec3r(0,6.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
-    );
-    body_config.addRenderMeshConfig(body_plastic_mesh_config);
+    // Config::MeshRenderConfig body_plastic_mesh_config(
+    //     Config::ObjectRenderConfig::RenderType::PBR,
+    //     "../resource/meshes/hexbug_plastic_bottom.STL",
+    //     std::nullopt, std::nullopt, std::nullopt,
+    //     0, 0.5, 0.0, _body_color,
+    //     false,
+    //     true, false,
+    //     Vec3r(0,6.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+    // );
+    // body_config.addRenderMeshConfig(body_plastic_mesh_config);
 
-    Config::MeshRenderConfig body_rim_mesh_config(
-        Config::ObjectRenderConfig::RenderType::PBR,
-        "../resource/meshes/hexbug_plastic_top.STL",
-        std::nullopt, std::nullopt, std::nullopt,
-        0, 0.2, 1.0, _leg_color,
-        false,
-        true, false,
-        Vec3r(0,7.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
-    );
-    body_config.addRenderMeshConfig(body_rim_mesh_config);
+    // Config::MeshRenderConfig body_rim_mesh_config(
+    //     Config::ObjectRenderConfig::RenderType::PBR,
+    //     "../resource/meshes/hexbug_plastic_top.STL",
+    //     std::nullopt, std::nullopt, std::nullopt,
+    //     0, 0.2, 1.0, _leg_color,
+    //     false,
+    //     true, false,
+    //     Vec3r(0,7.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+    // );
+    // body_config.addRenderMeshConfig(body_rim_mesh_config);
 
     auto& body = _objects.template emplace_back<XPBDRigidBox>(body_config);
     std::cout << "Body mass: " << body.com().mass*1000 << " grams" << std::endl;
@@ -84,15 +84,18 @@ void HexBug::setup()
         //     curvature += Vec3r(0,-10,0);
         // if (side == 1)
         //     curvature += Vec3r(0,+10,0);
+        // Real out_angle = side == 0 ? -5 : 5;
+        Real out_angle = 0;
 
         for (int i = 0; i < 6; i++)
         {
             // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
-            Vec3r pos_local = Vec3r(dx, _body_size[1]*1.2, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
+            Vec3r pos_local = Vec3r(dx, -_body_size[1]/8, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
+            // Vec3r pos_local = Vec3r(dx, _body_size[1]*1.2, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
-                "hexbug_leg", leg_base, Vec3r(90,10,0), Vec3r(0,0,0), Vec3r(0,0,0), true, 0.5, 0.2,
+                "hexbug_leg", leg_base, Vec3r(90,10,out_angle), Vec3r(0,0,0), Vec3r(0,0,0), true, 0.5, 0.2,
                 Config::RodElementType::LINEAR, false, false, true,
                 _leg_length - _leg_length_increment*i, _leg_diameter, 1, 1000, _leg_stiffness, 0.4, 0, curvature
             );
@@ -121,7 +124,7 @@ void HexBug::setup()
         // add fixed constraint between leg base and its initial position on the body
         Constraint::FixedJointConstraint fixed_constraint(
             &leg.nodes().front(), Vec3r::Zero(), Mat3r::Identity(),
-            &body.com(), body_joint_pos[i], Math::RotMatFromXYZEulerAngles(Vec3r(90,10,0))
+            &body.com(), body_joint_pos[i], leg.nodes().front().orientation
         );
         // _internal_constraints.push_back(std::move(fixed_constraint));
         _internal_constraints.push_back(std::move(fixed_constraint));

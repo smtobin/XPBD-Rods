@@ -25,11 +25,11 @@ objects:
   -
     type: "HexBug"
 
-    body-initial-position: [0, 0.015, 0]
+    body-initial-position: [0, 0.018, 0]
     body-size: [0.0125, 0.007, 0.03]
     body-density: 1030
 
-    motor-angular-velocity: 700
+    motor-angular-velocity: 920
 
     leg-stiffness: 5e6
     leg-length: 1.5e-2
@@ -42,8 +42,8 @@ objects:
   # -
   #   type: "HexBug"
 
-  #   body-initial-position: [0.02, 0.021, -0.05]
-  #   body-size: [0.0125, 0.007, 0.04]
+  #   body-initial-position: [0, 0.015, -0.1]
+  #   body-size: [0.0125, 0.007, 0.03]
   #   body-density: 1030
 
   #   motor-angular-velocity: 700
