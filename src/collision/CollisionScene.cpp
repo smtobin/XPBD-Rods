@@ -16,8 +16,6 @@
 
 #include <random>
 
-#define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
-
 namespace Collision
 {
 
@@ -180,8 +178,11 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
                         hsbox[2] * std::abs(box->com().orientation.col(2).dot(pn));
     Real box_proj = box->com().position.dot(pn);
     Real plane_proj = plane->com().position.dot(pn);
-    if (box_proj - box_radius <= plane_proj + COLLISION_TOL)
+
+    Real speculative_margin = COLLISION_TOL + std::abs(box->com().lin_velocity.dot(pn)) * COLLISION_CHECK_INTERVAL;
+    if (box_proj - box_radius <= plane_proj + speculative_margin)
     {
+        // std::cout << "\nBOX-PLANE COLLISION!" << std::endl;
 
         // collision!
         Vec3r hsplane(plane->width()/2.0, plane->height()/2.0, 1e-6);
@@ -190,8 +191,11 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDPlane
         std::vector<DetectedCollision> collisions;
         BoxBoxCollider::generateContactsForFaceSomethingCollision(
             plane, hsplane, box, hsbox,
-            plane->normal(), code, collisions
+            plane->normal(), code, speculative_margin,
+             collisions
         );
+
+        // std::cout << "Number of new collisions: " << collisions.size() << std::endl;
 
         scene->_new_collisions.insert(scene->_new_collisions.end(), collisions.begin(), collisions.end());
     }

@@ -686,7 +686,7 @@ void Simulation::_timeStep()
      * 
      * TODO: actually getthe plectoneme
      */
-    if (_time > _last_collision_check_time)// + 1.0/30.0)
+    if (_time > _last_collision_check_time + COLLISION_CHECK_INTERVAL)
     {
         // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().clearCollisionConstraints();
         // _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back()->clearCollisionConstraints();

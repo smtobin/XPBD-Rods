@@ -83,6 +83,7 @@ public:
         Vec3r center_diff = pbox2 - pbox1;
         bool flip_normal = false;
         int code;
+        Real margin;
 
         auto test_axis = [&](const Vec3r& axis, int cur_code) -> bool
         {
@@ -95,7 +96,13 @@ public:
             Real dist = center_diff.dot(axis);
             Real dist_abs = std::abs(dist);
 
-            Real overlap = proj1 + proj2 - dist_abs;
+
+            Real rel_normal_speed = std::max<Real>(0, (box1_com->lin_velocity - box2_com->lin_velocity).dot(axis) );
+            rel_normal_speed += box1_com->ang_velocity.norm() * hsbox1.norm() + box2_com->ang_velocity.norm() * hsbox2.norm();
+
+            // Real rel_normal_speed = (box1_com->lin_velocity - box2_com->lin_velocity).norm();
+            Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+            Real overlap = proj1 + proj2 + speculative_margin - dist_abs;
 
             if (overlap < 0)
                 return false;
@@ -106,6 +113,7 @@ public:
                 normal = axis;
                 code = cur_code;
                 flip_normal = dist < 0;
+                margin = speculative_margin;
             }
 
             return true;
@@ -225,7 +233,7 @@ public:
             // needs to be flipped if the reference face is on box 2
             normal2 = -normal;
 
-        generateContactsForFaceSomethingCollision(rb1, halfsize1, rb2, halfsize2, normal2, code, collisions);
+        generateContactsForFaceSomethingCollision(rb1, halfsize1, rb2, halfsize2, normal2, code, margin, collisions);
 
         return collisions;
     }
@@ -234,6 +242,7 @@ public:
         SimObject::XPBDRigidBody_Base* rb1, const Vec3r& halfsize1,
         SimObject::XPBDRigidBody_Base* rb2, const Vec3r& halfsize2,
         const Vec3r& normal2, int code,
+        Real speculative_margin,
         std::vector<DetectedCollision>& collisions
     )
     {
@@ -370,7 +379,7 @@ public:
             Real k2 = -m21*(ret[j*2]-c1) + m11*(ret[j*2+1]-c2);
             points[cnum] = center + R2.col(a1) * k1 + R2.col(a2) * k2;
             dep[cnum] = halfsize1[codeN] - normal2.dot(points[cnum]);
-            if(dep[cnum] >= 0)
+            if(dep[cnum] >= -speculative_margin)
             {
                 ret[cnum*2] = ret[j*2];
                 ret[cnum*2+1] = ret[j*2+1];
