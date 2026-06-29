@@ -1,5 +1,5 @@
 name: "RodSim"
-# sim-mode: "Frame-by-frame"
+sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 1e-4
 end-time: 100
@@ -26,10 +26,10 @@ objects:
     type: "HexBug"
 
     body-initial-position: [0, 0.018, 0]
-    body-size: [0.0125, 0.007, 0.03]
+    body-size: [0.0125, 0.002, 0.03]
     body-density: 1030
 
-    motor-angular-velocity: 920
+    motor-angular-velocity: 500
 
     leg-stiffness: 5e6
     leg-length: 1.5e-2
