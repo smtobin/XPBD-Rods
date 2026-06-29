@@ -21,11 +21,11 @@ void HexBugHabitat::setup()
     // create walls
     for (int i = 0; i < 6; i++)
     {
-        Real wall_length = _wall_size[2] - 2*_wall_size[0]/std::sqrt(3);
+        Real wall_length = _wall_size[2] - 4*_wall_size[0]/std::sqrt(3);
         Real x = wall_length * std::cos(i * M_PI/3.0);
         Real z = wall_length * std::sin(i * M_PI/3.0);
         Config::XPBDRigidBoxConfig wall_config(
-            "wall" + std::to_string(i), Vec3r(x, _wall_size[1]/2, z), Vec3r(0,-i*60,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.3, 0.15,
+            "wall" + std::to_string(i), Vec3r(x, _wall_size[1]/2, z), Vec3r(0,-i*60,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.1, 0.0,
             100, true, _wall_size
         );
         _objects.template emplace_back<XPBDRigidBox>(wall_config);

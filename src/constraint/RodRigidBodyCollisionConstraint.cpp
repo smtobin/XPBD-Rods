@@ -323,7 +323,7 @@ void OneSidedRodRigidBodyCollisionConstraint<Order>::applyFriction(Real lambda_n
 template <int Order>
 void OneSidedRodRigidBodyCollisionConstraint<Order>::applyRestitution() const
 {
-    Real e = 0.5;
+    Real e = 0.0;
 
     // get previous relative velocity between contact points, in the normal direction
     Vec3r v_cp_rod_prev = _element->previousContactPointVelocity(_s_hat, _cp_local_rod);

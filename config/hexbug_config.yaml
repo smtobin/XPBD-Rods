@@ -25,11 +25,11 @@ objects:
   -
     type: "HexBug"
 
-    body-initial-position: [0, 0.021, 0]
-    body-size: [0.0125, 0.007, 0.04]
+    body-initial-position: [0, 0.015, 0]
+    body-size: [0.0125, 0.007, 0.03]
     body-density: 1030
 
-    motor-angular-velocity: 900
+    motor-angular-velocity: 700
 
     leg-stiffness: 5e6
     leg-length: 1.5e-2
@@ -56,6 +56,6 @@ objects:
 
   #   color: [1.0, 0.5, 0.0]
 
-  # -
-  #   type: "HexBugHabitat"
-  #   wall-size: [0.01, 0.03, 0.2]
+  -
+    type: "HexBugHabitat"
+    wall-size: [0.01, 0.03, 0.15]

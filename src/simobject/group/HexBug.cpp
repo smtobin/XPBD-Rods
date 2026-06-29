@@ -27,7 +27,7 @@ void HexBug::setup()
 
     // create "body" with just a box - 4 cm long, 1.25 cm wide, with a little thickness
     Config::XPBDRigidBoxConfig body_config(
-        "hexbug_body", _body_initial_position, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.5, 0.3,
+        "hexbug_body", _body_initial_position, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.1, 0.0,
         _body_density, false, _body_size
     );
 
@@ -38,7 +38,7 @@ void HexBug::setup()
         0, 0.5, 0.0, _body_color,
         false,
         true, false,
-        Vec3r(0,-2.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+        Vec3r(0,6.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
     );
     body_config.addRenderMeshConfig(body_plastic_mesh_config);
 
@@ -49,14 +49,27 @@ void HexBug::setup()
         0, 0.2, 1.0, _leg_color,
         false,
         true, false,
-        Vec3r(0,-1.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
+        Vec3r(0,7.5e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
     );
     body_config.addRenderMeshConfig(body_rim_mesh_config);
 
     auto& body = _objects.template emplace_back<XPBDRigidBox>(body_config);
     std::cout << "Body mass: " << body.com().mass*1000 << " grams" << std::endl;
 
-    
+    Vec3r body_tip_pos_local = Vec3r(0, 0, _body_size[2]/2);
+    Config::XPBDRigidBoxConfig body_tip_config(
+        "hexbug_body_tip", _body_initial_position + body_tip_pos_local, Vec3r(0,45,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.1, 0.0,
+        _body_density, false, Vec3r(_body_size[0]/std::sqrt(2), _body_size[1], _body_size[0]/std::sqrt(2))
+    );
+
+    auto& body_tip = _objects.template emplace_back<XPBDRigidBox>(body_tip_config);
+    // added fixed constraint between main body and pointy tip
+    Constraint::FixedJointConstraint body_fixed_constraint(
+        &body_tip.com(), Vec3r::Zero(), Mat3r::Identity(),
+        &body.com(), body_tip_pos_local, Math::RotMatFromXYZEulerAngles(Vec3r(0,45,0))
+    );
+    _constraints.push_back(std::move(body_fixed_constraint));
+
 
 
     // create legs out of 12 rods - 6 on each side of body
@@ -68,12 +81,14 @@ void HexBug::setup()
 
         Vec3r curvature = _leg_curvature;
         // if (side == 0)
-        //     curvature += Vec3r(0,10,0);
+        //     curvature += Vec3r(0,-10,0);
+        // if (side == 1)
+        //     curvature += Vec3r(0,+10,0);
 
         for (int i = 0; i < 6; i++)
         {
             // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
-            Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
+            Vec3r pos_local = Vec3r(dx, _body_size[1]*1.2, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
             Config::RodConfig leg_config(
@@ -121,7 +136,7 @@ void HexBug::setup()
     // create eccentric rotating mass
     Vec3r mass_size(0.004, 0.002, 0.004);
     Vec3r mass_ang_velocity(0,0,100);
-    Vec3r mass_position_loc = Vec3r(0, -8e-3, 0e-3);
+    Vec3r mass_position_loc = Vec3r(0, -5e-3, 0e-3);
     Config::XPBDRigidBoxConfig eccentric_mass_config(
         "hexbug_eccentric_mass", _body_initial_position + mass_position_loc, Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), false, 0.2, 0.1,
         5400, false, mass_size
