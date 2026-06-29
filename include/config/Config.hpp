@@ -211,6 +211,7 @@ class Config_Base
     {
         // set the name field of the ConfigParameter
         param.name = param_name;
+        param.value.clear();
 
         try 
         {

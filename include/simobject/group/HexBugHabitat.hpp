@@ -19,7 +19,15 @@ public:
     virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override {}
 
 private:
-    Vec3r _wall_size;
+    Vec3r _center;
+    
+    Real _wall_length;
+    Real _wall_thickness;
+    Real _wall_height;
+
+    Real _gap_size;
+    std::vector<bool> _gaps;
+
     Vec3r _wall_color;
 
 };
