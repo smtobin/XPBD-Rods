@@ -27,7 +27,7 @@ objects:
     type: "Rod"
     name: "rod1"
     element-type: "Linear"
-    initial-position: [-0.5, 1.8, 0.05]
+    initial-position: [-0.5, 50, 0.05]
     initial-rotation: [0, 90, 0]
     nodes: 20
     E: 1e6

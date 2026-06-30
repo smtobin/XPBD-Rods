@@ -48,6 +48,13 @@ Vec3r CubicHermiteRodElement::previousPosition(Real s_hat) const
     return p;
 }
 
+Vec3r CubicHermiteRodElement::linearVelocity(Real s_hat) const
+{
+    throw std::runtime_error("Not implemented");
+
+    return Vec3r::Zero();
+}
+
 Vec3r CubicHermiteRodElement::dposition_dshat(Real s_hat) const
 {
     // std::cout << "s_hat: " << s_hat << std::endl;

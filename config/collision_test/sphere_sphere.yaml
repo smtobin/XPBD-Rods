@@ -1,6 +1,6 @@
 name: "Sphere-Sphere Collision"
 time-step: 1e-3
-end-time: 5
+end-time: 100
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
@@ -24,7 +24,7 @@ objects:
     name: "sphere2"
     initial-position: [0.1,0.5,0]
     initial-velocity: [0,0,0]
-    fixed: true
+    fixed: false
     radius: 0.2
     render-type: "PBR"
     metallic: 0.2

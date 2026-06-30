@@ -110,6 +110,18 @@ Vec3r RodElement<Order>::previousPosition(Real s_hat) const
 }
 
 template<int Order>
+Vec3r RodElement<Order>::linearVelocity(Real s_hat) const
+{
+    Vec3r v = _bases[0](s_hat) * _nodes[0]->lin_velocity;
+    for (int i = 1; i < Order+1; i++)
+    {
+        v += _bases[i](s_hat) * _nodes[i]->lin_velocity;
+    }
+
+    return v;
+}
+
+template<int Order>
 Vec3r RodElement<Order>::dposition_dshat(Real s_hat) const
 {
     Vec3r dp = _bases_derivatives[0](s_hat) * _nodes[0]->position;

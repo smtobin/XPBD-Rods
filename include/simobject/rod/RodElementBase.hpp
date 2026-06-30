@@ -53,6 +53,9 @@ public:
     /** Rotation evaluated at the specified reference coordinate. (i.e. R(s_hat)) */
     virtual Mat3r orientation(Real s_hat) const = 0;
 
+    /** Linear velocity evaluated at the specified reference coordinate */
+    virtual Vec3r linearVelocity(Real s_hat) const = 0;
+
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const = 0;
 

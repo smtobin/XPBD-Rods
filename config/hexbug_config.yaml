@@ -2,7 +2,7 @@ name: "RodSim"
 # sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 1e-4
-end-time: 10
+end-time: 100
 
 logging: False
 logging-output-folder: "../output/convergence"
@@ -59,31 +59,49 @@ objects:
   #   body-color: [0.0, 0.0, 1.0]
   #   leg-color: [1.0, 0.5, 0.0]
 
-  -
-    type: "HexBugHabitat"
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [false, false, true, true, false, false]
+  # -
+  #   type: "HexBug"
 
-    wall-color: [1.0, 0.0, 0.0]
+  #   body-initial-position: [-0.175, 0.018, 0.0]
+  #   body-size: [0.0125, 0.002, 0.03]
+  #   body-density: 1030
 
-  -
-    type: "HexBugHabitat"
-    initial-position: [-0.175, 0, 0]
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [true, true, false, false, false, false]
+  #   motor-angular-velocity: 550
 
-    wall-color: [1.0, 1.0, 0.0]
+  #   leg-stiffness: 4.5e6
+  #   leg-length: 1.3e-2
+  #   leg-length-increment: 0.2e-3
+  #   leg-diameter: 2e-3
+  #   leg-curvature: [15,0,0]
 
-  -
-    type: "HexBugHabitat"
-    initial-position: [-0.087, 0, 0.152]
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [false, false, false, false, true, true]
+  #   body-color: [0.5, 0.0, 1.0]
+  #   leg-color: [0.0, 1.0, 0.0]
 
-    wall-color: [0.0, 1.0, 0.0]
+  # -
+  #   type: "HexBugHabitat"
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [false, false, true, true, false, false]
+
+  #   wall-color: [1.0, 0.0, 0.0]
+
+  # -
+  #   type: "HexBugHabitat"
+  #   initial-position: [-0.175, 0, 0]
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [true, true, false, false, false, false]
+
+  #   wall-color: [1.0, 1.0, 0.0]
+
+  # -
+  #   type: "HexBugHabitat"
+  #   initial-position: [-0.087, 0, 0.152]
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [false, false, false, false, true, true]
+
+  #   wall-color: [0.0, 1.0, 0.0]

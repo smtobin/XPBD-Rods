@@ -265,7 +265,10 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
     Vec3r com_diff = (sphere2->com().position - sphere1->com().position);
     Real com_sq_dist = com_diff.squaredNorm();
     Real rad_sq_dist = (sphere1->radius() + sphere2->radius())*(sphere1->radius() + sphere2->radius());
-    if (com_sq_dist < rad_sq_dist + COLLISION_TOL)
+
+    Real rel_normal_speed = (sphere1->com().lin_velocity - sphere2->com().lin_velocity).dot(com_diff);
+    Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+    if (std::sqrt(com_sq_dist) < std::sqrt(rad_sq_dist) + speculative_margin)
     {
         // collision normal points from sphere 1 -> sphere 2
         Vec3r collision_normal;
@@ -312,13 +315,15 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
     // vector (in box frame) from closest point to sphere center
     const Vec3r diff = sphere_local - box_closest_point;
-    Real sq_dist = diff.squaredNorm();
+    Real dist = diff.norm();
+
+    Real rel_normal_speed = (box->com().lin_velocity - sphere->com().lin_velocity).dot(diff);
+    Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
 
     Vec3r local_collision_normal;
-    if (sq_dist <= sphere->radius() * sphere->radius() + COLLISION_TOL * COLLISION_TOL)
+    if (dist <= sphere->radius() + speculative_margin)
     {
         // collision!
-        Real dist = std::sqrt(sq_dist);
         
         // edge case: sphere center inside box
         // because of the clamp operation, the distance to the closest point in the box will be 0
@@ -405,7 +410,6 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2)
 {
-    return;
     /** Step 1: ensure segments should actually be tested for collision */
     // if the segments are the same, obviously don't test them
     if (segment1 == segment2)
@@ -432,9 +436,16 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollis
     const Vec3r cp_rod2 = p3 + beta2*(p4 - p3);
 
     Vec3r diff = cp_rod2 - cp_rod1;
-    Real sq_dist = diff.squaredNorm();
-    Real rads_sq = (segment1->radius() + segment2->radius() + COLLISION_TOL) * (segment1->radius() + segment2->radius() + COLLISION_TOL);
-    if (sq_dist > rads_sq)
+    Real dist = diff.norm();
+
+    Vec3r approx_seg_lin_vel1 = (1-beta1) * segment1->particle1()->lin_velocity + beta1 * segment1->particle2()->lin_velocity;
+    Vec3r approx_seg_lin_vel2 = (1-beta2) * segment2->particle1()->lin_velocity + beta2 * segment2->particle2()->lin_velocity;
+    Vec3r approx_seg_pos1 = (1-beta1) * segment1->particle1()->position + beta1 * segment1->particle2()->position;
+    Vec3r approx_seg_pos2 = (1-beta2) * segment2->particle1()->position + beta2 * segment2->particle2()->position;
+
+    Real rel_normal_speed = (approx_seg_lin_vel1 - approx_seg_lin_vel2).dot(approx_seg_pos2 - approx_seg_pos1);
+    Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+    if (dist > segment1->radius() + segment2->radius() + speculative_margin)
         return;
     
     /** Step 3: test each individual rod element within each collision segment
@@ -457,16 +468,22 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollis
                 Vec3r p2 = elem2->position(s_hat2);
                 Vec3r diff = (p2 - p1);
 
-                Real sq_dist = (p2 - p1).squaredNorm();
+                Real dist = (p2 - p1).norm();
                 
-                if (sq_dist < rads_sq)
+
+                Vec3r seg_lin_vel1 = elem1->linearVelocity(s_hat1);
+                Vec3r seg_lin_vel2 = elem2->linearVelocity(s_hat2);
+
+                Real rel_normal_speed = (seg_lin_vel1 - seg_lin_vel2).dot(p2 - p1);
+                Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+                if (dist < segment1->radius() + segment2->radius() + speculative_margin)
                 {
                     // std::cout << "Rod-rod collision!" << std::endl;
                     Vec3r normal;
-                    if (sq_dist < 1e-6)
+                    if (dist < 1e-6)
                         normal = Vec3r(1,0,0);
                     else
-                        normal = diff / std::sqrt(sq_dist);
+                        normal = diff / dist;
                     
                     // contact points on the surface of each rod
                     const Vec3r cp_rod_surface1 = cp_rod1 + normal*segment1->radius();
@@ -514,9 +531,16 @@ void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* 
     // as an initial coarse pass
     if (segment->elements().size() > 1)
     {
+        
         // first, use coarse, linear approximation of collision segment
         auto [s_approx, dist_approx] = RodElementCollider::closestPointBetweenLineAndSDF(segment->particle1()->position, segment->particle2()->position, rb_sdf);
-        if (dist_approx > 2*segment->radius())
+        
+        Vec3r approx_seg_lin_vel = (1-s_approx) * segment->particle1()->lin_velocity + s_approx * segment->particle2()->lin_velocity;
+        Vec3r approx_seg_pos = (1-s_approx) * segment->particle1()->position + s_approx * segment->particle2()->position;
+        Real rel_normal_speed = (approx_seg_lin_vel - rb->com().lin_velocity).dot(rb->com().position - approx_seg_pos);
+        Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+
+        if (dist_approx > 2*segment->radius() + speculative_margin)
             return;
     }
 
@@ -526,7 +550,12 @@ void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* 
         // get the "deepest penetrating" point on the rod element centerline
         auto [s, dist] = RodElementCollider::closestPointBetweenRodElementAndSDF(elem, rb_sdf);
         
-        if (dist <= segment->radius() + COLLISION_TOL)
+        Vec3r seg_vel = elem->linearVelocity(s);
+        Vec3r seg_pos = elem->position(s);
+        Real rel_normal_speed = (seg_vel - rb->com().lin_velocity).dot(rb->com().position - seg_pos);
+        Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
+
+        if (dist <= segment->radius() + speculative_margin)
         {
             // collision!
             // get collision point on rod centerline
