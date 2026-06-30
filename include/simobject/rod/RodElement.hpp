@@ -26,6 +26,7 @@ public:
     RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature);
 
     virtual int order() const override { return Order; }
+    virtual int numNodes() const override { return NumNodes; }
 
     static std::array<Real, NumNodes> lumpedMasses();
 

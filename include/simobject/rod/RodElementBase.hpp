@@ -33,6 +33,9 @@ public:
      */
     virtual int order() const = 0;
 
+    /** Returns the number of nodes in the element */
+    virtual int numNodes() const = 0;
+
     /** Returns the node at the specified index in the element. */
     virtual OrientedParticle* node(int index) const = 0;
 

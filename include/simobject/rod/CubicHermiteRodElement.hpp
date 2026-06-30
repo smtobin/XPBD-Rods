@@ -29,6 +29,7 @@ public:
         Real rest_length);
 
     virtual int order() const override { return Order; }
+    virtual int numNodes() const override { return NumNodes; }
 
     static std::array<Real, 4> lumpedMasses();
 
