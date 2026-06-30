@@ -16,7 +16,7 @@ RodRodCollisionConstraint<Order1, Order2>::RodRodCollisionConstraint(
     Real mu_s, Real mu_d
 )
     : XPBDConstraint<1, Order1+1 + Order2+1,0>(concat_arrays(element1->nodes(), element2->nodes()),
-     1e-10*AlphaVecType::Ones()),
+     1e-8*AlphaVecType::Ones()),
     _element1(element1), _element2(element2),
     _s_hat1(s_hat1), _s_hat2(s_hat2),
      _cp_local1(cp_local1), _cp_local2(cp_local2), _n(n), _mu_s(mu_s), _mu_d(mu_d)
@@ -36,7 +36,7 @@ RodRodCollisionConstraint<Order1, Order2>::evaluate() const
     ConstraintVecType C;
     C[0] = (cp_rod2 - cp_rod1).dot(_n);
     // std::cout << "Nominal C: " << C[0] << std::endl;
-    return 0.1*C;
+    return C;
 }
 
 template <int Order1, int Order2>
@@ -145,6 +145,86 @@ void RodRodCollisionConstraint<Order1, Order2>::applyFriction(Real lambda_n) con
         // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
         _oriented_particles[i]->positionUpdate(position_update);
     }
+}
+
+template <int Order1, int Order2>
+void RodRodCollisionConstraint<Order1, Order2>::applyRestitution() const
+{
+    Real e = 0.0;
+
+    // get previous relative velocity between contact points, in the normal direction
+    Vec3r v_cp_rod_prev1 = _element1->previousContactPointVelocity(_s_hat1, _cp_local1);
+    Vec3r v_cp_rod_prev2 = _element2->previousContactPointVelocity(_s_hat2, _cp_local2);
+    Vec3r v_rel_prev = v_cp_rod_prev1 - v_cp_rod_prev2;
+
+    Real v_norm_mag_prev = _n.dot(v_rel_prev);
+
+    // std::cout << "\ns hat: " << _s_hat << "cp local: " << _cp_local_rod.transpose() << std::endl;
+    // std::cout << "v norm mag prev: " << v_norm_mag_prev << std::endl;
+
+
+     // get current relative velocity between contact points, in the normal direction
+    Vec3r v_cp_rod1 = _element1->contactPointVelocity(_s_hat1, _cp_local1);
+    Vec3r v_cp_rod2 = _element2->contactPointVelocity(_s_hat2, _cp_local2);
+    Vec3r v_rel = v_cp_rod1 - v_cp_rod2;
+
+    Real v_norm_mag = _n.dot(v_rel);
+
+    // std::cout << "v norm mag: " << v_norm_mag << std::endl;
+
+    // CHECK FOR V_NORM_MAG < 0 HERE ??
+
+    // the new relative velocity in the normal direction should be the previous normal velocity "reflected" to point in the opposite direction, and
+    //   scaled by the coefficient of restitution
+    Real v_norm_new_mag = std::min(Real(0.0), -e*v_norm_mag_prev);
+    if (std::abs(v_norm_new_mag) < 1e-2)
+        v_norm_new_mag = 0;
+
+    // std::cout << "v norm mag new: " << v_norm_new_mag << std::endl;
+    // std::cout << "normal: " << _n.transpose() << std::endl;
+
+    // velocity-level constraint
+    Real C_vel = v_norm_mag - v_norm_new_mag;
+
+    // constraint gradients (with respect to velocity and angular velocity)
+
+    GradientMatType delC;
+    delC.template block<1,6*(Order1+1)>(0,0) = _n.transpose() * _element1->contactPointVelocityGradient(_s_hat1, _cp_local1);
+    delC.template block<1,6*(Order2+1)>(0, 6*(Order1+1)) = -_n.transpose() * _element2->contactPointVelocityGradient(_s_hat2, _cp_local2);
+
+    // construct inertia inverse matrix
+    Eigen::Vector<Real, StateDim> inertia_inverse;
+    for (int i = 0; i < NumOrientedParticles; i++)
+    {
+        inertia_inverse.template block<6,1>(6*i, 0) = 
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
+    }
+
+    // assemble LHS (alpha = 0)
+    Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
+
+    // solve (alpha = 0)
+    Real dlam = -C_vel / LHS;
+
+    // update nodes
+    for (int i = 0; i < NumOrientedParticles; i++)
+    {
+        using SingleOrientedParticleGradientMatType = Eigen::Matrix<Real, ConstraintDim, 6>;
+        SingleOrientedParticleGradientMatType particle_i_grad = delC.template block<ConstraintDim, 6>(0, 6*i);
+        const Vec6r velocity_update = inertia_inverse.template block<6,1>(6*i, 0).asDiagonal() * particle_i_grad.transpose() * dlam;
+        // std::cout << "    Applying position update to particle " << i << ": " << position_update.transpose() << std::endl;
+        _oriented_particles[i]->lin_velocity += velocity_update.head<3>();
+        _oriented_particles[i]->ang_velocity += velocity_update.tail<3>();
+    }
+
+    Vec3r v_cp_rod1_new = _element1->contactPointVelocity(_s_hat1, _cp_local1);
+    Vec3r v_cp_rod2_new = _element2->contactPointVelocity(_s_hat2, _cp_local2);
+    Vec3r v_rel_new = v_cp_rod1_new - v_cp_rod2_new;
+
+    Real new_v_norm_mag = _n.dot(v_rel_new);
+
+    // std::cout << "Desired v norm mag: " << v_norm_new_mag << "  Actual new v norm mag: " << new_v_norm_mag << std::endl;
 }
 
 template class RodRodCollisionConstraint<1,1>;

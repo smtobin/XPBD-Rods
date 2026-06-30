@@ -90,14 +90,14 @@ int main()
     std::array<SimObject::OrientedParticle*, 3> elem1_nodes = {&p1, &p2, &p3};
     std::array<SimObject::OrientedParticle*, 3> elem2_nodes = {&p4, &p5, &p6};
 
-    SimObject::RodElement<2> elem1(elem1_nodes, 0.5);
-    SimObject::RodElement<2> elem2(elem2_nodes, 0.5);
+    SimObject::RodElement<2> elem1(elem1_nodes, 0.5, Vec3r::Zero());
+    SimObject::RodElement<2> elem2(elem2_nodes, 0.5, Vec3r::Zero());
 
     Collision::RodElementCollider::closestPointsBetweenRodElements(&elem1, &elem2);
     groundTruth(&elem1, &elem2);
 
     Config::XPBDRigidBoxConfig box_config(
-        "box", Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 1000, false, Vec3r(0.5, 0.5, 0.5)
+        "box", Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 0.2, 0.1, 1000, false, Vec3r(0.5, 0.5, 0.5)
     );
     SimObject::XPBDRigidBox box(box_config);
     Collision::BoxSDF box_sdf(&box);

@@ -9,27 +9,6 @@
 
 #define DT 1e-1
 
-template<typename T>
-struct base_type { using type = T; };
-
-template<typename T>
-struct base_type<T*> : base_type<T> {};
-
-template<typename T>
-struct base_type<T&> : base_type<T> {};
-
-template<typename T>
-struct base_type<T&&> : base_type<T> {};
-
-template<typename T>
-struct base_type<const T> : base_type<T> {};
-
-template<typename T>
-struct base_type<volatile T> : base_type<T> {};
-
-template<typename T>
-using base_type_t = typename base_type<T>::type;
-
 void solveGlobalXPBDSystem(const std::vector<XPBDConstraints_ConstPtrVariantType>& constraints)
 {
 
@@ -130,13 +109,15 @@ int main()
     // create rod
     Config::RodConfig rod_config(
         "test_rod",
-        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 0.2, 0.1,
         Config::RodElementType::LINEAR,
         true, true, true,
         1.0, 0.1,
         num_nodes,
         1000,
-        1e8, 0.4
+        1e8, 0.4,
+        0,
+        Vec3r(0,0,0)
     );
 
     SimObject::XPBDRod_<SimObject::RodElement<1>> rod(rod_config);
@@ -162,26 +143,30 @@ int main()
 
     Config::RodConfig rod_config1(
         "rod1",
-        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+        Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 0.2, 0.1,
         Config::RodElementType::LINEAR,
         true, true, true,
         1.0, 0.1,
         10,
         1000,
-        1e7, 0.4
+        1e7, 0.4,
+        0,
+        Vec3r(0,0,0)
     );
     SimObject::XPBDRod_<SimObject::RodElement<1>> rod1(rod_config1);
     rod1.setup();
 
     Config::RodConfig rod_config2(
         "rod2",
-        Vec3r(-0.505, 0.098, 0.505), Vec3r(0,90,0), Vec3r::Zero(), Vec3r::Zero(), true,
+        Vec3r(-0.505, 0.098, 0.505), Vec3r(0,90,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.2, 0.1,
         Config::RodElementType::LINEAR,
         false, false, true,
         1.0, 0.1,
         10,
         1000,
-        1e6, 0.4
+        1e6, 0.4,
+        0,
+        Vec3r(0,0,0)
     );
     SimObject::XPBDRod_<SimObject::RodElement<1>> rod2(rod_config2);
     rod2.setup();

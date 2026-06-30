@@ -156,28 +156,64 @@ static Mat3r Exp_so3(const Vec3r& vec)
     return Mat3r::Identity() + std::sin(mag) / mag * skew + (1 - std::cos(mag)) / (mag * mag) * skew * skew;
 }
 
-static Vec3r Log_SO3(const Mat3r& mat)
+static Vec3r Log_SO3_Pi(const Mat3r& R)
 {
-    // std::cout << "\n===Log_SO3===" << std::endl;
-    // std::cout << "  mat:\n" << mat << std::endl;
-    // std::cout << "  mat.trace()-3: " << mat.trace()-3 << std::endl;
-    Real theta = std::acos( std::min(0.5 * mat.trace() - 0.5, Real(1.0)));  // make sure 1/2 tr(mat) - 1/2 is not >1, will get NaNs. This may happen due to numerical drift
-    // std::cout << "  theta: " << theta << std::endl;
+    Vec3r u;
 
-    if (std::abs(theta) < Real(1e-14))
+    if (R(0,0) >= R(1,1) && R(0,0) >= R(2,2))
     {
-        return Vec3r::Zero();
+        Real x = std::sqrt(std::max(Real(0), (R(0,0)+1)/2));
+        Real y = R(0,1) / (2*x);
+        Real z = R(0,2) / (2*x);
+
+        u << x, y, z;
+    }
+    else if (R(1,1) >= R(2,2))
+    {
+        Real y = std::sqrt(std::max(Real(0), (R(1,1)+1)/2));
+        Real x = R(0,1) / (2*y);
+        Real z = R(1,2) / (2*y);
+
+        u << x, y, z;
+    }
+    else
+    {
+        Real z = std::sqrt(std::max(Real(0), (R(2,2)+1)/2));
+        Real x = R(0,2) / (2*z);
+        Real y = R(1,2) / (2*z);
+
+        u << x, y, z;
     }
 
-    const Vec3r skew_vec3 = Vee3(mat - mat.transpose());
-    // std::cout << "  skew_vec3: " << skew_vec3 << std::endl;
+    u.normalize();
 
-    if (std::abs(mat.trace()) < Real(1e-8))
+    return M_PI * u;
+}
+
+static Vec3r Log_SO3(const Mat3r& mat)
+{
+    // make sure 1/2 tr(mat) - 1/2 is not >1, will get NaNs. This may happen due to numerical drift
+    Real c = std::clamp(
+        0.5 * mat.trace() - 0.5,
+        Real(-1),
+        Real(1)
+    );
+    Real theta = std::acos(c);  
+
+    const Vec3r skew_vec3 = Vee3(mat - mat.transpose());
+
+    // handle singularity at theta=0
+    if (std::abs(theta) < Real(1e-4))
     {
         return 0.5 * (1 + theta*theta/6.0 + 7*theta*theta*theta*theta/360.0) * skew_vec3;
     }
 
-    // std::cout << " 2*std::sin(theta): " << 2*std::sin(theta) << std::endl;
+    // handle singularity at theta=pi (tr(R) = -1)
+    if (std::abs(M_PI - theta) < Real(1e-4))
+    {
+        return Log_SO3_Pi(mat);
+    }
+
     return theta / ( 2*std::sin(theta)) * skew_vec3;
 }
 
@@ -212,6 +248,33 @@ static Mat3r RotMatFromXYZEulerAngles(const Vec3r& euler_xyz)
     rot_mat(2,2) = std::cos(x)*std::cos(y);
 
     return rot_mat;
+}
+
+static Vec3r XYZEulerAnglesFromRotMat(const Mat3r& R)
+{
+    Real theta_y = std::asin(-R(2,0));
+    Real theta_x, theta_z;
+    if (std::abs(R(2,0)) < 1)
+    {
+        theta_x = std::atan2(R(2,1), R(2,2));
+        theta_z = std::atan2(R(1,0), R(0,0));
+    }
+    else
+    {
+        theta_x = 0;
+        if (R(2,0) == -1)
+        {
+            theta_y = M_PI/2;
+            theta_z = std::atan2(-R(0,1), R(0,2));
+        }
+        else
+        {
+            theta_y = -M_PI/2;
+            theta_z = std::atan2(R(0,1), -R(0,2));
+        }
+    }
+
+    return 180/M_PI * Vec3r(theta_x, theta_y, theta_z);
 }
 
 /** Projects a point p onto the line segment defined by ab.

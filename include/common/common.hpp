@@ -33,6 +33,8 @@ using Vec4r = Eigen::Vector<Real, 4>;
 using Vec6r = Eigen::Vector<Real, 6>;
 using VecXr = Eigen::Vector<Real, -1>;
 
+using Vec3i = Eigen::Vector<int, 3>;
+
 using Mat2r = Eigen::Matrix<Real, 2, 2>;
 using Mat3r = Eigen::Matrix<Real, 3, 3>;
 using Mat4r = Eigen::Matrix<Real, 4, 4>;
@@ -60,6 +62,32 @@ struct VariadicVectorContainerFromTypeList<TypeList<Types...>>
     using const_vector_handle_type = VariadicVectorContainer<ConstVectorHandle<Types>...>;
 };
 
+/////////////////////////////////////////////////////////////////////////
+// Get base type (remove keywords, references, etc.)
+/////////////////////////////////////////////////////////////////////////
+template<typename T>
+struct base_type { using type = T; };
+
+template<typename T>
+struct base_type<T*> : base_type<T> {};
+
+template<typename T>
+struct base_type<T&> : base_type<T> {};
+
+template<typename T>
+struct base_type<T&&> : base_type<T> {};
+
+template<typename T>
+struct base_type<const T> : base_type<T> {};
+
+template<typename T>
+struct base_type<volatile T> : base_type<T> {};
+
+template<typename T>
+using base_type_t = typename base_type<T>::type;
+
+//////////////////////////////////////////////////////////////////////////////////////
+
 /** Simulation object types */
 namespace SimObject
 {
@@ -82,6 +110,10 @@ namespace SimObject
 
     class XPBDPendulum;
     class XPBDConcentricTubeRobot;
+    class HexBug;
+    class HexBugHabitat;
+    class RPSRobot;
+    class Plectoneme;
 }
 using XPBDRigidBodies_TypeList = TypeList<SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
 /** TODO: automate this */
@@ -98,7 +130,7 @@ using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDO
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
 using XPBDObjects_ConstPtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::const_ptr_type;
 
-using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot>;
+using XPBDObjectGroups_TypeList = TypeList<SimObject::XPBDPendulum, SimObject::XPBDConcentricTubeRobot, SimObject::HexBug, SimObject::HexBugHabitat, SimObject::RPSRobot, SimObject::Plectoneme>;
 using XPBDObjectGroups_Container = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::type;
 using XPBDObjectGroups_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjectGroups_TypeList>::unique_ptr_type;
 
@@ -115,6 +147,7 @@ namespace Constraint
     class NormedRevoluteJointConstraint;
     class RevoluteJointLimitConstraint;
     class OneSidedRevoluteJointLimitConstraint;
+    class RevoluteJointVelocityMotorConstraint;
 
     class SphericalJointConstraint;
     class OneSidedSphericalJointConstraint;
@@ -150,22 +183,42 @@ namespace Constraint
     class OneSidedFixedParticleConstraint;
 }
 
-using XPBDJointConstraints_TypeList = TypeList<
-    Constraint::OneSidedFixedJointConstraint,
-    Constraint::FixedJointConstraint,
-    Constraint::OneSidedRevoluteJointConstraint,
-    Constraint::NormedOneSidedRevoluteJointConstraint,
-    Constraint::RevoluteJointConstraint,
-    Constraint::NormedRevoluteJointConstraint,
-    Constraint::SphericalJointConstraint,
+using XPBDOneSidedJointConstraints_TypeList = TypeList<
     Constraint::OneSidedSphericalJointConstraint,
-    Constraint::NormedSphericalJointConstraint,
-    Constraint::NormedOneSidedSphericalJointConstraint,
-    Constraint::PrismaticJointConstraint,
     Constraint::OneSidedPrismaticJointConstraint,
-    Constraint::NormedPrismaticJointConstraint,
-    Constraint::NormedOneSidedPrismaticJointConstraint
+    Constraint::OneSidedRevoluteJointConstraint,
+    Constraint::OneSidedFixedJointConstraint
 >;
+
+using XPBDNormedOneSidedJointConstraints_TypeList = TypeList<
+    Constraint::NormedOneSidedSphericalJointConstraint,
+    Constraint::NormedOneSidedPrismaticJointConstraint,
+    Constraint::NormedOneSidedRevoluteJointConstraint
+>;
+
+using XPBDTwoSidedJointConstraints_TypeList = TypeList<
+    Constraint::FixedJointConstraint,
+    Constraint::RevoluteJointConstraint,
+    Constraint::SphericalJointConstraint,
+    Constraint::PrismaticJointConstraint
+>;
+
+using XPBDNormedTwoSidedJointConstraints_TypeList = TypeList<
+    Constraint::NormedRevoluteJointConstraint,
+    Constraint::NormedSphericalJointConstraint,
+    Constraint::NormedPrismaticJointConstraint
+>;
+
+using XPBDJointVelocityMotorConstraints_TypeList = TypeList<
+    Constraint::RevoluteJointVelocityMotorConstraint
+>;
+
+using XPBDJointConstraints_TypeList = ConcatenateTypeLists<
+    XPBDTwoSidedJointConstraints_TypeList,
+    XPBDNormedTwoSidedJointConstraints_TypeList,
+    XPBDOneSidedJointConstraints_TypeList,
+    XPBDNormedOneSidedJointConstraints_TypeList
+>::type;
 
 using XPBDJointLimitConstraints_TypeList = TypeList<
     Constraint::RevoluteJointLimitConstraint,
@@ -211,6 +264,7 @@ using XPBDConstraints_TypeList = ConcatenateTypeLists<
     XPBDParticleConstraints_TypeList,
     XPBDJointConstraints_TypeList,
     XPBDJointLimitConstraints_TypeList,
+    XPBDJointVelocityMotorConstraints_TypeList,
     XPBDCollisionConstraints_TypeList   // important that this goes last (I think)
 >::type;
 
@@ -282,6 +336,11 @@ namespace Config
     class XPBDPendulumConfig;
     class XPBDConcentricTubeRobotConfig;
 
+    class HexBugConfig;
+    class HexBugHabitatConfig;
+    class RPSRobotConfig;
+    class PlectonemeConfig;
+
     class FixedJointConfig;
     class PrismaticJointConfig;
     class RevoluteJointConfig;
@@ -294,7 +353,11 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::XPBDRigidSphereConfig,
     Config::XPBDPlaneConfig,
     Config::XPBDPendulumConfig,
-    Config::XPBDConcentricTubeRobotConfig
+    Config::XPBDConcentricTubeRobotConfig,
+    Config::HexBugConfig,
+    Config::HexBugHabitatConfig,
+    Config::RPSRobotConfig,
+    Config::PlectonemeConfig
 >;
 using XPBDObjectConfigs_Container = VariadicVectorContainerFromTypeList<XPBDObjectConfigs_TypeList>::type;
 
@@ -308,4 +371,6 @@ using XPBDJointConfigs_Container = VariadicVectorContainerFromTypeList<XPBDJoint
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity
+#define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
+#define COLLISION_CHECK_INTERVAL 1.0/500.0 // time between collision detection
 #define CONSTRAINT_EPS 1e-13    // epsilon for constraints - i.e. any number less than this is treated as 0

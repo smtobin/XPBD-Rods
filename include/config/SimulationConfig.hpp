@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config/Config.hpp"
+#include "config/CollisionSceneConfig.hpp"
 
 #include "common/config_containers.hpp"
 
@@ -30,12 +31,12 @@ class SimulationConfig : public Config_Base
 {
     public:
     explicit SimulationConfig()
-        : Config_Base(), _render_config()
+        : Config_Base(), _collision_scene_config(), _render_config()
     {
     }
 
     explicit SimulationConfig(const YAML::Node& node)
-        : Config_Base(node), _render_config(node)
+        : Config_Base(node), _collision_scene_config(node), _render_config(node)
     {
         _extractParameterWithOptions("sim-mode", node, _sim_mode, SIM_MODE_OPTIONS());
         _extractParameter("time-step", node, _time_step);
@@ -87,6 +88,22 @@ class SimulationConfig : public Config_Base
             else if (type == "CTR")
             {
                 _object_configs.template emplace_back<Config::XPBDConcentricTubeRobotConfig>(obj_node);
+            }
+            else if (type == "HexBug")
+            {
+                _object_configs.template emplace_back<Config::HexBugConfig>(obj_node);
+            }
+            else if (type == "HexBugHabitat")
+            {
+                _object_configs.template emplace_back<Config::HexBugHabitatConfig>(obj_node);
+            }
+            else if (type == "RPSRobot")
+            {
+                _object_configs.template emplace_back<Config::RPSRobotConfig>(obj_node);
+            }
+            else if (type == "Plectoneme")
+            {
+                _object_configs.template emplace_back<Config::PlectonemeConfig>(obj_node);
             }
             else
             {
@@ -160,6 +177,7 @@ class SimulationConfig : public Config_Base
 
     const XPBDJointConfigs_Container& jointConfigs() const { return _joint_configs; }
 
+    const CollisionSceneConfig& collisionSceneConfig() const { return _collision_scene_config; }
     const SimulationRenderConfig& renderConfig() const { return _render_config; }
 
     protected:
@@ -178,10 +196,10 @@ class SimulationConfig : public Config_Base
 
     ConfigParameter<int> _solver_iters = ConfigParameter<int>(1);
 
-
     XPBDObjectConfigs_Container _object_configs;
     XPBDJointConfigs_Container _joint_configs;
 
+    CollisionSceneConfig _collision_scene_config;
     SimulationRenderConfig _render_config;
 };
 

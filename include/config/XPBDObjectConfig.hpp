@@ -2,6 +2,7 @@
 
 #include "config/Config.hpp"
 #include "config/ObjectRenderConfig.hpp"
+#include "config/MeshRenderConfig.hpp"
 
 namespace Config
 {
@@ -47,16 +48,24 @@ public:
 
         _extractParameter("static-friction-coeff", node, _static_friction_coeff);
         _extractParameter("dynamic-friction-coeff", node, _dynamic_friction_coeff);
+
+        for (const auto& mesh_node : node["render-meshes"])
+        {
+            _render_mesh_configs.emplace_back(mesh_node);
+        }
     }
 
     explicit XPBDObjectConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
-        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions)
+        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions, Real mu_s, Real mu_d)
         : Config_Base(name), _render_config()
     {
         _initial_position.value = initial_position;
         _initial_rotation.value = initial_rotation;
         _initial_velocity.value = initial_velocity;
         _initial_angular_velocity.value = initial_angular_velocity;
+
+        _static_friction_coeff.value = mu_s;
+        _dynamic_friction_coeff.value = mu_d;
 
         _collisions.value = collisions;
 
@@ -79,6 +88,10 @@ public:
     bool collisions() const { return _collisions.value; }
 
     const ObjectRenderConfig& renderConfig() const { return _render_config; }
+    ObjectRenderConfig& renderConfig() { return _render_config; }
+    const std::vector<MeshRenderConfig>& renderMeshConfigs() const { return _render_mesh_configs; }
+
+    void addRenderMeshConfig(const MeshRenderConfig& config) { _render_mesh_configs.push_back(config); }
 
 protected:
     ConfigParameter<Vec3r> _initial_position = ConfigParameter<Vec3r>(Vec3r(0.0, 0.0, 0.0));
@@ -95,7 +108,12 @@ protected:
 
     ConfigParameter<bool> _collisions = ConfigParameter<bool>(true);
 
+    /** Render config for the inherent primitive geometry */
     ObjectRenderConfig _render_config;
+    /** Render configs for visualization meshes for this object
+     * If empty, will default to the basic visualization of the primitive.
+     */
+    std::vector<MeshRenderConfig> _render_mesh_configs;
 };
 
 } // namespace Config

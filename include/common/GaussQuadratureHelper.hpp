@@ -22,6 +22,10 @@ static std::array<Real, N> points()
     {
         return {0.5 - 0.5*std::sqrt(3.0/5.0), 0.5, 0.5 + 0.5*std::sqrt(3.0/5.0)};
     }
+    else if constexpr (N == 4)
+    {
+        return {0.069431844202974, 0.330009478207572, 0.669990521792428, 0.930568155797026};
+    }
     else
     {
         return std::array<Real, N>{};
@@ -41,6 +45,10 @@ static std::array<Real, N> weights()
     else if constexpr (N == 3)
     {
         return {5.0/18.0, 8.0/18.0, 5.0/18.0};
+    }
+    else if constexpr (N == 4)
+    {
+        return {0.173927422568727, 0.326072577431273, 0.326072577431273, 0.173927422568727};
     }
     else
     {

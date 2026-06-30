@@ -29,6 +29,7 @@ public:
         Real rest_length);
 
     virtual int order() const override { return Order; }
+    virtual int numNodes() const override { return NumNodes; }
 
     static std::array<Real, 4> lumpedMasses();
 
@@ -45,6 +46,7 @@ public:
 
     virtual Vec3r position(Real s_hat) const override;
     virtual Mat3r orientation(Real s_hat) const override;
+    virtual Vec3r linearVelocity(Real s_hat) const override;
 
     Vec3r previousPosition(Real s_hat) const;
     Mat3r previousOrientation(Real s_hat) const;

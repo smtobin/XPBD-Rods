@@ -38,7 +38,7 @@ PlaneGraphicsObject::PlaneGraphicsObject(const SimObject::XPBDPlane* plane, cons
                 image_data->GetScalarPointer(i, j, 0));
             
             bool is_white = (i + j) % 2 == 0;
-            unsigned char color = is_white ? 255 : 180;  // White or light gray
+            unsigned char color = is_white ? 255 : 220;  // White or light gray
             pixel[0] = color;
             pixel[1] = color;
             pixel[2] = color;

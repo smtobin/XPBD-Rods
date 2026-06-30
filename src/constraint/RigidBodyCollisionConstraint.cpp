@@ -22,7 +22,7 @@ RigidBodyCollisionConstraint::ConstraintVecType RigidBodyCollisionConstraint::ev
 
     ConstraintVecType C;
     C[0] = (cp2 - cp1).dot(_n);
-    return 0.1*C;
+    return C;
 }
 
 RigidBodyCollisionConstraint::GradientMatType RigidBodyCollisionConstraint::gradient() const
@@ -46,6 +46,8 @@ RigidBodyCollisionConstraint::GradientMatType RigidBodyCollisionConstraint::grad
 
 void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
+    if (lambda_n <= 0)
+        return;
     // std::cout << "\nTwoSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
 
     // contact point on rigid body 1
@@ -137,6 +139,69 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 
 }
 
+void RigidBodyCollisionConstraint::applyRestitution() const
+{
+    Real e = 0.0;
+
+    // get previous relative velocity between contact points, in the normal direction
+    Vec3r v_cp1_prev = _oriented_particles[0]->prev_lin_velocity + _oriented_particles[0]->prev_orientation * Math::Skew3(_oriented_particles[0]->prev_ang_velocity) * _r1;
+    Vec3r v_cp2_prev = _oriented_particles[1]->prev_lin_velocity + _oriented_particles[1]->prev_orientation * Math::Skew3(_oriented_particles[1]->prev_ang_velocity) * _r2;
+    Vec3r v_rel_prev = v_cp1_prev - v_cp2_prev;
+    
+    Real v_norm_mag_prev = _n.dot(v_rel_prev);
+
+    // get current relative velocity between contact points, in the normal direction
+    Vec3r v_cp1 = _oriented_particles[0]->lin_velocity + _oriented_particles[0]->orientation * Math::Skew3(_oriented_particles[0]->ang_velocity) * _r1;
+    Vec3r v_cp2 = _oriented_particles[1]->lin_velocity + _oriented_particles[1]->orientation * Math::Skew3(_oriented_particles[1]->ang_velocity) * _r2;
+    Vec3r v_rel = v_cp1 - v_cp2;
+    
+    Real v_norm_mag = _n.dot(v_rel);
+
+    // CHECK FOR V_NORM_MAG < 0 HERE ??
+
+    // the new relative velocity in the normal direction should be the previous normal velocity "reflected" to point in the opposite direction, and
+    //   scaled by the coefficient of restitution
+    Real v_norm_new_mag = std::min(Real(0.0), -e*v_norm_mag_prev);
+    if (std::abs(v_norm_new_mag) < 1e-2)
+        v_norm_new_mag = 0;
+
+    // velocity-level constraint
+    Real C_vel = v_norm_mag - v_norm_new_mag;
+
+    // constraint gradients (with respect to velocity and angular velocity)
+    Vec3r dC_dv1 = _n;
+    Vec3r dC_dv2 = -_n;
+    Vec3r dC_dw1 = -_n.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+    Vec3r dC_dw2 = _n.transpose() * _oriented_particles[1]->orientation * Math::Skew3(_r2);
+    GradientMatType delC;
+    delC.block<1,3>(0,0) = dC_dv1;
+    delC.block<1,3>(0,3) = dC_dw1;
+    delC.block<1,3>(0,6) = dC_dv2;
+    delC.block<1,3>(0,9) = dC_dw2;
+
+    // construct inertia inverse matrix
+    Eigen::Vector<Real, StateDim> inertia_inverse;
+    for (int i = 0; i < NumOrientedParticles; i++)
+    {
+        inertia_inverse.template block<6,1>(6*i, 0) = 
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
+    }
+
+    // assemble LHS (alpha = 0)
+    Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
+
+    // solve (alpha = 0)
+    Real dlam = -C_vel / LHS;
+
+    // compute velocity update
+    Eigen::Vector<Real, StateDim> vel_update = inertia_inverse.asDiagonal() * delC.transpose() * dlam;
+    _oriented_particles[0]->lin_velocity += vel_update.block<3,1>(0,0);
+    _oriented_particles[0]->ang_velocity += vel_update.block<3,1>(3,0);
+    _oriented_particles[1]->lin_velocity += vel_update.block<3,1>(6,0);
+    _oriented_particles[1]->ang_velocity += vel_update.block<3,1>(9,0);
+
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,10 +245,10 @@ OneSidedRigidBodyCollisionConstraint::GradientMatType OneSidedRigidBodyCollision
 
 void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 {
-    if (lambda_n < 0)
+    if (lambda_n <= 0)
         return;
 
-    // std::cout << "\nOneSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << mu_s << " mu_d=" << mu_d << std::endl;
+    // std::cout << "\nOneSided Applying friction! lambda_n=" << lambda_n << " mu_s=" << _mu_s << " mu_d=" << _mu_d << std::endl;
     // contact point on rigid body 1
     const Vec3r cp1 = _oriented_particles[0]->position + _oriented_particles[0]->orientation * _r1;
 
@@ -260,6 +325,65 @@ void OneSidedRigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
         _oriented_particles[i]->positionUpdate(position_update);
     }
 
+}
+
+void OneSidedRigidBodyCollisionConstraint::applyRestitution() const
+{
+    Real e = 0.8;
+
+    // get previous relative velocity between contact points, in the normal direction
+    Vec3r v_cp1_prev = _oriented_particles[0]->prev_lin_velocity + _oriented_particles[0]->prev_orientation * Math::Skew3(_oriented_particles[0]->prev_ang_velocity) * _r1;
+    Vec3r v_rel_prev = -v_cp1_prev; // normal points outward from fixed body, hence the negative sign
+    
+    Real v_norm_mag_prev = _n.dot(v_rel_prev);
+
+    // get current relative velocity between contact points, in the normal direction
+    Vec3r v_cp1 = _oriented_particles[0]->lin_velocity + _oriented_particles[0]->orientation * Math::Skew3(_oriented_particles[0]->ang_velocity) * _r1;
+    Vec3r v_rel = -v_cp1;
+    
+    Real v_norm_mag = _n.dot(v_rel);
+
+    // CHECK FOR V_NORM_MAG < 0 HERE ??
+
+    // std::cout << "v_norm_mag: " << v_norm_mag << std::endl;
+
+    // the new relative velocity in the normal direction should be the previous normal velocity "reflected" to point in the opposite direction, and
+    //   scaled by the coefficient of restitution
+    Real v_norm_new_mag = std::min(Real(0.0), -e*v_norm_mag_prev);
+    if (std::abs(v_norm_new_mag) < 1e-2)
+        v_norm_new_mag = 0;
+
+    // std::cout << "v_norm_new_mag: " << v_norm_new_mag << std::endl;
+
+    // velocity-level constraint
+    Real C_vel = v_norm_mag - v_norm_new_mag;
+
+    // constraint gradients (with respect to velocity and angular velocity)
+    Vec3r dC_dv1 = -_n;
+    Vec3r dC_dw1 = _n.transpose() * _oriented_particles[0]->orientation * Math::Skew3(_r1);
+    GradientMatType delC;
+    delC.block<1,3>(0,0) = dC_dv1;
+    delC.block<1,3>(0,3) = dC_dw1;
+
+    // construct inertia inverse matrix
+    Eigen::Vector<Real, StateDim> inertia_inverse;
+    for (int i = 0; i < NumOrientedParticles; i++)
+    {
+        inertia_inverse.template block<6,1>(6*i, 0) = 
+            Vec6r(1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass, 1/_oriented_particles[i]->mass,
+                 1/_oriented_particles[i]->Ib[0], 1/_oriented_particles[i]->Ib[1], 1/_oriented_particles[i]->Ib[2]);
+    }
+
+    // assemble LHS (alpha = 0)
+    Real LHS = delC * inertia_inverse.asDiagonal() * delC.transpose();
+
+    // solve (alpha = 0)
+    Real dlam = -C_vel / LHS;
+
+    // compute velocity update
+    Eigen::Vector<Real, StateDim> vel_update = inertia_inverse.asDiagonal() * delC.transpose() * dlam;
+    _oriented_particles[0]->lin_velocity += vel_update.block<3,1>(0,0);
+    _oriented_particles[0]->ang_velocity += vel_update.block<3,1>(3,0);
 }
 
 } // namespace Collision

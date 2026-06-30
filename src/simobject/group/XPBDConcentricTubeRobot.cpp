@@ -19,15 +19,15 @@ XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(const Config::XPBDConcentricTub
 void XPBDConcentricTubeRobot::setup()
 {
     Config::RodConfig outer_rod_config(
-        "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+        "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.4, 0.2,
         Config::RodElementType::LINEAR, true, false, true,
-        1, 0.1, 20, 1000, 1e6, 0.3
+        1, 0.1, 20, 1000, 1e6, 0.3, 0, Vec3r(0,0,0)
     );
 
     Config::RodConfig inner_rod_config(
-        "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+        "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.4, 0.2,
         Config::RodElementType::LINEAR, true, false, true,
-        1.5, 0.08, 20, 1000, 1e6, 0.3
+        1.5, 0.08, 20, 1000, 1e6, 0.3, 0, Vec3r(0,0,0)
     );
 
     _objects.template reserve<XPBDRod_<RodElement<1>>>(2);
@@ -54,8 +54,8 @@ void XPBDConcentricTubeRobot::setup()
     }
 
     // create initial alpha vector
-    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->constraints();
-    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->constraints();
+    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->internalConstraints();
+    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->internalConstraints();
     using ElasticConstraintType = XPBDRod_<RodElement<1>>::ElasticConstraintType;
     const std::vector<ElasticConstraintType>& outer_rod_constraints = outer_rod_all_constraints.get<ElasticConstraintType>();
     const std::vector<ElasticConstraintType>& inner_rod_constraints = inner_rod_all_constraints.get<ElasticConstraintType>();
@@ -132,8 +132,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
 
     _updateConcentricityConstraints();
 
-    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->constraints();
-    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->constraints();
+    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->internalConstraints();
+    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->internalConstraints();
 
     using ElasticConstraintType = XPBDRod_<RodElement<1>>::ElasticConstraintType;
     const std::vector<ElasticConstraintType>& outer_rod_constraints = outer_rod_all_constraints.get<ElasticConstraintType>();
@@ -287,8 +287,8 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
 {
     int lambda_index = 0;
 
-    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->constraints();
-    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->constraints();
+    const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->internalConstraints();
+    const XPBDConstraints_Container& inner_rod_all_constraints = _inner_rod->internalConstraints();
 
     using ElasticConstraintType = XPBDRod_<RodElement<1>>::ElasticConstraintType;
     const std::vector<ElasticConstraintType>& outer_rod_constraints = outer_rod_all_constraints.get<ElasticConstraintType>();

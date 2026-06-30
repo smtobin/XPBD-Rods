@@ -35,9 +35,9 @@ void RodConvergenceSimulation::setup()
     {
         std::string name = "rigid_body_rod" + std::to_string(num_elem);
         Config::RodConfig config(
-            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
             Config::RodElementType::RIGID_BODY, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
 
         _addObjectFromConfig(config);
@@ -47,9 +47,9 @@ void RodConvergenceSimulation::setup()
     {
         std::string name = "linear_rod" + std::to_string(num_elem);
         Config::RodConfig config(
-            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
             Config::RodElementType::LINEAR, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
 
         _addObjectFromConfig(config);
@@ -59,9 +59,9 @@ void RodConvergenceSimulation::setup()
     {
         std::string name = "quadratic_rod" + std::to_string(num_elem);
         Config::RodConfig config(
-            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
             Config::RodElementType::QUADRATIC, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
@@ -70,9 +70,9 @@ void RodConvergenceSimulation::setup()
     {
         std::string name = "cubic_rod" + std::to_string(num_elem);
         Config::RodConfig config(
-            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
             Config::RodElementType::CUBIC, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
@@ -81,18 +81,18 @@ void RodConvergenceSimulation::setup()
     {
         std::string name = "cubic_hermite_rod" + std::to_string(num_elem);
         Config::RodConfig config(
-            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+            name, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
             Config::RodElementType::CUBIC_HERMITE, true, false, true,
-            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu
+            _rod_length, _rod_dia, num_elem, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
         );
         _addObjectFromConfig(config);
     }
 
     // create ground truth rod
     Config::RodConfig ground_truth_config(
-        "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false,
+        "rod", Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.2, 0.1,
         Config::RodElementType::QUADRATIC, true, false, true,
-        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu
+        _rod_length, _rod_dia, 1000, _rod_density, _rod_E, _rod_nu, 0, Vec3r(0,0,0)
     );
     _addObjectFromConfig(ground_truth_config);
 

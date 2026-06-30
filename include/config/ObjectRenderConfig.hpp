@@ -52,16 +52,17 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("color", node, _color);
 
         _extractParameter("smooth-normals", node, _smooth_normals);
-        _extractParameter("draw-faces", node, _draw_faces);
-        _extractParameter("draw-edges", node, _draw_edges);
-        _extractParameter("draw-points", node, _draw_points);
+
+        _extractParameter("draw-centerline", node, _draw_centerline);
+        _extractParameter("centerline-samples", node, _num_centerline_samples);
+        _extractParameter("color-elements", node, _color_elements);
     }
 
     explicit ObjectRenderConfig(
         RenderType render_type,
         std::optional<std::string> orm_texture_filename, std::optional<std::string> normals_texture_filename, std::optional<std::string> base_color_texture_filename,
         Real metallic, Real roughness, Real opacity, const Vec3r& color,
-        bool smooth_normals, bool draw_faces, bool draw_edges, bool draw_points
+        bool smooth_normals
     )
     {
         _render_type.value = render_type;
@@ -76,9 +77,6 @@ class ObjectRenderConfig : public Config_Base
         _color.value = color;
 
         _smooth_normals.value = smooth_normals;
-        _draw_faces.value = draw_faces;
-        _draw_edges.value = draw_edges;
-        _draw_points.value = draw_points;
     }
 
     RenderType renderType() const { return _render_type.value; }
@@ -91,10 +89,17 @@ class ObjectRenderConfig : public Config_Base
     Real opacity() const { return _opacity.value; }
     Vec3r color() const { return _color.value; }
 
+    void setMetallic(Real metallic) { _metallic.value = metallic; }
+    void setRoughness(Real roughness) { _roughness.value = roughness; }
+    void setOpacity(Real opacity) { _opacity.value = opacity; }
+    void setColor(Vec3r color) { _color.value = color; }
+    void setCenterlineSamples(int samples) { _num_centerline_samples.value = samples; }
+
     bool smoothNormals() const { return _smooth_normals.value; }
-    bool drawFaces() const { return _draw_faces.value; }
-    bool drawEdges() const { return _draw_edges.value; }
-    bool drawPoints() const { return _draw_points.value; }
+
+    bool drawCenterline() const { return _draw_centerline.value; }
+    int numCenterlineSamples() const { return _num_centerline_samples.value; }
+    bool colorElements() const { return _color_elements.value; }
 
     protected:
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
@@ -110,9 +115,12 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<Vec3r> _color = ConfigParameter<Vec3r>(Vec3r(1.0, 1.0, 1.0));
 
     ConfigParameter<bool> _smooth_normals = ConfigParameter<bool>(true);
-    ConfigParameter<bool> _draw_faces = ConfigParameter<bool>(true);
-    ConfigParameter<bool> _draw_edges = ConfigParameter<bool>(false);
-    ConfigParameter<bool> _draw_points = ConfigParameter<bool>(false);
+
+    /** Rod-specific options */
+    ConfigParameter<bool> _draw_centerline = ConfigParameter<bool>(false);
+    ConfigParameter<int> _num_centerline_samples = ConfigParameter<int>(50);
+    ConfigParameter<bool> _color_elements = ConfigParameter<bool>(false);
+    
 };
 
 } // namespace Config

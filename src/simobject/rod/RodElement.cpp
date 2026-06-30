@@ -30,8 +30,8 @@ Real dcubicN3(Real s_hat) { return -81.0/2.0*s_hat*s_hat + 36*s_hat - 9.0/2.0; }
 Real dcubicN4(Real s_hat) { return 27.0/2.0*s_hat*s_hat - 9*s_hat + 1; }
 
 template<int Order>
-RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length)
-    : RodElement_Base(rest_length), _nodes(nodes_list), _bases{}, _bases_derivatives{}
+RodElement<Order>::RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature)
+    : RodElement_Base(rest_length, curvature), _nodes(nodes_list), _bases{}, _bases_derivatives{}
 {
     // get pointers to basis functions and their derivatives, according to element order
     if constexpr (Order == 0)
@@ -110,6 +110,18 @@ Vec3r RodElement<Order>::previousPosition(Real s_hat) const
 }
 
 template<int Order>
+Vec3r RodElement<Order>::linearVelocity(Real s_hat) const
+{
+    Vec3r v = _bases[0](s_hat) * _nodes[0]->lin_velocity;
+    for (int i = 1; i < Order+1; i++)
+    {
+        v += _bases[i](s_hat) * _nodes[i]->lin_velocity;
+    }
+
+    return v;
+}
+
+template<int Order>
 Vec3r RodElement<Order>::dposition_dshat(Real s_hat) const
 {
     Vec3r dp = _bases_derivatives[0](s_hat) * _nodes[0]->position;
@@ -130,6 +142,12 @@ Mat3r RodElement<Order>::orientation(Real s_hat) const
     {
         theta += _bases[i](s_hat) * Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
     }
+
+    Vec3r R2_min_R1 = Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
+    // if (R2_min_R1.norm() > 1)
+    // {
+    //     std::cout << "R2_min_R1 close to PI! Mag: " << R2_min_R1.norm() << std::endl;
+    // }
 
     // use exponential map to get interpolated rotation
     return Math::Plus_SO3(_nodes[0]->orientation, theta);
@@ -194,7 +212,7 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
         dtheta_ds += dshat_ds() * _bases_derivatives[i](s_hat) * Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
     }
 
-    Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds;
+    Vec3r u1 = Math::ExpMap_RightJacobian(theta) * dtheta_ds - _curvature;
 
     return u1;
 }
@@ -202,7 +220,7 @@ Vec3r RodElement<Order>::bendingStrain(Real s_hat) const
 template <>
 Vec3r RodElement<1>::bendingStrain(Real /* s_hat */) const
 {
-    return 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation);
+    return 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation) - _curvature;
 }
 
 template <int Order>
@@ -431,6 +449,60 @@ Vec3r RodElement<Order>::contactPointVelocity(Real s_hat, const Vec3r& cp_local)
 }
 
 template <int Order>
+Vec3r RodElement<Order>::previousContactPointVelocity(Real s_hat, const Vec3r& cp_local) const
+{
+    // linear velocity contribution
+    Vec3r v = _bases[0](s_hat) * _nodes[0]->prev_lin_velocity;
+    for (int i = 1; i < Order+1; i++)
+    {
+        v += _bases[i](s_hat) * _nodes[i]->prev_lin_velocity;
+    }
+
+    // stores (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Vec3r, Order+1> Ri_minus_R1;
+    // stores Gamma^{-1} (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> gam_inv_Ri_minus_R1;
+    // stores d theta(s) / d Ri for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> dtheta_dRi;
+
+    // theta(s)
+    Vec3r theta = Vec3r::Zero();
+
+    // precompute quantities
+    dtheta_dRi[0] = Mat3r::Zero();
+    for (int i = 1; i < Order+1; i++)
+    {
+        Ri_minus_R1[i] = Math::Minus_SO3(_nodes[i]->prev_orientation, _nodes[0]->prev_orientation);
+        gam_inv_Ri_minus_R1[i] = Math::ExpMap_InvRightJacobian(Ri_minus_R1[i]);
+        dtheta_dRi[i] = _bases[i](s_hat) * gam_inv_Ri_minus_R1[i];
+
+        theta += _bases[i](s_hat) * Ri_minus_R1[i];
+
+        // add contribution to dtheta_dR0 and dtheta_ds_dR0
+        dtheta_dRi[0] -= dtheta_dRi[i].transpose();
+    }
+
+    /** gradient of cp w.r.t. rotation * angular velocity */
+    Mat3r exp_theta = Math::Exp_so3(theta);
+    Mat3r gam_theta = Math::ExpMap_RightJacobian(theta);
+    Mat3r R = _nodes[0]->prev_orientation * exp_theta;
+
+    for (int i = 0; i < Order+1; i++)
+    {
+        if (i == 0)
+        {
+            v += -R * Math::Skew3(cp_local) * (exp_theta.transpose() + gam_theta * dtheta_dRi[i]) * _nodes[i]->prev_ang_velocity;
+        }
+        else
+        {
+            v += -R * Math::Skew3(cp_local) * gam_theta * dtheta_dRi[i] * _nodes[i]->prev_ang_velocity;
+        }
+    }
+
+    return v;
+}
+
+template <int Order>
 typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::contactPointGradient(Real s_hat, const Vec3r& cp_local) const
 {
     ContactPointGradientMatType grad;
@@ -486,6 +558,13 @@ typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::conta
     
 
     return grad;
+}
+
+template <int Order>
+typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::contactPointVelocityGradient(Real s_hat, const Vec3r& cp_local) const
+{
+    // DOUBLE CHECK: gradient of contact point velocity w.r.t. velocities the same as contact point gradient?
+    return contactPointGradient(s_hat, cp_local);
 }
 
 

@@ -19,7 +19,7 @@ Simulation::Simulation()
       _graphics_scene(),
       _collision_scene()
 {
-
+    _last_collision_check_time = std::numeric_limits<Real>::lowest();
 }
 
 Simulation::Simulation(const Config::SimulationConfig& sim_config)
@@ -29,9 +29,10 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _solver_iters(sim_config.solverIters()),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
-    _collision_scene(),
+    _collision_scene(sim_config.collisionSceneConfig()),
     _config(sim_config)
 {
+    _last_collision_check_time = std::numeric_limits<Real>::lowest();
 }
 
 SimObject::XPBDRigidBody_Base* Simulation::_findRigidBodyWithName(const std::string& name)
@@ -394,7 +395,7 @@ void Simulation::setup()
     {
         Config::XPBDPlaneConfig plane_config(
             "ground-plane",
-            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true,
+            Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), Vec3r::Zero(), true, 0.5, 0.2,
             1, true,
             1000, 1000,
             Vec3r(0,1,0)
@@ -681,10 +682,16 @@ void Simulation::notifyLeftMouseButtonReleased()
 
 void Simulation::_timeStep()
 {
+    // collision detection
+    if (_time > _last_collision_check_time + COLLISION_CHECK_INTERVAL)
+    {
+        _detectCollisions();
+
+        _last_collision_check_time = _time;
+    }
+
     _objects.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->inertialUpdate(_dt); });
-
-    _detectCollisions();
 
     // std::cout << "t=" << _time << std::endl;
 
@@ -698,7 +705,6 @@ void Simulation::_timeStep()
 
     for (int iter = 0; iter < _solver_iters; iter++)
     {
-
         _objects.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
         _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintSolve(_dt); });
 
@@ -709,6 +715,12 @@ void Simulation::_timeStep()
     
     _objects.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
     _object_groups.for_each_element([&](auto& obj) { obj->velocityUpdate(_dt); });
+
+    _objects.for_each_element([&](auto& obj) { obj->internalConstraintVelocitySolve(_dt); });
+    _object_groups.for_each_element([&](auto& obj) { obj->internalConstraintVelocitySolve(_dt); });
+    _solver.velocitySolve(true);
+
+    _solver.applyRestitution();
 
     // log quantities
     if (_logger)
@@ -721,48 +733,17 @@ void Simulation::_timeStep()
 
 void Simulation::_detectCollisions()
 {
-    /** TODO: make this cleaner */
-    // _constraints.clear<Constraint::RigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::RodRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,1>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<1,2>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,1>>();
-    // _constraints.clear<Constraint::RodRodCollisionConstraint<2,2>>();
+
     _constraints.clear_types(XPBDCollisionConstraints_TypeList{});
 
-    // _solver.clearProjectorsOfType<Constraint::RigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::OneSidedRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::RodRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::OneSidedRodRigidBodyCollisionConstraint>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,1>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,1>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<1,2>>();
-    // _solver.clearProjectorsOfType<Constraint::RodRodCollisionConstraint<2,2>>();
     _solver.clearProjectorsOfType(XPBDCollisionConstraints_TypeList{});
+    // _solver.clearInactiveProjectorsOfType(XPBDCollisionConstraints_TypeList{});
 
     const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
     for (const auto& detected_collision : detected_collisions)
     {
         std::visit([&](auto&& collision) {
             _processCollision(collision);
-
-            using T = std::decay_t<decltype(collision)>;
-            if constexpr (std::is_same_v<T, Collision::RigidRigidCollision>)
-            {
-                
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::RigidSegmentCollision>)
-            {
-                
-                
-            }
-            if constexpr (std::is_same_v<T, Collision::SegmentSegmentCollision>)
-            {
-                
-            }
         }, detected_collision);
     }
 }
@@ -914,6 +895,13 @@ void Simulation::_processRodRodCollision(SimObject::RodElement<Order1>* elem1, R
             );
             ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
             _solver.addConstraint(constraint_ref);
+
+
+            /** THIS IS A TEMPORARY HACK! NEED TO FIND A BETTER WAY TO DO THIS
+             * For now, I just need to get the collision constraint into the rod somehow
+             */
+            // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().addInternalConstraint(constraint_vec.back());
+    
         }
     }
     if constexpr (Order1 < 3)

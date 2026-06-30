@@ -35,7 +35,7 @@ objects:
     initial-position: [0.2, 1, 0.0]
     initial-rotation: [0, 0, 0]
     elements: 20
-    E: 1e6
+    E: 1e5
     diameter: 0.1
     length: 1
     nu: 0.3
@@ -52,10 +52,10 @@ objects:
     type: "Rod"
     name: "rod2"
     element-type: "Cubic"
-    initial-position: [-0.5, 1.3, 0.5]
+    initial-position: [-0.5, 10, 0.5]
     initial-rotation: [0, 90, 0]
     elements: 5
-    E: 1e5
+    E: 1e6
     diameter: 0.1
     length: 1
     nu: 0.3

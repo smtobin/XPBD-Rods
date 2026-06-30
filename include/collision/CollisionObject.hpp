@@ -20,22 +20,12 @@ struct CollisionObject
 {
     void* obj;
     ColliderType type;
+    bool fixed;
 
-    CollisionObject(SimObject::XPBDRigidSphere* sphere)
-        : obj(sphere), type(ColliderType::Sphere)
-    {}
-
-    CollisionObject(SimObject::XPBDRigidBox* box)
-        : obj(box), type(ColliderType::Box)
-    {}
-
-    CollisionObject(SimObject::RodCollisionSegment* segment)
-        : obj(segment), type(ColliderType::RodSegment)
-    {}
-
-    CollisionObject(SimObject::XPBDPlane* plane)
-        : obj(plane), type(ColliderType::Plane)
-    {}
+    CollisionObject(SimObject::XPBDRigidSphere* sphere);
+    CollisionObject(SimObject::XPBDRigidBox* box);
+    CollisionObject(SimObject::RodCollisionSegment* segment);
+    CollisionObject(SimObject::XPBDPlane* plane);
 
     SimObject::AABB boundingBox() const;
 };

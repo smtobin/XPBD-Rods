@@ -21,6 +21,7 @@ public:
     virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
+    void applyRestitution() const;
 
 private:
     /** Local offset to contact point in body 1 frame */
@@ -60,6 +61,7 @@ public:
     virtual GradientMatType gradient() const override;
 
     void applyFriction(Real lambda_n) const;
+    void applyRestitution() const;
 
 private:
     /** Local offset to contact point in body 1 frame */

@@ -11,10 +11,10 @@ objects:
   - 
     type: "RigidBox"
     name: "box1"
-    initial-position: [0, 1, 0]
-    initial-rotation: [0, 0, 10]
+    initial-position: [0, 0.1, 0]
+    initial-rotation: [0, 0, 0]
     initial-angular-velocity: [0,0,0]
-    size: [0.5,0.5,0.5]
+    size: [1,0.2,1]
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
@@ -27,7 +27,7 @@ objects:
     type: "Rod"
     name: "rod1"
     element-type: "Linear"
-    initial-position: [-0.5, 1.8, 0.05]
+    initial-position: [-0.5, 50, 0.05]
     initial-rotation: [0, 90, 0]
     nodes: 20
     E: 1e6

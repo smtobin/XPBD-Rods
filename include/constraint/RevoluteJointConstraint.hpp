@@ -25,6 +25,12 @@ public:
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 
+    /** Special overloads for "separate" constraint projector mode.
+     * This is meant to be a fair comparison for speed - avoids duplicate work in computing the constraints and their gradients.
+     */
+    Real evaluateSingle(int index) const;
+    Eigen::Matrix<Real, 1, StateDim> gradientSingle(int index) const;
+
 private:
     Vec3r _r1;
     Mat3r _or1;
@@ -54,8 +60,17 @@ public:
     const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
     Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
+    void setFixedPosition(const Vec3r& pos) { _base_pos = pos; }
+    void setFixedOrientation(const Mat3r& ori) { _base_or = ori; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
+
+    /** Special overloads for "separate" constraint projector mode.
+     * This is meant to be a fair comparison for speed - avoids duplicate work in computing the constraints and their gradients.
+     */
+    Real evaluateSingle(int index) const;
+    Eigen::Matrix<Real, 1, StateDim> gradientSingle(int index) const;
 
 private:
     Vec3r _base_pos;
@@ -90,6 +105,12 @@ public:
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 
+    /** Special overloads for "separate" constraint projector mode.
+     * This is meant to be a fair comparison for speed - avoids duplicate work in computing the constraints and their gradients.
+     */
+    Real evaluateSingle(int index) const;
+    Eigen::Matrix<Real, 1, StateDim> gradientSingle(int index) const;
+
 private:
     Vec3r _r1;
     Mat3r _or1;
@@ -120,8 +141,17 @@ public:
     const Mat3r& bodyJointOrientationOffset1() const { return _or1; }
     Mat3r bodyJointOrientationOffset2() const { return Mat3r::Identity(); }
 
+    void setFixedPosition(const Vec3r& pos) { _base_pos = pos; }
+    void setFixedOrientation(const Mat3r& ori) { _base_or = ori; }
+
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
+
+    /** Special overloads for "separate" constraint projector mode.
+     * This is meant to be a fair comparison for speed - avoids duplicate work in computing the constraints and their gradients.
+     */
+    Real evaluateSingle(int index) const;
+    Eigen::Matrix<Real, 1, StateDim> gradientSingle(int index) const;
 
 private:
     Vec3r _base_pos;

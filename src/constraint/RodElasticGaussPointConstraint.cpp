@@ -5,11 +5,11 @@ namespace Constraint
 {
 
 template<class ElementType>
-RodElasticGaussPointConstraint<ElementType>::RodElasticGaussPointConstraint(const ElementType* rod_element, Real s_hat, const AlphaVecType& alpha)
+RodElasticGaussPointConstraint<ElementType>::RodElasticGaussPointConstraint(const ElementType* rod_element, Real s_hat, const AlphaVecType& alpha, Real beta)
     : XPBDConstraint<6, ElementType::NumNodes, 2*ElementType::NumNodeDerivatives>(
         rod_element->nodes(),
         rod_element->nodeDerivatives(),
-        alpha),
+        alpha, beta),
      _rod_element(rod_element), _s_hat(s_hat)
 {
 }

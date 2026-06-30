@@ -18,7 +18,7 @@ public:
     using ConstraintVecType = typename BaseConstraintType::ConstraintVecType;
     using GradientMatType = typename BaseConstraintType::GradientMatType;
 
-    RodElasticGaussPointConstraint(const ElementType* rod_element, Real s_hat, const AlphaVecType& alpha);
+    RodElasticGaussPointConstraint(const ElementType* rod_element, Real s_hat, const AlphaVecType& alpha, Real beta=0);
 
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;

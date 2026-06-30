@@ -1,0 +1,56 @@
+name: "Plectoneme Sim"
+# sim-mode: "Frame-by-frame"
+# sim-mode: "AFAP"
+time-step: 1e-3
+solver-iters: 1
+end-time: 100
+
+camera-focal-point: [0,10,0]
+# camera-position: [0.25,1.5,4]
+camera-position: [10,20,10]
+
+logging: False
+logging-output-folder: "../output/rps_robot"
+logging-interval: 0.01
+log-residuals: True
+
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+
+ground-plane: True
+
+hash-voxel-size: 1
+num-hash-buckets: 14909
+
+objects:
+  -
+    type: "Plectoneme"
+    revolutions: 6
+
+    name: "plectoneme"
+    element-type: "Quadratic"
+    initial-position: [0, 10, 0.0]
+    initial-rotation: [0, 90, 0]
+    E: 5e7
+    nu: 0.4
+    beta: 1e6
+    diameter: 0.1
+    length: 10
+    density: 1000
+    elements: 20
+    global-solve: true
+    base-fixed: True
+    tip-fixed: True
+    collisions: True
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.2
+    color: [1.0, 0, 0]
+    opacity: 1
+    smooth-normals: True
+    draw-centerline: False
+    centerline-samples: 100
+    color-elements: False

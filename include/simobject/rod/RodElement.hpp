@@ -16,16 +16,17 @@ class RodElement : public RodElement_Base
 {
 public:
     static constexpr int NumNodes = std::max(2,Order_+1);  // number of nodes in the element
-    static constexpr int NumGP = Order_;     // number of Gauss points per element
+    static constexpr int NumGP = std::max(1,Order_);     // number of Gauss points per element
     static constexpr int Order = Order_;     // the order of the polynomial bases
 
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(NumNodes)>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(NumNodes)>;
 
-    RodElement(const NodeArrayType& nodes_list, Real rest_length);
+    RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature);
 
     virtual int order() const override { return Order; }
+    virtual int numNodes() const override { return NumNodes; }
 
     static std::array<Real, NumNodes> lumpedMasses();
 
@@ -39,6 +40,7 @@ public:
 
     virtual Vec3r position(Real s_hat) const override;
     virtual Mat3r orientation(Real s_hat) const override;
+    virtual Vec3r linearVelocity(Real s_hat) const override;
 
     Vec3r previousPosition(Real s_hat) const;
     Mat3r previousOrientation(Real s_hat) const;
@@ -57,8 +59,10 @@ public:
 
     Vec3r contactPoint(Real s_hat, const Vec3r& cp_local) const;
     ContactPointGradientMatType contactPointGradient(Real s_hat, const Vec3r& cp_local) const;
+    ContactPointGradientMatType contactPointVelocityGradient(Real s_hat, const Vec3r& cp_local) const;
     Vec3r previousContactPoint(Real s_hat, const Vec3r& cp_local) const;
     Vec3r contactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
+    Vec3r previousContactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
 
 
 private:

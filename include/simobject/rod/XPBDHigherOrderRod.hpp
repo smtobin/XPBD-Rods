@@ -37,6 +37,9 @@ public:
     /** Steps the rod forward in time by dt. */
     virtual void internalConstraintSolve(Real dt) override;
 
+    /** Velocity damping solve for the rod constraints. */
+    virtual void internalConstraintVelocitySolve(Real dt) override;
+
     /** Computes the new translational and angular velocities of each node. */
     virtual void velocityUpdate(Real dt) override;
 
@@ -47,17 +50,38 @@ public:
     Real radius() const { return _radius; }
     bool globalSolve() const { return _global_solve; }
 
+    void setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint);
+    void setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint);
+
+    /** Duplicates constraints into the internal constraints of the rod */
+    template <typename ConstraintType>
+    void addInternalConstraint(const ConstraintType& constraint)
+    {
+        _internal_constraints.template push_back<ConstraintType>(constraint);
+    }
+    void clearCollisionConstraints()
+    {
+        _internal_constraints.clear_types(XPBDCollisionConstraints_TypeList{});
+    }
+
+    /** Total rotation from one end of the rod to the other. */
+    Vec3r totalRotation() const;
+
     const std::vector<OrientedParticle>& nodes() const { return _nodes; }
     std::vector<OrientedParticle>& nodes() { return _nodes; }
 
     const std::vector<ElementType>& elements() const { return _elements; }
 
-    const XPBDConstraints_Container& constraints() const { return _internal_constraints; }
+    const XPBDConstraints_Container& internalConstraints() const { return _internal_constraints; }
+    XPBDConstraints_Container& internalConstraints() { return _internal_constraints; }
 
     const std::vector<RodCollisionSegment>& collisionSegments() const { return _collision_segments; }
     std::vector<RodCollisionSegment>& collisionSegments() { return _collision_segments; }
 
 protected:
+    /** Allocates space based on the number of constraints. */
+    void _allocateSpace();
+
     /** Number of elements the rod is discretized into. */
     int _num_elements;
 
@@ -78,6 +102,9 @@ protected:
     Real _Ix;
     Real _Iz;
 
+    /** Rest curvature in the rod */
+    Vec3r _curvature;
+
     /** Collision geometries */
     std::vector<RodCollisionSegment> _collision_segments;
 
@@ -87,6 +114,15 @@ protected:
     /** If base and/or tip are fixed */
     bool _base_fixed;
     bool _tip_fixed;
+
+    /** Applied tip force (applied at the last node) */
+    Vec3r _tip_force;
+
+    /** Base/tip fixed constraints.
+     * These are either one-sided or two-sided fixed joint constraints
+     */
+    std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_base_constraint;
+    std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_tip_constraint;
 
     /** Whether or not to do a global solve for all the constraints.
      * If false, the constraints will be added to the top-level Gauss-Seidel solver.
@@ -98,6 +134,8 @@ protected:
     Real _E;    // elastic modulus
     Real _nu;   // Poisson ratio
     Real _G;    // shear modulus
+
+    Real _beta; // damping coefficient
 
     /** Pre-allocated vectors to store constraints and constraint gradients */
     VecXr _C_vec;
@@ -130,11 +168,23 @@ protected:
 
     /** diagonals of the lambda system matrix (fed into the solver) */
     std::vector<std::vector<Mat6r>> _diagonals;
+    
 
     /** Solves the linear lambda system.
      * The lambda system matrix has a block-banded structure, so we can solve the linear system in O(n) time.
      */
     Solver::SymmetricBlockBandedSolver<OrientedParticle::DOF> _solver;
+
+    /** Data structures needed for the velocity-level solve.
+     * These are the same as for the position solve.
+     * 
+     * Use a separate data structure for the diagonal blocks and the solver because the velocity solve only deals with the elastic constraints,
+     * so the diagonals will have a different sparsity pattern.
+     */
+    VecXr _dmu;
+    VecXr _RHS_vel_vec;
+    std::vector<std::vector<Mat6r>> _velocity_diagonals;
+    Solver::SymmetricBlockBandedSolver<OrientedParticle::DOF> _velocity_solver;
 
     /** All constraints will be "ordered" based on which nodes they affect.
      *   i.e. constraints that affect node 0 will come before constraints that affect node 1, etc.

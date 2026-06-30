@@ -20,8 +20,8 @@ public:
     static constexpr int NumNodeDerivatives = 0;
     static constexpr int NumGP = 0;
 
-    RodElement_Base(Real rest_length)
-        : _rest_length(rest_length), _inv_rest_length(1.0/rest_length)
+    RodElement_Base(Real rest_length, const Vec3r& curvature)
+        : _rest_length(rest_length), _inv_rest_length(1.0/rest_length), _curvature(curvature)
     {}
 
     virtual ~RodElement_Base() = default;
@@ -33,6 +33,9 @@ public:
      */
     virtual int order() const = 0;
 
+    /** Returns the number of nodes in the element */
+    virtual int numNodes() const = 0;
+
     /** Returns the node at the specified index in the element. */
     virtual OrientedParticle* node(int index) const = 0;
 
@@ -42,10 +45,16 @@ public:
     /** Rest length of the element */
     virtual Real restLength() const { return _rest_length; }
 
+    /** Rest curvature of the element */
+    const Vec3r& curvature() const { return _curvature; }
+
     /** Position evaluated at the specified reference coordinate. (i.e. p(s_hat)) */
     virtual Vec3r position(Real s_hat) const = 0;
     /** Rotation evaluated at the specified reference coordinate. (i.e. R(s_hat)) */
     virtual Mat3r orientation(Real s_hat) const = 0;
+
+    /** Linear velocity evaluated at the specified reference coordinate */
+    virtual Vec3r linearVelocity(Real s_hat) const = 0;
 
     /** First arc length derivative w.r.t. reference coordinate s_hat of position */
     virtual Vec3r dposition_dshat(Real s_hat) const = 0;
@@ -62,6 +71,8 @@ public:
 protected:
     Real _rest_length;
     Real _inv_rest_length;
+
+    Vec3r _curvature;
 };
 
 } // namespace SimObject

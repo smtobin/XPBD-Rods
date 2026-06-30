@@ -3,6 +3,12 @@
 
 #include "simulation/Simulation.hpp"
 
+#include "graphics/PlaneGraphicsObject.hpp"
+#include "graphics/MeshGraphicsObject.hpp"
+#include "graphics/SphereGraphicsObject.hpp"
+#include "graphics/BoxGraphicsObject.hpp"
+#include "graphics/RodGraphicsObject.hpp"
+
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCubeSource.h>
@@ -37,6 +43,9 @@
 #include <vtkToneMappingPass.h>
 #include <vtkLightsPass.h>
 #include <vtkOpaquePass.h>
+#include <vtkTranslucentPass.h>
+#include <vtkImageShiftScale.h>
+#include <vtkDepthPeelingPass.h>
 
 #include <vtkCoordinate.h>
 
@@ -82,7 +91,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     }
     
 
-    _renderer->SetBackground(0.3, 0.3, 0.3);
+    _renderer->SetBackground(0.8, 0.8, 0.8);
     _renderer->SetAutomaticLightCreation(false);
 
     // set camera to look at (0,0,0) from its current position
@@ -91,21 +100,24 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     double focal_point[3];
     camera->GetFocalPoint(focal_point);
 
-    // Set focal point to ground level (or slightly above)
-    focal_point[1] = 0.0;  // assuming y is up
-    camera->SetFocalPoint(focal_point[0], focal_point[1], focal_point[2]);
+    // set focal point
+    camera->SetFocalPoint(
+        _render_config.cameraFocalPoint()[0],
+        _render_config.cameraFocalPoint()[1],
+        _render_config.cameraFocalPoint()[2]
+    );
 
-    // position camera above and back from the focal point
-    double distance = 5*camera->GetDistance();
-    double angle = 30.0 * M_PI / 180.0;
+    // position camera
     camera->SetPosition(
-        focal_point[0],
-        distance * sin(angle),           // height above ground
-        focal_point[2] + distance * cos(angle)  // distance back
+        _render_config.cameraPosition()[0],
+        _render_config.cameraPosition()[1],
+        _render_config.cameraPosition()[2]
     );
 
     camera->SetViewUp(0, 1, 0);
     camera->SetClippingRange(0.01, 1000.0);
+
+    camera->SetParallelProjection(_render_config.cameraOrthographic());
 
     //////////////////////////////////////////////////////////
     // Create HDR lighting (if specified in the config)
@@ -117,10 +129,15 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         vtkNew<vtkTexture> hdr_texture;
         vtkNew<vtkHDRReader> reader;
         reader->SetFileName(hdr_filename.value().c_str());
-        hdr_texture->SetInputConnection(reader->GetOutputPort());
+        vtkNew<vtkImageShiftScale> scale;
+        scale->SetInputConnection(reader->GetOutputPort());
+        scale->SetScale(_render_config.hdrScaling()); // darker HDRI
+
+        hdr_texture->SetInputConnection(scale->GetOutputPort());
         hdr_texture->SetColorModeToDirectScalars();
         hdr_texture->MipmapOn();
         hdr_texture->InterpolateOn();
+        hdr_texture->SetInputConnection(scale->GetOutputPort());
 
         if (_render_config.createSkybox())
         {
@@ -149,7 +166,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
-    light->SetShadowAttenuation(3.0);
+    light->SetShadowAttenuation(0.5);
     _renderer->AddLight(light);
 
 
@@ -174,32 +191,44 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     /////////////////////////////////////////////////////////
     // Create the rendering passes and settings
     ////////////////////////////////////////////////////////
-    _render_window->SetMultiSamples(5);
-    
-    vtkNew<vtkSequencePass> seqP;
-    vtkNew<vtkOpaquePass> opaqueP;
-    vtkNew<vtkLightsPass> lightsP;
+    _render_window->SetAlphaBitPlanes(1);
+    // _render_window->SetMultiSamples(0);
 
-    vtkNew<vtkShadowMapPass> shadows;
-    shadows->GetShadowMapBakerPass()->SetResolution(4096);
+    _renderer->SetUseDepthPeeling(true);
+    _renderer->SetMaximumNumberOfPeels(50);
+    _renderer->SetOcclusionRatio(0.1);
 
+    // Core passes
     vtkNew<vtkRenderPassCollection> passes;
-    passes->AddItem(shadows->GetShadowMapBakerPass());
-    passes->AddItem(lightsP);
-    passes->AddItem(opaqueP);
-    passes->AddItem(shadows);
-    seqP->SetPasses(passes);
+
+    vtkNew<vtkLightsPass> lightsPass;
+    vtkNew<vtkOpaquePass> opaquePass;
+    vtkNew<vtkTranslucentPass> translucentPass;
+
+    // Shadow map
+    vtkNew<vtkShadowMapPass> shadowPass;
+    shadowPass->GetShadowMapBakerPass()->SetResolution(4096);
+
+    // IMPORTANT: depth peeling must wrap translucent pass
+    vtkNew<vtkDepthPeelingPass> peelingPass;
+    peelingPass->SetTranslucentPass(translucentPass);
+    peelingPass->SetMaximumNumberOfPeels(50);
+    peelingPass->SetOcclusionRatio(0.1);
+
+    // Order matters
+    passes->AddItem(shadowPass->GetShadowMapBakerPass());
+    passes->AddItem(lightsPass);
+    passes->AddItem(opaquePass);
+    passes->AddItem(shadowPass);
+    passes->AddItem(peelingPass);
+
+    vtkNew<vtkSequencePass> seq;
+    seq->SetPasses(passes);
 
     vtkNew<vtkCameraPass> cameraP;
-    cameraP->SetDelegatePass(seqP);
+    cameraP->SetDelegatePass(seq);
 
-    vtkNew<vtkToneMappingPass> toneMappingP;
-    toneMappingP->SetToneMappingType(vtkToneMappingPass::GenericFilmic);
-    toneMappingP->SetGenericFilmicDefaultPresets();
-    toneMappingP->SetDelegatePass(cameraP);
-    toneMappingP->SetExposure(_render_config.exposure());
-
-    _renderer->SetPass(toneMappingP);
+    _renderer->SetPass(cameraP);
 
     vtkNew<vtkCallbackCommand> render_callback;
     render_callback->SetCallback(GraphicsScene::renderCallback);
@@ -219,36 +248,89 @@ void GraphicsScene::update()
     _should_render.store(true);
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& config)
 {
-    std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, render_config);
+    if (!config.renderMeshConfigs().empty())
+    {
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(sphere, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<SphereGraphicsObject> sphere_go = std::make_unique<SphereGraphicsObject>(sphere, config.renderConfig());
 
-    _renderer->AddActor(sphere_go->actor());
-    _graphics_objects.push_back(std::move(sphere_go));
-}
-
-void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<BoxGraphicsObject> box_go = std::make_unique<BoxGraphicsObject>(box, render_config);
-
-    _renderer->AddActor(box_go->actor());
-    _graphics_objects.push_back(std::move(box_go));
-}
-
-void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::ObjectRenderConfig& render_config)
-{
-    std::unique_ptr<PlaneGraphicsObject> plane_go = std::make_unique<PlaneGraphicsObject>(plane, render_config);
+        _renderer->AddActor(sphere_go->actor());
+        _graphics_objects.push_back(std::move(sphere_go));
+    }
     
-    _renderer->AddActor(plane_go->actor());
-    _graphics_objects.push_back(std::move(plane_go));
 }
 
-void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::ObjectRenderConfig& render_config)
+void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::XPBDObjectConfig& config)
+{
+    if (!config.renderMeshConfigs().empty())
+    {
+        std::cout << "Render mesh configs!" << std::endl;
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(box, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<BoxGraphicsObject> box_go = std::make_unique<BoxGraphicsObject>(box, config.renderConfig());
+
+        _renderer->AddActor(box_go->actor());
+        _graphics_objects.push_back(std::move(box_go));
+    }
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& config)
+{
+    if (!config.renderMeshConfigs().empty())
+    {
+        for (const auto& mesh_config : config.renderMeshConfigs())
+            _addMeshForRigidBody(plane, mesh_config);
+    }
+    else
+    {
+        std::unique_ptr<PlaneGraphicsObject> plane_go = std::make_unique<PlaneGraphicsObject>(plane, config.renderConfig());
+        
+        _renderer->AddActor(plane_go->actor());
+        _graphics_objects.push_back(std::move(plane_go));
+    }
+}
+
+void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::XPBDObjectConfig& config)
 {
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {
-        addObject(&obj, render_config);
+        addObject(&obj, obj.config());
     });
+}
+
+void GraphicsScene::_addMeshForRigidBody(const SimObject::XPBDRigidBody_Base* rb, const Config::MeshRenderConfig& render_config)
+{
+    // load mesh from file and resize and reposition
+    _graphics_meshes.push_back(Mesh::loadFromFile(render_config.filename()));
+    auto& new_mesh = _graphics_meshes.back();
+
+    // move mesh so that its center of mass is at (0,0,0)
+    Vec3r mesh_com = new_mesh.massCenter();
+    new_mesh.moveDelta(-mesh_com);
+
+    // resize mesh according to the specified scale
+    new_mesh.resize(render_config.scale()[0], render_config.scale()[1], render_config.scale()[2]);
+
+    // rotate mesh according to specified Euler angles (rotation about COM)
+    new_mesh.applyRotation(Math::RotMatFromXYZEulerAngles(render_config.rotation()));
+
+    // translate mesh according to the config file
+    new_mesh.moveDelta(render_config.translation());
+
+    std::unique_ptr<MeshGraphicsObject> mesh_go = std::make_unique<MeshGraphicsObject>(&new_mesh, &rb->com(), render_config);
+    _renderer->AddActor(mesh_go->actor());
+    _renderer->AddActor(mesh_go->edgesActor());
+
+    _graphics_objects.push_back(std::move(mesh_go));
+    
 }
 
 Vec3r GraphicsScene::cameraPosition() const

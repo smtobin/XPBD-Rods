@@ -18,6 +18,9 @@ public:
 
     virtual void project() = 0;
 
+    virtual void initializeVelocity() = 0;
+    virtual void projectVelocity() = 0;
+
 protected:
     Real _dt;
 };

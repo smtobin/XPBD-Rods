@@ -1,10 +1,14 @@
 name: "Plane-Box Collision"
+# sim-mode: "Frame-by-frame"
 time-step: 1e-3
 end-time: 100
 solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
+
+hash-voxel-size: 0.1
+num-hash-buckets: 31111
 
 objects:
   - 

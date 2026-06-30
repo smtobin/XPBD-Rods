@@ -49,10 +49,26 @@ public:
         _separate_constraint_projectors.template clear_types<Constraint::XPBDSeparateConstraintProjector<ConstraintTypes>...>();
     }
 
+    template <typename ...ConstraintTypes>
+    void clearInactiveProjectorsOfType(TypeList<ConstraintTypes...>)
+    {
+        _constraint_projectors.erase_if<Constraint::XPBDConstraintProjector<ConstraintTypes>...>([&](const auto& projector) -> bool {
+            return projector.lambda().isZero(1e-12);
+        });
+
+        _separate_constraint_projectors.erase_if<Constraint::XPBDSeparateConstraintProjector<ConstraintTypes>...>([&](const auto& projector) -> bool {
+            return projector.lambda().isZero(1e-12);
+        });
+    }
+
     void solve(bool initialize=true);
+    void velocitySolve(bool initialize=true);
 
     /** Applies friction for collision constraints. */
     void applyFriction();
+
+    /** Applies restitution for collision constraints. */
+    void applyRestitution();
 
     const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
     const XPBDSeparateConstraintProjectors_Container& separateConstraintProjectors() const { return _separate_constraint_projectors; }

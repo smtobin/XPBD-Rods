@@ -35,14 +35,14 @@ void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBo
         Config::ObjectRenderConfig::RenderType::PBR, 
         std::nullopt, std::nullopt, std::nullopt,
         0.0, 0.5, 1.0,
-        box1_color, false, true, false, false
+        box1_color, false
     );
 
     Config::ObjectRenderConfig box2_graphics_config(
         Config::ObjectRenderConfig::RenderType::PBR, 
         std::nullopt, std::nullopt, std::nullopt,
         0.0, 0.5, 1.0,
-        box2_color, false, true, false, false
+        box2_color, false
     );
 
     Graphics::BoxGraphicsObject box1_graphics_obj(&box1, box1_graphics_config);
@@ -117,8 +117,8 @@ void visualize(const SimObject::XPBDRigidBox& box1, const SimObject::XPBDRigidBo
 ReturnTuple testCollision(Vec3r pos1, Vec3r rot1, Vec3r size1, Vec3r pos2, Vec3r rot2, Vec3r size2)
 {
     Collision::CollisionScene scene;
-    Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), true, 1000, false, size1);
-    Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), true, 1000, false, size2);
+    Config::XPBDRigidBoxConfig box1_config("box1", pos1, rot1, Vec3r(0,0,0), Vec3r(0,0,0), true, 0.2, 0.1, 1000, false, size1);
+    Config::XPBDRigidBoxConfig box2_config("box2", pos2, rot2, Vec3r(0,0,0), Vec3r(0,0,0), true, 0.2, 0.1, 1000, false, size2);
 
     SimObject::XPBDRigidBox box1(box1_config);
     SimObject::XPBDRigidBox box2(box2_config);

@@ -41,6 +41,9 @@ public:
     /** Solves internal constraints for this object. These don't exist for a rigid body. */
     virtual void internalConstraintSolve(Real /* dt */) override {}
 
+    /** Velocity solve for internal constraints for this object. These don't exist for a rigid body. */
+    virtual void internalConstraintVelocitySolve(Real /* dt */) override {}
+
     /** Updates the rigid body's velocity. */
     virtual void velocityUpdate(Real dt) override
     {

@@ -17,7 +17,7 @@ CubicHermiteRodElement::CubicHermiteRodElement(
     const DerivativeArrayType& dp_ds, const DerivativeArrayType& dR_ds,
     Real rest_length
 )
-    : RodElement_Base(rest_length), _nodes(nodes_list), _dp_ds(dp_ds), _dR_ds(dR_ds),
+    : RodElement_Base(rest_length, Vec3r::Zero()), _nodes(nodes_list), _dp_ds(dp_ds), _dR_ds(dR_ds),
      _bases{cubicHermiteN1, cubicHermiteN2, cubicHermiteN3, cubicHermiteN4},
      _bases_derivatives{dcubicHermiteN1, dcubicHermiteN2, dcubicHermiteN3, dcubicHermiteN4}
 {
@@ -46,6 +46,13 @@ Vec3r CubicHermiteRodElement::previousPosition(Real s_hat) const
     Vec3r p =  _bases_derivatives[0](s_hat)*_nodes[0]->prev_position + _bases_derivatives[1](s_hat) * (_dp_ds[0]->prev_position) + 
                 _bases_derivatives[2](s_hat)*_nodes[1]->prev_position + _bases_derivatives[3](s_hat) * (_dp_ds[1]->prev_position);
     return p;
+}
+
+Vec3r CubicHermiteRodElement::linearVelocity(Real s_hat) const
+{
+    throw std::runtime_error("Not implemented");
+
+    return Vec3r::Zero();
 }
 
 Vec3r CubicHermiteRodElement::dposition_dshat(Real s_hat) const
