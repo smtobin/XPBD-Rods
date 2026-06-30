@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "config/CollisionSceneConfig.hpp"
+
 #include "collision/SpatialHasher.hpp"
 
 #include "collision/sdf/SDF.hpp"
@@ -36,7 +38,7 @@ class CollisionScene
 public:
     CollisionScene();
 
-    CollisionScene(Real grid_size, int num_buckets);
+    CollisionScene(const Config::CollisionSceneConfig& config);
 
     template <typename ObjectType>
     void addObject(ObjectType* obj)
@@ -82,6 +84,11 @@ private:
     static Vec3r _frankWolfe(const SDF* sdf, const Vec3r& p1, const Vec3r& p2, const Vec3r& p3);
 
     void _checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* rb, const SDF* rb_sdf, SimObject::RodCollisionSegment* segment);
+
+    /** Whether or not to do collision detection for rod-rod collisions.
+     * Useful turning off for the hex bug demo.
+     */
+    bool _rod_rod_collisions;
 
     /** Store all the newly detected collisions (in the latest call of detectCollisions()).
      * DetectedCollision is a std::variant type that stores different information depending on the type of collision

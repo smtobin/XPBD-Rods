@@ -29,7 +29,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _solver_iters(sim_config.solverIters()),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
-    _collision_scene(sim_config.hashVoxelSize(), sim_config.numHashBuckets()),
+    _collision_scene(sim_config.collisionSceneConfig()),
     _config(sim_config)
 {
     _last_collision_check_time = std::numeric_limits<Real>::lowest();
@@ -682,15 +682,9 @@ void Simulation::notifyLeftMouseButtonReleased()
 
 void Simulation::_timeStep()
 {
-    /** HACK TO REMOVE OLD COLLISION CONSTRAINTS FOR THE PLECTONEME
-     * 
-     * TODO: actually getthe plectoneme
-     */
+    // collision detection
     if (_time > _last_collision_check_time + COLLISION_CHECK_INTERVAL)
     {
-        // _object_groups.template get<std::unique_ptr<SimObject::Plectoneme>>().back()->objects().template get<SimObject::XPBDRod_<SimObject::RodElement<1>>>().back().clearCollisionConstraints();
-        // _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back()->clearCollisionConstraints();
-
         _detectCollisions();
 
         _last_collision_check_time = _time;

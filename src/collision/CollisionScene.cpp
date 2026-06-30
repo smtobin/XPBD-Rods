@@ -91,13 +91,14 @@ void CollisionScene::_initCollisionTable()
 }
 
 CollisionScene::CollisionScene()
-    : _spatial_hasher(0.5, 14909)
+    : _spatial_hasher(0.5, 14909), _rod_rod_collisions(true)
 {
     _initCollisionTable();
 }
 
-CollisionScene::CollisionScene(Real grid_size, int num_buckets)
-    : _spatial_hasher(grid_size, num_buckets)
+CollisionScene::CollisionScene(const Config::CollisionSceneConfig& config)
+    : _spatial_hasher(config.hashVoxelSize(), config.numHashBuckets()),
+    _rod_rod_collisions(config.rodRodCollisions())
 {
     _initCollisionTable();
 }
@@ -410,6 +411,9 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::XPBDRigid
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2)
 {
+    if (!scene->_rod_rod_collisions)
+        return;
+
     /** Step 1: ensure segments should actually be tested for collision */
     // if the segments are the same, obviously don't test them
     if (segment1 == segment2)
