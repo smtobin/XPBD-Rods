@@ -442,6 +442,16 @@ void Simulation::update()
         {
             _callback_queue.front()();
         }
+
+        // check if any repeated callbacks need to be called
+        for (auto& cb : _repeated_callbacks)
+        {
+            if (_time > cb.next_exec_time)
+            {
+                cb.callback();
+                cb.next_exec_time = cb.next_exec_time + cb.interval;
+            }
+        }
         
         // the elapsed seconds in wall time since the simulation has started
         Real wall_time_elapsed_s = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - wall_time_start).count() / 1000000000.0;
