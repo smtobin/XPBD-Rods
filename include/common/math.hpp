@@ -406,4 +406,20 @@ static Vec4r rotationMatrixToQuaternion(const Mat3r& mat)
     return q;
 }
 
+static Mat3r quaternionToRotationMatrix(const Vec4r& quat)
+{
+    Mat3r mat;
+    mat(0,0) = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
+    mat(0,1) = 2*quat[0]*quat[1] - 2*quat[3]*quat[2];
+    mat(0,2) = 2*quat[0]*quat[2] + 2*quat[3]*quat[1];
+    mat(1,0) = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
+    mat(1,1) = 1 - 2*quat[0]*quat[0] - 2*quat[2]*quat[2];
+    mat(1,2) = 2*quat[1]*quat[2] - 2*quat[3]*quat[0];
+    mat(2,0) = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
+    mat(2,1) = 2*quat[1]*quat[2] + 2*quat[3]*quat[0];
+    mat(2,2) = 1 - 2*quat[0]*quat[0] - 2*quat[1]*quat[1];
+
+    return mat;
+}
+
 };

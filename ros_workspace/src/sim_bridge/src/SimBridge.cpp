@@ -77,6 +77,53 @@ SimBridge::SimBridge(Sim::Simulation* sim)
     };
 
     _sim->addRepeatedCallback(1.0/this->get_parameter("publish_rate_hz").as_double(), rod_publish_callback);
+
+    // create callback for publishing the base and tip pose of the rod
+    std::visit([&](const auto& rod) {
+        // get internal constraints for the rod
+        auto& rod_internal_constraints = rod->internalConstraints();
+        auto& fixed_joint_constraints = rod_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>();
+
+        // make sure there are two fixed constraints (one for the base and one for the tip)
+        if (fixed_joint_constraints.size() != 2)
+            throw std::runtime_error("Base and/or tip of rod are not fixed! Check the config file?");
+
+        // get the fixed base and tip constraints for the rod
+        _base_constraint = &fixed_joint_constraints.front();
+        _tip_constraint = &fixed_joint_constraints.back();
+
+        auto rod_base_pose_callback = [this](geometry_msgs::msg::PoseStamped::UniquePtr msg) -> void 
+        {
+            Vec3r p = Vec3r(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+            Vec4r quat = Vec3r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
+            Mat3r R = Math::quaternionToRotationMatrix(quat);
+
+            auto callback = [this, p, R]() -> void
+            {
+                this->_base_constraint->setReferencePosition(p);
+                this->_base_constraint->setReferenceOrientation(R);
+            };
+            this->_sim->addCallback(callback);
+        };
+
+        auto rod_tip_pose_callback = [this](geometry_msgs::msg::PoseStamped::UniquePtr msg) -> void
+        {
+            Vec3r p = Vec3r(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+            Vec4r quat = Vec3r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
+            Mat3r R = Math::quaternionToRotationMatrix(quat);
+
+            auto callback = [this, p, R]() -> void
+            {
+                this->_tip_constraint->setReferencePosition(p);
+                this->_tip_constraint->setReferenceOrientation(R);
+            };
+            this->_sim->addCallback(callback);
+        };
+
+        _rod_base_pose_subscriber = this->create_subscription<geometry_msgs::msg::PoseStamped>("sim/rod_base_pose", 10, rod_base_pose_callback);
+        _rod_tip_pose_subscriber = this->create_subscription<geometry_msgs::msg::PoseStamped>("sim/rod_tip_pose", 10, rod_tip_pose_callback);
+    }, _rod);
+    
 }
 
 geometry_msgs::msg::Pose SimBridge::_poseFromRotationAndTranslation(const Mat3r& R, const Vec3r& t) const

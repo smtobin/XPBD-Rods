@@ -25,6 +25,9 @@ protected:
     using CubicRod = SimObject::XPBDRod_<SimObject::RodElement<3>>;
 
     std::variant<LinearRod*, QuadraticRod*, CubicRod*> _rod;
+    Constraint::OneSidedFixedJointConstraint* _base_constraint;
+    Constraint::OneSidedFixedJointConstraint* _tip_constraint;
+
     rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr _rod_frames_publisher;
 
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr _rod_base_pose_subscriber;
