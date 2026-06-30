@@ -22,7 +22,9 @@ public:
     void addObject(ObjectType* obj)
     {
         // create collision object
-        _collision_objects.emplace_back(obj);
+        auto& new_collision_obj = _collision_objects.emplace_back(obj);
+        if (new_collision_obj.fixed)
+            _fixed_objects_stale = true;
     }
 
     /** Specific overload for rods - create a collision object for each rod segment. */
@@ -33,7 +35,9 @@ public:
         std::vector<SimObject::RodCollisionSegment>& rod_segments = rod->collisionSegments();
         for (auto& segment : rod_segments)
         {
-            _collision_objects.emplace_back(&segment);
+            auto& new_collision_obj = _collision_objects.emplace_back(&segment);
+            if (new_collision_obj.fixed)
+                _fixed_objects_stale = true;
         }
     }
 
@@ -44,6 +48,9 @@ public:
 
     void hashObjects();
 
+    /** Only hash static (fixed) objects once at the beginning of the simulation. */
+    void hashFixedObjects();
+
     const CollisionPairSet& collisionPairs() const { return _collision_pairs; }
 
     const std::vector<CollisionObject>& collisionObjects() const { return _collision_objects; }
@@ -53,6 +60,8 @@ private:
      * @param obj - collision object pointer
      */
     void _addObjectToBuckets(CollisionObject* obj);
+
+    void _addFixedObjectToBuckets(CollisionObject* obj);
 
     /** Computes the min and max indices for a span [min_coord, max_coord] in real-world space. */
     std::pair<int,int> _cellBounds(Real min_coord, Real max_coord) { return std::make_pair( static_cast<int>(std::floor(min_coord/_grid_size)), static_cast<int>(std::floor(max_coord/_grid_size)) ); }
@@ -90,6 +99,9 @@ private:
      * This avoids having to clear all the buckets every time we want to hash.
      */
     unsigned long _step = 0;
+
+    /** If a new static (fixed) object was added recently, rehash the fixed objects too. */
+    bool _fixed_objects_stale;
 
     /** Keep track of buckets with collisions, so that we can easily call narrow-phase collision detection on the potentially intersecting pairs of objects. */
     CollisionPairSet _collision_pairs;

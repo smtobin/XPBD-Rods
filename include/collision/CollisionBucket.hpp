@@ -12,6 +12,7 @@ struct CollisionBucket
 {
     unsigned long cur_ID = 0;
     std::vector<CollisionObject*> objects;
+    std::vector<CollisionObject*> fixed_objects;
 
     bool addObject(CollisionObject* obj, unsigned long ID)
     {
@@ -23,7 +24,12 @@ struct CollisionBucket
 
         objects.push_back(obj);
 
-        return objects.size() > 1;
+        return (fixed_objects.size() + objects.size()) > 1;
+    }
+
+    void addFixedObject(CollisionObject* obj)
+    {
+        fixed_objects.push_back(obj);
     }
 };
 

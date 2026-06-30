@@ -3,9 +3,26 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rod/RodCollisionSegment.hpp"
+#include "simobject/rigidbody/XPBDPlane.hpp"
 
 namespace Collision
 {
+
+CollisionObject::CollisionObject(SimObject::XPBDRigidSphere* sphere)
+    : obj(sphere), type(ColliderType::Sphere), fixed(sphere->com().fixed)
+{}
+
+CollisionObject::CollisionObject(SimObject::XPBDRigidBox* box)
+    : obj(box), type(ColliderType::Box), fixed(box->com().fixed)
+{}
+
+CollisionObject::CollisionObject(SimObject::RodCollisionSegment* segment)
+    : obj(segment), type(ColliderType::RodSegment), fixed(false)
+{}
+
+CollisionObject::CollisionObject(SimObject::XPBDPlane* plane)
+    : obj(plane), type(ColliderType::Plane), fixed(plane->com().fixed)
+{}
 
 SimObject::AABB CollisionObject::boundingBox() const
 {
