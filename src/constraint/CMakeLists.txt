@@ -53,7 +53,7 @@ target_sources(Constraint
         
 )
 
-install(TARGETS Constraint EXPORT Constraint-targets
+install(TARGETS Constraint EXPORT XPBDRods-targets
     RUNTIME DESTINATION bin/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME})
 install(FILES ${CONSTRAINT_HEADERS}

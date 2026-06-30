@@ -19,8 +19,8 @@ target_sources(Common
         
 )
 
-install(TARGETS Common EXPORT Common-targets
+install(TARGETS Common EXPORT XPBDRods-targets
     RUNTIME DESTINATION bin/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME})
 install(FILES ${COMMON_HEADERS}
-    DESTINATION include/${PROJECT_NAME}/graphics)
+    DESTINATION include/${PROJECT_NAME}/common)

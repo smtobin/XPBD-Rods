@@ -21,7 +21,7 @@ target_sources(Solver
         
 )
 
-install(TARGETS Solver EXPORT Solver-targets
+install(TARGETS Solver EXPORT XPBDRods-targets
     RUNTIME DESTINATION bin/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME})
 install(FILES ${SOLVER_HEADERS}

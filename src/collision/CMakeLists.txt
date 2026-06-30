@@ -35,7 +35,7 @@ target_sources(Collision
         
 )
 
-install(TARGETS Collision EXPORT Collision-targets
+install(TARGETS Collision EXPORT XPBDRods-targets
     RUNTIME DESTINATION bin/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME})
 install(FILES ${COLLISION_HEADERS}
