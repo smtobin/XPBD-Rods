@@ -1,0 +1,55 @@
+name: "RodSim"
+
+# by default, the sim attempts to run in real-time
+# sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
+# sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
+
+time-step: 1e-3                   # the time step used by the sim
+end-time: 100000                  # the end time in the sim (some large number)
+
+# logging - leave disabled
+logging: False
+logging-output-folder: "../output/convergence"
+logging-interval: 10
+log-residuals: True
+
+# simulating render settings
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+hdr-scaling: 0.2
+
+ground-plane: True                # whether or not to create a ground plane
+
+objects:
+  # === The rod object ===
+  - 
+    type: "Rod"
+    name: "rod1"
+    element-type: "Linear"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
+    elements: 10                  # number of finite elements used in the discretization
+    initial-position: [0, 1, 0.0] # initial position of base of rod
+    initial-rotation: [0, 90, 0]  # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
+
+    # material parameters
+    E: 5e6                        # Young's modulus
+    nu: 0.4                       # Poisson ratio
+    beta: 1e2                     # damping coefficient in the rod
+    diameter: 0.1                 # diameter of rod cross-section
+    length: 1                     # rest length of rod
+    density: 1000                 # density (kg/m^3)
+    
+    # solver parameters
+    global-solve: True            # whether or not to use a global solve on the rod subsystem (should always be true)
+    base-fixed: True              # whether the base should be fixed (should always be true for now)
+    tip-fixed: True               # whether the tip should be fixed (should always be true for now)
+    collisions: True              # whether collisions are enabled for the rod (set to true for self-collisions)
+    log-particles: False          # whether to log the particles of this rod (don't need this)
+    
+    # render settings
+    render-type: "PBR"            # use PBR rendering
+    metallic: 0.0                 # metallicity of PBR material (should be 0 unless material is a metal, then it should be 1.0)
+    roughness: 0.5                # roughness of rod surface in the range [0-1]
+    color: [1.0, 0, 0]            # color of the rod
+    opacity: 1                    # opacity of the rod
+    draw-centerline: False        # optionally visualize the centerline of the rod
+    centerline-samples: 50        # number of samples along the centerline to use for visualization
