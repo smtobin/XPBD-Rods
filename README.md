@@ -58,8 +58,16 @@ A VTK window should pop up with an oscillating rod. Boom done!
 
 The file `../config/config.yaml` contains setup parameters for changing aspects of the simulation, such as the rod's properties.
 
-To run another example:
+## ROS Interface
+(07/01/2026) A basic ROS interface is provided for manipulating a Cosserat rod. To launch, run:
 ```
-./Sim ../config/pendulum_config.yaml
+ros2 launch launch/sim_bridge.launch.py config_filename:=<path/to/yaml/config>
 ```
-A VTK window should pop up with a simple pendulum, demonstrating rigid-body physics. Wow!
+This runs a simulation based ont he YAML config file given in the command line. If no path is specified, it will default to `config/ros/rod.yaml`.
+
+There is 1 topic published:
+- `/sim/rod_frames` (`geometry_msgs/PoseArray`) - array of poses along the length of the rod. The first entry is the base of the rod, and the last entry is the tip of the rod.
+
+There are 2 topics subscribed to:
+- `/sim/rod_base_pose` (`geometry_msgs/PoseStamped`) - commanded base pose of the rod.
+- `/sim/rod_tip_pose` (`geometry_msgs/PoseStamped`) - commanded tip pose of the rod.
