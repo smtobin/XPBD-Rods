@@ -25,7 +25,7 @@ objects:
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Linear"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
+    element-type: "Cubic"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
     elements: 10                  # number of finite elements used in the discretization
     initial-position: [0, 1, 0.0] # initial position of base of rod
     initial-rotation: [0, 0, 0]   # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
