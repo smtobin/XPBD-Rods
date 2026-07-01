@@ -33,7 +33,7 @@ target_sources(Graphics
         
 )
 
-install(TARGETS Graphics EXPORT Graphics-targets
+install(TARGETS Graphics EXPORT XPBDRods-targets
     RUNTIME DESTINATION bin/${PROJECT_NAME}
     LIBRARY DESTINATION lib/${PROJECT_NAME})
 install(FILES ${GRAPHICS_HEADERS}

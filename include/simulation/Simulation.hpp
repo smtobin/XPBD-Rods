@@ -38,7 +38,18 @@ namespace Sim
 
 class Simulation
 {
-    public:
+public:
+    struct RepeatedCallbackInfo
+    {
+        std::function<void()> callback;     // the function to execute
+        double interval;                    // the time (in s) between calls
+        double next_exec_time;              // the next time this callback should be executed
+
+        RepeatedCallbackInfo(std::function<void()> cb, double intvl, double start_time)
+            : callback(std::move(cb)), interval(intvl), next_exec_time(start_time + interval)
+        {}
+    };
+
     explicit Simulation();
 
     explicit Simulation(const Config::SimulationConfig& sim_config);
@@ -53,6 +64,9 @@ class Simulation
 
     VecXr primaryResidual() const;
     VecXr constraintResidual() const;
+
+    const XPBDObjects_UniquePtrContainer& objects() const { return _objects; }
+    const XPBDObjectGroups_UniquePtrContainer& objectGroups() const { return _object_groups; }
 
 
     // event handling
@@ -69,6 +83,26 @@ class Simulation
         constraint_vec.emplace_back(std::forward<Args>(args)...);
         ConstVectorHandle<ConstraintType> constraint_ref(&constraint_vec, constraint_vec.size()-1);
         _solver.addConstraint(constraint_ref);
+    }
+
+    template<typename CallbackT>
+    void addCallback(CallbackT&& lambda)
+    {
+        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
+            lambda();
+        };
+
+        _callback_queue.push_back(std::move(wrapper));
+    }
+
+    template<typename CallbackT>
+    void addRepeatedCallback(double interval, CallbackT&& lambda)
+    {
+        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
+            lambda();
+        };
+
+        _repeated_callbacks.emplace_back(std::move(wrapper), interval, _time);
     }
 
     protected:
@@ -293,16 +327,6 @@ class Simulation
 
     void _updateGraphics();
 
-    template<typename CallbackT>
-    void _addCallback(CallbackT&& lambda)
-    {
-        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
-            lambda();
-        };
-
-        _callback_queue.push_back(std::move(wrapper));
-    }
-
     /** Collision detection + processing */
 
     /** Runs collision detection */
@@ -352,6 +376,9 @@ class Simulation
     Solver::GaussSeidelSolver _solver;
 
     std::deque<std::function<void()>> _callback_queue;
+
+    /** Repeated callbacks - called every n seconds */
+    std::vector<RepeatedCallbackInfo> _repeated_callbacks;
 
     /** Responsible for logging various simulation quantities. */
     std::unique_ptr<SimulationLogger> _logger;

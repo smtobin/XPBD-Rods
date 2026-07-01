@@ -2,3 +2,8 @@
 build/
 resource/textures/
 output/
+
+ros_workspace/log/
+ros_workspace/install/
+__pycache__/
+*.pyc

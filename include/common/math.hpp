@@ -366,4 +366,60 @@ static std::pair<Real, Real> findClosestPointsOnLineSegments(const Vec3r& p1, co
     return std::make_pair(beta1, beta2);
 }
 
+static Vec4r rotationMatrixToQuaternion(const Mat3r& mat)
+{
+    Vec4r q;
+
+    // code adapted from https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+    const Real trace = mat.trace();
+    if( trace > 0 )
+    {
+        Real s = Real(0.5) / std::sqrt(trace + 1);
+        q[3] = Real(0.25) / s;
+        q[0] = ( mat(2,1) - mat(1,2) ) * s;
+        q[1] = ( mat(0,2) - mat(2,0) ) * s;
+        q[2] = ( mat(1,0) - mat(0,1) ) * s;
+    } 
+    else
+    {
+        if ( mat(0,0) > mat(1,1) && mat(0,0) > mat(2,2) ) {
+            Real s = 2 * std::sqrt( 1 + mat(0,0) - mat(1,1) - mat(2,2));
+            q[3] = (mat(2,1) - mat(1,2) ) / s;
+            q[0] = Real(0.25) * s;
+            q[1] = (mat(0,1) + mat(1,0) ) / s;
+            q[2] = (mat(0,2) + mat(2,0) ) / s;
+        } else if (mat(1,1) > mat(2,2)) {
+            Real s = 2 * std::sqrt( 1 + mat(1,1) - mat(0,0) - mat(2,2));
+            q[3] = (mat(0,2) - mat(2,0) ) / s;
+            q[0] = (mat(0,1) + mat(1,0) ) / s;
+            q[1] = 0.25f * s;
+            q[2] = (mat(1,2) + mat(2,1) ) / s;
+        } else {
+            Real s = 2 * std::sqrt( 1 + mat(2,2) - mat(0,0) - mat(1,1) );
+            q[3] = (mat(1,0) - mat(0,1) ) / s;
+            q[0] = (mat(0,2) + mat(2,0) ) / s;
+            q[1] = (mat(1,2) + mat(2,1) ) / s;
+            q[2] = 0.25f * s;
+        }
+    }
+    
+    return q;
+}
+
+static Mat3r quaternionToRotationMatrix(const Vec4r& quat)
+{
+    Mat3r mat;
+    mat(0,0) = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
+    mat(0,1) = 2*quat[0]*quat[1] - 2*quat[3]*quat[2];
+    mat(0,2) = 2*quat[0]*quat[2] + 2*quat[3]*quat[1];
+    mat(1,0) = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
+    mat(1,1) = 1 - 2*quat[0]*quat[0] - 2*quat[2]*quat[2];
+    mat(1,2) = 2*quat[1]*quat[2] - 2*quat[3]*quat[0];
+    mat(2,0) = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
+    mat(2,1) = 2*quat[1]*quat[2] + 2*quat[3]*quat[0];
+    mat(2,2) = 1 - 2*quat[0]*quat[0] - 2*quat[1]*quat[1];
+
+    return mat;
+}
+
 };
