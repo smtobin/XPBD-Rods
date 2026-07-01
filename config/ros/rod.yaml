@@ -28,13 +28,13 @@ objects:
     element-type: "Linear"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
     elements: 10                  # number of finite elements used in the discretization
     initial-position: [0, 1, 0.0] # initial position of base of rod
-    initial-rotation: [0, 90, 0]  # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
+    initial-rotation: [0, 0, 0]   # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
 
     # material parameters
     E: 5e6                        # Young's modulus
     nu: 0.4                       # Poisson ratio
-    beta: 1e2                     # damping coefficient in the rod
-    diameter: 0.1                 # diameter of rod cross-section
+    beta: 0.2                     # damping coefficient in the rod
+    diameter: 0.01                 # diameter of rod cross-section
     length: 1                     # rest length of rod
     density: 1000                 # density (kg/m^3)
     

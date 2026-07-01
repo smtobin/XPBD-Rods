@@ -95,7 +95,7 @@ SimBridge::SimBridge(Sim::Simulation* sim)
         auto rod_base_pose_callback = [this](geometry_msgs::msg::PoseStamped::UniquePtr msg) -> void 
         {
             Vec3r p = Vec3r(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
-            Vec4r quat = Vec3r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
+            Vec4r quat = Vec4r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
             Mat3r R = Math::quaternionToRotationMatrix(quat);
 
             auto callback = [this, p, R]() -> void
@@ -109,7 +109,7 @@ SimBridge::SimBridge(Sim::Simulation* sim)
         auto rod_tip_pose_callback = [this](geometry_msgs::msg::PoseStamped::UniquePtr msg) -> void
         {
             Vec3r p = Vec3r(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
-            Vec4r quat = Vec3r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
+            Vec4r quat = Vec4r(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
             Mat3r R = Math::quaternionToRotationMatrix(quat);
 
             auto callback = [this, p, R]() -> void

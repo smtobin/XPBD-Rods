@@ -14,7 +14,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     config_file_arg = DeclareLaunchArgument(
         'config_filename',
-        default_value=TextSubstitution(text='../config/config.yaml'),
+        default_value=TextSubstitution(text='../config/ros/rod.yaml'),
         description='Absolute path to the simulation config file.'
     )
 

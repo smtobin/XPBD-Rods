@@ -86,6 +86,16 @@ public:
     }
 
     template<typename CallbackT>
+    void addCallback(CallbackT&& lambda)
+    {
+        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
+            lambda();
+        };
+
+        _callback_queue.push_back(std::move(wrapper));
+    }
+
+    template<typename CallbackT>
     void addRepeatedCallback(double interval, CallbackT&& lambda)
     {
         std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
@@ -316,16 +326,6 @@ public:
     void _timeStep();
 
     void _updateGraphics();
-
-    template<typename CallbackT>
-    void _addCallback(CallbackT&& lambda)
-    {
-        std::function<void()> wrapper = [lambda = std::forward<CallbackT>(lambda)]() {
-            lambda();
-        };
-
-        _callback_queue.push_back(std::move(wrapper));
-    }
 
     /** Collision detection + processing */
 
