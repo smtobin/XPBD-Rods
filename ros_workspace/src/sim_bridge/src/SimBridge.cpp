@@ -6,6 +6,7 @@ SimBridge::SimBridge(Sim::Simulation* sim)
     : rclcpp::Node("sim_bridge"), _sim(sim)
 {
     this->declare_parameter("publish_rate_hz", 30.0);
+    this->declare_parameter("num_rod_frames", 10);
 
     // find the first rod in the sim
     // this is the rod we will publish the state for
@@ -46,8 +47,7 @@ SimBridge::SimBridge(Sim::Simulation* sim)
     _rod_frames_publisher = this->create_publisher<geometry_msgs::msg::PoseArray>("sim/rod_frames", 10);
     auto rod_publish_callback = [this] () -> void
     {
-        /** TODO: make this a settable ROS parameter */
-        int num_frames = 10;
+        int num_frames = this->get_parameter("num_rod_frames").as_int();
 
         auto message = geometry_msgs::msg::PoseArray();
         message.header.stamp = this->now();
