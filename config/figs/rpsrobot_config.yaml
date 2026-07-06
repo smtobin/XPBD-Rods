@@ -2,7 +2,8 @@ name: "RPS Sim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 1000
+end-time: 10
+solver-iters: 1
 
 camera-focal-point: [0,0,0]
 # camera-position: [0.25,1.5,4]
@@ -23,7 +24,7 @@ objects:
     type: "RPSRobot"
     log-particles: False
 
-    use-normed-constraints: True
-    projector-type: "block"
+    use-normed-constraints: False
+    projector-type: "separate"
 
     color: [1.0, 0.5, 0.0]

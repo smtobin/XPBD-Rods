@@ -61,8 +61,6 @@ public:
             {
                 typename Constraint::ConstraintVecType C = _constraint->evaluate();
                 Ci = C[i];
-
-                assert(0);
             }
             
 

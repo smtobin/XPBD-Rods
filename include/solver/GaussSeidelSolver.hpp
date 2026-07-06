@@ -21,11 +21,11 @@ public:
          * constraint projector will become invalid, leading to segfault.
          */
         _constraints.template push_back<ConstVectorHandle<ConstraintType>>(constraint);
-        if (projector_type == Config::XPBDObjectConfig::ProjectorType::MULLER2020)
-        {
-            _muller2020_constraint_projectors.template emplace_back<Constraint::Muller2020ConstraintProjector<ConstraintType>>(_dt, constraint);
-        }
-        else if (projector_type == Config::XPBDObjectConfig::ProjectorType::BLOCK)
+        // if (projector_type == Config::XPBDObjectConfig::ProjectorType::MULLER2020)
+        // {
+        //     _muller2020_constraint_projectors.template emplace_back<Constraint::Muller2020ConstraintProjector<ConstraintType>>(_dt, constraint);
+        // }
+        if (projector_type == Config::XPBDObjectConfig::ProjectorType::BLOCK)
         {
             _constraint_projectors.template emplace_back<Constraint::XPBDConstraintProjector<ConstraintType>>(_dt, constraint);
         }
@@ -72,7 +72,7 @@ public:
 
     const XPBDConstraintProjectors_Container& constraintProjectors() const { return _constraint_projectors; }
     const XPBDSeparateConstraintProjectors_Container& separateConstraintProjectors() const { return _separate_constraint_projectors; }
-    const Muller2020ConstraintProjectors_Container& muller2020ConstraintProjectors() const { return _muller2020_constraint_projectors; }
+    // const Muller2020ConstraintProjectors_Container& muller2020ConstraintProjectors() const { return _muller2020_constraint_projectors; }
 
 private:
     Real _dt;
@@ -80,7 +80,7 @@ private:
 
     XPBDConstraintProjectors_Container _constraint_projectors;
     XPBDSeparateConstraintProjectors_Container _separate_constraint_projectors;
-    Muller2020ConstraintProjectors_Container _muller2020_constraint_projectors;
+    // Muller2020ConstraintProjectors_Container _muller2020_constraint_projectors;
 
     XPBDConstraints_ConstVectorHandleContainer _constraints;
 

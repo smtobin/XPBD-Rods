@@ -152,7 +152,7 @@ void RPSRobot::setup()
                 prismatic_constraint, -0.1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
@@ -173,10 +173,10 @@ void RPSRobot::setup()
                 &second_links[i]->com(), Vec3r(0,0,second_link_length/2), Mat3r::Identity()
             );
             Constraint::PrismaticJointLimitConstraint prismatic_joint_limit_constraint(
-                prismatic_constraint, -0.1, 0.1
+                prismatic_constraint, -1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
@@ -194,22 +194,51 @@ void RPSRobot::setup()
 
     if (_normed_constraints)
     {
-        Constraint::NormedOneSidedRevoluteJointConstraint normal_constraint(
+        Constraint::NormedOneSidedAlignedAxesConstraint normal_constraint(
             top_position, normal_rot,
             &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
         );
-        _constraints.template push_back<Constraint::NormedOneSidedRevoluteJointConstraint>(std::move(normal_constraint));
-        _normed_platform_normal_constraint = &_constraints.template get<Constraint::NormedOneSidedRevoluteJointConstraint>().back();
+        _constraints.template push_back<Constraint::NormedOneSidedAlignedAxesConstraint>(std::move(normal_constraint));
+        _normed_platform_normal_constraint = &_constraints.template get<Constraint::NormedOneSidedAlignedAxesConstraint>().back();
     }
     else
     {
-        Constraint::OneSidedRevoluteJointConstraint normal_constraint(
+        Constraint::OneSidedAlignedAxesConstraint normal_constraint(
             top_position, normal_rot,
             &top.com(), Vec3r(0,0,0), Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0))
         );
-        _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(normal_constraint));
-        _platform_normal_constraint = &_constraints.template get<Constraint::OneSidedRevoluteJointConstraint>().back();
+        _constraints.template push_back<Constraint::OneSidedAlignedAxesConstraint>(std::move(normal_constraint));
+        _platform_normal_constraint = &_constraints.template get<Constraint::OneSidedAlignedAxesConstraint>().back();
     }
+
+    /** Platform height constraint */
+    Constraint::OneSidedCoordinateConstraint heigh_constraint(
+        &top.com(), top_position, 1
+    );
+    _constraints.template push_back<Constraint::OneSidedCoordinateConstraint>(std::move(heigh_constraint));
+
+    // _initial_position = top_position;
+    // _theta = 0;
+    // Vec3r pos = _initial_position + 0.001*Vec3r(std::cos(_theta), 0, std::sin(_theta));
+
+    // if (_normed_constraints)
+    // {
+    //     Constraint::NormedOneSidedSphericalJointConstraint platform_constraint(
+    //         pos, Mat3r::Identity(),
+    //         &top.com(), Vec3r(0,0,0), Mat3r::Identity()
+    //     );
+    //     _constraints.template push_back<Constraint::NormedOneSidedSphericalJointConstraint>(std::move(platform_constraint));
+    //     _normed_platform_constraint = &_constraints.template get<Constraint::NormedOneSidedSphericalJointConstraint>().back();
+    // }
+    // else
+    // {
+    //     Constraint::OneSidedSphericalJointConstraint platform_constraint(
+    //         pos, Mat3r::Identity(),
+    //         &top.com(), Vec3r(0,0,0), Mat3r::Identity()
+    //     );
+    //     _constraints.template push_back<Constraint::OneSidedSphericalJointConstraint>(std::move(platform_constraint));
+    //     _platform_constraint = &_constraints.template get<Constraint::OneSidedSphericalJointConstraint>().back();
+    // }
 
     
 }

@@ -12,6 +12,8 @@ set(CONSTRAINT_HEADERS
     ${CONSTRAINT_INCLUDE_DIR}/RevoluteJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/SphericalJointConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/PrismaticJointConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/AlignedAxesConstraint.hpp
+    ${CONSTRAINT_INCLUDE_DIR}/CoordinateConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RevoluteJointLimitConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/RevoluteJointVelocityMotorConstraint.hpp
     ${CONSTRAINT_INCLUDE_DIR}/SphericalJointSwingLimitConstraint.hpp
@@ -32,6 +34,8 @@ set(CONSTRAINT_SOURCES
     ${CONSTRAINT_SRC_DIR}/RevoluteJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/SphericalJointConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/PrismaticJointConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/AlignedAxesConstraint.cpp
+    ${CONSTRAINT_SRC_DIR}/CoordinateConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/RevoluteJointLimitConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/RevoluteJointVelocityMotorConstraint.cpp
     ${CONSTRAINT_SRC_DIR}/SphericalJointSwingLimitConstraint.cpp

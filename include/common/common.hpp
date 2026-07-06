@@ -163,6 +163,13 @@ namespace Constraint
     class PrismaticJointLimitConstraint;
     class OneSidedPrismaticJointLimitConstraint;
 
+    class AlignedAxesConstraint;
+    class NormedAlignedAxesConstraint;
+    class OneSidedAlignedAxesConstraint;
+    class NormedOneSidedAlignedAxesConstraint;
+
+    class OneSidedCoordinateConstraint;
+
     template <typename ElementType>
     class RodElasticGaussPointConstraint;
 
@@ -187,26 +194,31 @@ using XPBDOneSidedJointConstraints_TypeList = TypeList<
     Constraint::OneSidedSphericalJointConstraint,
     Constraint::OneSidedPrismaticJointConstraint,
     Constraint::OneSidedRevoluteJointConstraint,
-    Constraint::OneSidedFixedJointConstraint
+    Constraint::OneSidedFixedJointConstraint,
+    Constraint::OneSidedAlignedAxesConstraint,
+    Constraint::OneSidedCoordinateConstraint
 >;
 
 using XPBDNormedOneSidedJointConstraints_TypeList = TypeList<
     Constraint::NormedOneSidedSphericalJointConstraint,
     Constraint::NormedOneSidedPrismaticJointConstraint,
-    Constraint::NormedOneSidedRevoluteJointConstraint
+    Constraint::NormedOneSidedRevoluteJointConstraint,
+    Constraint::NormedOneSidedAlignedAxesConstraint
 >;
 
 using XPBDTwoSidedJointConstraints_TypeList = TypeList<
     Constraint::FixedJointConstraint,
     Constraint::RevoluteJointConstraint,
     Constraint::SphericalJointConstraint,
-    Constraint::PrismaticJointConstraint
+    Constraint::PrismaticJointConstraint,
+    Constraint::AlignedAxesConstraint
 >;
 
 using XPBDNormedTwoSidedJointConstraints_TypeList = TypeList<
     Constraint::NormedRevoluteJointConstraint,
     Constraint::NormedSphericalJointConstraint,
-    Constraint::NormedPrismaticJointConstraint
+    Constraint::NormedPrismaticJointConstraint,
+    Constraint::NormedAlignedAxesConstraint
 >;
 
 using XPBDJointVelocityMotorConstraints_TypeList = TypeList<

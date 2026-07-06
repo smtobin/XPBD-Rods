@@ -5,6 +5,8 @@
 #include "constraint/RevoluteJointConstraint.hpp"
 #include "constraint/SphericalJointConstraint.hpp"
 #include "constraint/PrismaticJointConstraint.hpp"
+#include "constraint/AlignedAxesConstraint.hpp"
+#include "constraint/CoordinateConstraint.hpp"
 
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/RodElasticGaussPointConstraint.hpp"

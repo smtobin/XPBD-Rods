@@ -51,7 +51,7 @@ private:
     bool _color_elements;
 
     /** Number of points to sample for each element */
-    int _sample_points_per_element = 10;
+    int _sample_points_per_element = 3;
 
     /** Number of cross-sections to use along the rod. */
     int _num_samples;

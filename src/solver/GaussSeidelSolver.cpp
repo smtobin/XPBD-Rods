@@ -21,9 +21,9 @@ void GaussSeidelSolver::solve(bool initialize)
             projector.initialize();
         });
 
-        _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
-            projector.initialize();
-        });
+        // _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
+        //     projector.initialize();
+        // });
     }
 
     for (int gi = 0; gi < _num_iter; gi++)
@@ -36,9 +36,9 @@ void GaussSeidelSolver::solve(bool initialize)
             projector.project();
         });
 
-        _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
-            projector.project();
-        });
+        // _muller2020_constraint_projectors.for_each_element([&](auto& projector) {
+        //     projector.project();
+        // });
     }
 }
 
