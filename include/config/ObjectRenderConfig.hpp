@@ -40,6 +40,7 @@ class ObjectRenderConfig : public Config_Base
     explicit ObjectRenderConfig(const YAML::Node& node)
         : Config_Base(node)
     {
+        _extractParameter("render", node, _render);
         _extractParameterWithOptions("render-type", node, _render_type, RENDER_TYPE_MAP());
 
         _extractParameter("orm-texture-filename", node, _orm_texture_filename);
@@ -80,6 +81,7 @@ class ObjectRenderConfig : public Config_Base
         _smooth_normals.value = smooth_normals;
     }
 
+    bool render() const { return _render.value; }
     RenderType renderType() const { return _render_type.value; }
     std::optional<std::string> ormTextureFilename() const { return _orm_texture_filename.value; }
     std::optional<std::string> normalsTextureFilename() const { return _normals_texture_filename.value; }
@@ -90,6 +92,7 @@ class ObjectRenderConfig : public Config_Base
     Real opacity() const { return _opacity.value; }
     Vec3r color() const { return _color.value; }
 
+    void setRender(bool render) { _render.value = render; }
     void setMetallic(Real metallic) { _metallic.value = metallic; }
     void setRoughness(Real roughness) { _roughness.value = roughness; }
     void setOpacity(Real opacity) { _opacity.value = opacity; }
@@ -105,6 +108,7 @@ class ObjectRenderConfig : public Config_Base
     bool drawEndCaps() const { return _draw_end_caps.value; }
 
     protected:
+    ConfigParameter<bool> _render = ConfigParameter<bool>(true);
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
 
     // PBR texture filenames

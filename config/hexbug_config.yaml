@@ -2,7 +2,7 @@ name: "RodSim"
 sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 1e-4
-end-time: 10
+end-time: 100
 
 logging: False
 logging-output-folder: "../output/convergence"
@@ -10,9 +10,10 @@ logging-interval: 1
 log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
+create-skybox: False
+exposure: 0.3
 
-ground-plane: True
+ground-plane: False
 
 camera-focal-point: [0, 0, 0]
 camera-position: [1e-1, 1e-1, 1e-1]
@@ -31,7 +32,8 @@ objects:
     body-density: 1030
 
     # motor-angular-velocity: 480 # dt=2e-4
-    motor-angular-velocity: 550 # dt=1e-4
+    motor-angular-velocity: 570 # dt=1e-4, new visualization
+    # motor-angular-velocity: 550 #dt=1e-3, old visualization
 
     leg-stiffness: 4.5e6
     leg-length: 1.3e-2
@@ -78,31 +80,31 @@ objects:
   #   body-color: [0.5, 0.0, 1.0]
   #   leg-color: [0.0, 1.0, 0.0]
 
-  -
-    type: "HexBugHabitat"
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [false, false, true, true, false, false]
+  # -
+  #   type: "HexBugHabitat"
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [false, false, true, true, false, false]
 
-    wall-color: [1.0, 0.0, 0.0]
+  #   wall-color: [1.0, 0.0, 0.0]
 
-  -
-    type: "HexBugHabitat"
-    initial-position: [-0.175, 0, 0]
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [true, true, false, false, false, false]
+  # -
+  #   type: "HexBugHabitat"
+  #   initial-position: [-0.175, 0, 0]
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [true, true, false, false, false, false]
 
-    wall-color: [1.0, 1.0, 0.0]
+  #   wall-color: [1.0, 1.0, 0.0]
 
-  -
-    type: "HexBugHabitat"
-    initial-position: [-0.087, 0, 0.152]
-    wall-height: 0.02
-    wall-thickness: 0.007
-    gap-size: 0.04
-    gaps: [false, false, false, false, true, true]
+  # -
+  #   type: "HexBugHabitat"
+  #   initial-position: [-0.087, 0, 0.152]
+  #   wall-height: 0.02
+  #   wall-thickness: 0.007
+  #   gap-size: 0.04
+  #   gaps: [false, false, false, false, true, true]
 
-    wall-color: [0.0, 1.0, 0.0]
+  #   wall-color: [0.0, 1.0, 0.0]

@@ -250,6 +250,9 @@ void GraphicsScene::update()
 
 void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& config)
 {
+    if (!config.renderConfig().render())
+        return;
+
     if (!config.renderMeshConfigs().empty())
     {
         for (const auto& mesh_config : config.renderMeshConfigs())
@@ -267,6 +270,9 @@ void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Co
 
 void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::XPBDObjectConfig& config)
 {
+    if (!config.renderConfig().render())
+        return;
+
     if (!config.renderMeshConfigs().empty())
     {
         std::cout << "Render mesh configs!" << std::endl;
@@ -284,6 +290,9 @@ void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::
 
 void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& config)
 {
+    if (!config.renderConfig().render())
+        return;
+
     if (!config.renderMeshConfigs().empty())
     {
         for (const auto& mesh_config : config.renderMeshConfigs())
@@ -300,6 +309,9 @@ void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::X
 
 void GraphicsScene::addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::XPBDObjectConfig& config)
 {
+    if (!config.renderConfig().render())
+        return;
+        
     const XPBDObjects_Container& pen_objs = pen->objects();
     pen_objs.for_each_element([&](const auto& obj) {
         addObject(&obj, obj.config());

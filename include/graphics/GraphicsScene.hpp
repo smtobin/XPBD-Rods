@@ -49,6 +49,9 @@ class GraphicsScene
     template <typename ElementType>
     void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::XPBDObjectConfig& config)
     {
+        if (!config.renderConfig().render())
+            return;
+
         std::unique_ptr<HigherOrderRodGraphicsObject<ElementType>> rod_go = std::make_unique<HigherOrderRodGraphicsObject<ElementType>>(rod, config.renderConfig());
 
         _renderer->AddActor(rod_go->actor());

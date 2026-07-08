@@ -35,7 +35,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_bottom.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 1.0, _body_color,
+        0, 0.5, 0.2, _body_color,
         false,
         true, false,
         Vec3r(0,-4.2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
@@ -61,6 +61,7 @@ void HexBug::setup()
         "hexbug_body_tip", _body_initial_position + body_tip_pos_local, Vec3r(0,45,0), Vec3r::Zero(), Vec3r::Zero(), true, 0.1, 0.0,
         _body_density, false, Vec3r(_body_size[0]/std::sqrt(2), _body_size[1], _body_size[0]/std::sqrt(2))
     );
+    body_tip_config.renderConfig().setRender(false);
 
     auto& body_tip = _objects.template emplace_back<XPBDRigidBox>(body_tip_config);
     // added fixed constraint between main body and pointy tip
@@ -90,7 +91,8 @@ void HexBug::setup()
         for (int i = 0; i < 6; i++)
         {
             // Vec3r pos_local = Vec3r(dx, -_body_size[1]/2, -7*_body_size[2]/16 + _leg_diameter/2 + (2*_body_size[2]/3-_leg_diameter)/(num_legs_per_side-1)*i);
-            Vec3r pos_local = Vec3r(dx, -_body_size[1]/8, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
+            // Vec3r pos_local = Vec3r(dx, -_body_size[1]/8, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);       // better simulation
+            Vec3r pos_local = Vec3r(dx, -_body_size[1]/8, -8*_body_size[2]/16 + _leg_diameter/2 + (4.5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);  // better visualization 
             // Vec3r pos_local = Vec3r(dx, _body_size[1]*1.2, -7*_body_size[2]/16 + _leg_diameter/2 + (5*_body_size[2]/6-_leg_diameter)/(num_legs_per_side-1)*i);
             Vec3r leg_base = _body_initial_position + pos_local;
             std::cout << "leg_base: " << leg_base.transpose() << std::endl;
