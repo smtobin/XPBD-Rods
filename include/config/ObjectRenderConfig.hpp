@@ -56,6 +56,7 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("draw-centerline", node, _draw_centerline);
         _extractParameter("centerline-samples", node, _num_centerline_samples);
         _extractParameter("color-elements", node, _color_elements);
+        _extractParameter("draw-end-caps", node, _draw_end_caps);
     }
 
     explicit ObjectRenderConfig(
@@ -94,12 +95,14 @@ class ObjectRenderConfig : public Config_Base
     void setOpacity(Real opacity) { _opacity.value = opacity; }
     void setColor(Vec3r color) { _color.value = color; }
     void setCenterlineSamples(int samples) { _num_centerline_samples.value = samples; }
+    void setDrawEndCaps(bool draw_end_caps) { _draw_end_caps.value = draw_end_caps; }
 
     bool smoothNormals() const { return _smooth_normals.value; }
 
     bool drawCenterline() const { return _draw_centerline.value; }
     int numCenterlineSamples() const { return _num_centerline_samples.value; }
     bool colorElements() const { return _color_elements.value; }
+    bool drawEndCaps() const { return _draw_end_caps.value; }
 
     protected:
     ConfigParameter<RenderType> _render_type = ConfigParameter<RenderType>(RenderType::PBR); 
@@ -120,6 +123,7 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<bool> _draw_centerline = ConfigParameter<bool>(false);
     ConfigParameter<int> _num_centerline_samples = ConfigParameter<int>(50);
     ConfigParameter<bool> _color_elements = ConfigParameter<bool>(false);
+    ConfigParameter<bool> _draw_end_caps = ConfigParameter<bool>(false);
     
 };
 

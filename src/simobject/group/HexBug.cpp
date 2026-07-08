@@ -102,6 +102,7 @@ void HexBug::setup()
             leg_config.renderConfig().setColor(_leg_color);
             leg_config.renderConfig().setRoughness(0.2);
             leg_config.renderConfig().setCenterlineSamples(10);
+            leg_config.renderConfig().setDrawEndCaps(true);
 
             auto& leg = _objects.template emplace_back<XPBDRod_<RodElement<2>>>(leg_config);
             

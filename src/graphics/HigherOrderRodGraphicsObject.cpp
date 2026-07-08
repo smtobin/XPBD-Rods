@@ -30,7 +30,7 @@ template<typename ElementType>
 HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
     : GraphicsObject(render_config), _rod(rod), _render_config(render_config), 
     _color_elements(render_config.colorElements()),
-    _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline())
+    _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline()), _draw_end_caps(render_config.drawEndCaps())
 {
 
     // if we are coloring the elements individually, the number of centerline samples is a multiple of the elements + 1 so that some samples are at element boundaries
@@ -212,17 +212,44 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
 
     const std::vector<SimObject::OrientedParticle>& nodes = _rod->nodes();
 
-    // create cross-section points for a circular cross-section
-    int tubular_resolution = 20;
-    _cross_section_points.resize(tubular_resolution);
-    for (int i = 0; i < tubular_resolution; i++)
+    vtkNew<vtkPoints> points;
+
+    // base cap
+    Mat3r R_beg = nodes.front().orientation;
+    Vec3r p_beg = nodes.front().position;
+    if (_draw_end_caps)
     {
-        const Real angle = i * 2 * M_PI / tubular_resolution;
+        for (int i = _cap_resolution-1; i >= 0; i--)
+        {
+            Real phi = (M_PI / 2.0) * i / _cap_resolution;
+
+            Real ring_radius = _rod->radius() * std::cos(phi);
+            Real z = _rod->radius() * std::sin(phi);
+
+            for (int j = 0; j < _tubular_resolution; j++)
+            {
+                Real theta = 2.0 * M_PI * j / _tubular_resolution;
+
+                Vec3r p(
+                    ring_radius * std::cos(theta),
+                    ring_radius * std::sin(theta),
+                    -z);
+
+                Vec3r transformed = R_beg * p + p_beg;
+                points->InsertNextPoint(transformed.data());
+            }
+        }
+    }
+
+    // create cross-section points for a circular cross-section
+    _cross_section_points.resize(_tubular_resolution);
+    for (int i = 0; i < _tubular_resolution; i++)
+    {
+        const Real angle = i * 2 * M_PI / _tubular_resolution;
         _cross_section_points[i] = Vec3r( _rod->radius() * std::cos(angle), _rod->radius() * std::sin(angle), 0);
     }
 
     // insert cross-section vertices
-    vtkNew<vtkPoints> points;
     for (int si = 0; si < _num_samples; si++)
     {
         // position along rod in [0, 1]
@@ -243,17 +270,49 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
         }
     }
 
+    // end cap
+    Mat3r R_end = nodes.back().orientation;
+    Vec3r p_end = nodes.back().position;
+    if (_draw_end_caps)
+    {
+        for (int i = 0; i < _cap_resolution; i++)
+        {
+            Real phi = (M_PI / 2.0) * i / _cap_resolution;
+
+            Real ring_radius = _rod->radius() * std::cos(phi);
+            Real z = _rod->radius() * std::sin(phi);
+
+            for (int j = 0; j < _tubular_resolution; j++)
+            {
+                Real theta = 2.0 * M_PI * j / _tubular_resolution;
+
+                Vec3r p(
+                    ring_radius * std::cos(theta),
+                    ring_radius * std::sin(theta),
+                    z);
+
+                Vec3r transformed = R_end * p + p_end;
+                points->InsertNextPoint(transformed.data());
+            }
+        }
+    }
+
+
+    int total_num_rings = _num_samples;
+    if (_draw_end_caps)
+        total_num_rings += 2*_cap_resolution;
+
     // create faces inbetween nodes
     vtkNew<vtkCellArray> faces;
-    for (int si = 0; si < _num_samples-1; si++)
+    for (int si = 0; si < total_num_rings-1; si++)
     {
-        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        for (int pi = 0; pi < _tubular_resolution; pi++)
         {
             // vertices for the quad face
-            const int v1 = si*_cross_section_points.size() + pi;
-            const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : si*_cross_section_points.size();
-            const int v3 = v2 + _cross_section_points.size();
-            const int v4 = v1 + _cross_section_points.size();
+            const int v1 = si*_tubular_resolution + pi;
+            const int v2 = (pi != _tubular_resolution-1) ? v1 + 1 : si*_tubular_resolution;
+            const int v3 = v2 + _tubular_resolution;
+            const int v4 = v1 + _tubular_resolution;
 
             vtkNew<vtkTriangle> tri1;
             tri1->GetPointIds()->SetId(0, v1);
@@ -270,16 +329,26 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
     }
 
     // end cap points
-    points->InsertNextPoint( nodes[0].position[0], nodes[0].position[1], nodes[0].position[2] );
-    points->InsertNextPoint( nodes.back().position[0], nodes.back().position[1], nodes.back().position[2] );
+    if (_draw_end_caps)
+    {
+        Vec3r base_pt = R_beg * Vec3r(0, 0, -_rod->radius()) + p_beg;
+        Vec3r end_pt = R_end * Vec3r(0, 0, _rod->radius()) + p_end;
+        points->InsertNextPoint(base_pt.data());
+        points->InsertNextPoint(end_pt.data());
+    }
+    else
+    {
+        points->InsertNextPoint( nodes[0].position[0], nodes[0].position[1], nodes[0].position[2] );
+        points->InsertNextPoint( nodes.back().position[0], nodes.back().position[1], nodes.back().position[2] );
+    }
 
     // end cap faces
     // base faces
-    for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+    for (int pi = 0; pi < _tubular_resolution; pi++)
     {
         const int v1 = pi;
-        const int v2 = _num_samples*_cross_section_points.size();
-        const int v3 = (pi != _cross_section_points.size()-1) ? v1 + 1 : 0;
+        const int v2 = total_num_rings*_tubular_resolution;
+        const int v3 = (pi != _tubular_resolution-1) ? v1 + 1 : 0;
 
         vtkNew<vtkTriangle> tri;
         tri->GetPointIds()->SetId(0, v1);
@@ -289,11 +358,11 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
     }
 
     // tip faces
-    for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+    for (int pi = 0; pi < _tubular_resolution; pi++)
     {
-        const int v1 = (_num_samples-1)*_cross_section_points.size() + pi;
-        const int v2 = (pi != _cross_section_points.size()-1) ? v1 + 1 : (_num_samples-1)*_cross_section_points.size();
-        const int v3 = _num_samples*_cross_section_points.size() + 1;
+        const int v1 = (total_num_rings-1)*_tubular_resolution + pi;
+        const int v2 = (pi != _tubular_resolution-1) ? v1 + 1 : (total_num_rings-1)*_tubular_resolution;
+        const int v3 = total_num_rings*_tubular_resolution + 1;
         
 
         vtkNew<vtkTriangle> tri;
@@ -333,7 +402,7 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
             int elem_ind = std::clamp(static_cast<int>(s * elements.size()),
                                     0, static_cast<int>(elements.size() - 1));
 
-            for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+            for (int pi = 0; pi < _tubular_resolution; pi++)
             {
                 elementIds->InsertNextValue(elem_ind); // tri1
                 elementIds->InsertNextValue(elem_ind); // tri2
@@ -341,10 +410,10 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
         }
 
         // End cap tris — assign to element 0 and last element respectively
-        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        for (int pi = 0; pi < _tubular_resolution; pi++)
             elementIds->InsertNextValue(0);
 
-        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        for (int pi = 0; pi < _tubular_resolution; pi++)
             elementIds->InsertNextValue((int)elements.size() - 1);
 
         _vtk_poly_data->GetCellData()->SetScalars(elementIds);
@@ -353,15 +422,15 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
     // Create and set texture coordinates
     vtkNew<vtkFloatArray> textureCoords;
     textureCoords->SetNumberOfComponents(2);
-    textureCoords->SetNumberOfTuples(nodes.size()*_cross_section_points.size());
+    textureCoords->SetNumberOfTuples(nodes.size()*_tubular_resolution);
     textureCoords->SetName("TextureCoordinates");
     for (unsigned ni = 0; ni < nodes.size(); ni++)
     {
         float x_coord = (ni % 2 == 0) ? 0.0f : 0.5f;
-        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        for (int pi = 0; pi < _tubular_resolution; pi++)
         {
-            float y_coord = static_cast<float>(pi) / _cross_section_points.size();
-            textureCoords->SetTuple2(ni*_cross_section_points.size() + pi, x_coord, y_coord);
+            float y_coord = static_cast<float>(pi) / _tubular_resolution;
+            textureCoords->SetTuple2(ni*_tubular_resolution + pi, x_coord, y_coord);
         }
     }
     _vtk_poly_data->GetPointData()->SetTCoords(textureCoords);
@@ -376,6 +445,36 @@ void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
     const std::vector<ElementType>& elements = _rod->elements();
 
     vtkPoints* points = _vtk_poly_data->GetPoints();
+
+    // base cap
+    Mat3r R_beg = nodes.front().orientation;
+    Vec3r p_beg = nodes.front().position;
+    if (_draw_end_caps)
+    {
+        for (int i = _cap_resolution-1; i >= 0; i--)
+        {
+            Real phi = (M_PI / 2.0) * i / _cap_resolution;
+
+            Real ring_radius = _rod->radius() * std::cos(phi);
+            Real z = _rod->radius() * std::sin(phi);
+
+            for (int j = 0; j < _tubular_resolution; j++)
+            {
+                Real theta = 2.0 * M_PI * j / _tubular_resolution;
+
+                Vec3r p(
+                    ring_radius * std::cos(theta),
+                    ring_radius * std::sin(theta),
+                    -z);
+
+                Vec3r transformed = R_beg * p + p_beg;
+                int offset = (_cap_resolution - 1 - i) * _tubular_resolution;
+                points->SetPoint(offset + j, transformed.data());
+            }
+        }
+    }
+
+    int cs_start_index = _draw_end_caps ? _cap_resolution*_tubular_resolution : 0;
     for (int si = 0; si < _num_samples; si++)
     {
         // position along rod in [0, 1]
@@ -391,16 +490,54 @@ void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
 
         Mat3r orientation = elements[elem_ind].orientation(s_hat);
         // for (unsigned pi = 0; pi < cross_section_points.size(); pi++)
-        for (unsigned pi = 0; pi < _cross_section_points.size(); pi++)
+        for (int pi = 0; pi < _tubular_resolution; pi++)
         {
             // transform each point in local cross section to global frame
             const Vec3r transformed = orientation * _cross_section_points[pi] + position;
-            points->SetPoint( si*_cross_section_points.size() + pi, transformed.data() );
+            points->SetPoint( cs_start_index + si*_tubular_resolution + pi, transformed.data() );
         }
     }
 
-    points->SetPoint(_num_samples*_cross_section_points.size(), nodes[0].position[0], nodes[0].position[1], nodes[0].position[2]);
-    points->SetPoint(_num_samples*_cross_section_points.size()+1, nodes.back().position[0], nodes.back().position[1], nodes.back().position[2]);
+    // end cap
+    Mat3r R_end = nodes.back().orientation;
+    Vec3r p_end = nodes.back().position;
+    if (_draw_end_caps)
+    {
+        for (int i = 0; i < _cap_resolution; i++)
+        {
+            Real phi = (M_PI / 2.0) * i / _cap_resolution;
+
+            Real ring_radius = _rod->radius() * std::cos(phi);
+            Real z = _rod->radius() * std::sin(phi);
+
+            for (int j = 0; j < _tubular_resolution; j++)
+            {
+                Real theta = 2.0 * M_PI * j / _tubular_resolution;
+
+                Vec3r p(
+                    ring_radius * std::cos(theta),
+                    ring_radius * std::sin(theta),
+                    z);
+
+                Vec3r transformed = R_end * p + p_end;
+                points->SetPoint((_cap_resolution+_num_samples)*_tubular_resolution + i*_tubular_resolution + j, transformed.data());
+            }
+        }
+    }
+
+    if (_draw_end_caps)
+    {
+        Vec3r base_pt = R_beg * Vec3r(0, 0, -_rod->radius()) + p_beg;
+        Vec3r end_pt = R_end * Vec3r(0, 0, _rod->radius()) + p_end;
+        points->SetPoint((2*_cap_resolution + _num_samples)*_tubular_resolution, base_pt.data());
+        points->SetPoint((2*_cap_resolution + _num_samples)*_tubular_resolution+1, end_pt.data());
+    }
+    else
+    {
+        points->SetPoint(_num_samples*_tubular_resolution, nodes[0].position[0], nodes[0].position[1], nodes[0].position[2]);
+        points->SetPoint(_num_samples*_tubular_resolution+1, nodes.back().position[0], nodes.back().position[1], nodes.back().position[2]);
+    }
+
     points->Modified();
 }
 

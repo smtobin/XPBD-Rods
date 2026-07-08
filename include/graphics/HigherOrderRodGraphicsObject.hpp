@@ -59,6 +59,15 @@ private:
     /** Whether or not to visualize the centerline of the rod. */
     bool _draw_centerline;
 
+    /** Whether or not to draw end caps on the rod. */
+    bool _draw_end_caps;
+
+    /** Number of cross sections in the end caps (when applicable) */
+    int _cap_resolution = 6;
+
+    /** Number of points in each circular cross section */
+    int _tubular_resolution = 20;
+
 
 
 };
