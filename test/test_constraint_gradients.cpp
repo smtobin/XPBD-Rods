@@ -116,6 +116,19 @@ int main()
     testConstraint(rev_constraint3);
     testConstraint(rev_constraint4);
 
+    /** Aligned axis constraints */
+    Constraint::AlignedAxesConstraint                 aligned_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
+    Constraint::OneSidedAlignedAxesConstraint         aligned_constraint2(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());
+    Constraint::NormedAlignedAxesConstraint           aligned_constraint3(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
+    Constraint::NormedOneSidedAlignedAxesConstraint   aligned_constraint4(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());
+    testConstraint(aligned_constraint1);
+    testConstraint(aligned_constraint2);
+    testConstraint(aligned_constraint3);
+    testConstraint(aligned_constraint4);
+
+    Constraint::OneSidedCoordinateConstraint        coord_constraint(&particle1, Vec3r::Random(), 1);
+    testConstraint(coord_constraint);
+
     /** Spherical joint constraints */
     Constraint::SphericalJointConstraint                sph_constraint1(&particle1, Vec3r::Random(), randomRotation(), &particle2, Vec3r::Random(), randomRotation());
     Constraint::OneSidedSphericalJointConstraint        sph_constraint2(Vec3r::Random(), randomRotation(), &particle1, Vec3r::Random(), randomRotation());

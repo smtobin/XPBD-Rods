@@ -152,7 +152,7 @@ void RPSRobot::setup()
                 prismatic_constraint, -0.1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
@@ -176,7 +176,7 @@ void RPSRobot::setup()
                 prismatic_constraint, -1, 0.1
             );
             _constraints.template push_back<Constraint::PrismaticJointConstraint>(std::move(prismatic_constraint));
-            _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
+            // _constraints.template push_back<Constraint::PrismaticJointLimitConstraint>(std::move(prismatic_joint_limit_constraint));
 
             Constraint::SphericalJointConstraint spherical_constraint(
                 &second_links[i]->com(), Vec3r(0,0,-second_link_length/2), Mat3r::Identity(),
