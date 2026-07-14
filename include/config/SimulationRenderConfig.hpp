@@ -31,6 +31,9 @@ class SimulationRenderConfig : public Config_Base
         _extractParameter("camera-focal-point", node, _camera_focal_point);
         _extractParameter("camera-orthographic", node, _camera_orthographic);
 
+        _extractParameter("scene-light-position", node, _scene_light_position);
+        _extractParameter("scene-light-focal-point", node, _scene_light_focal_point);
+
         _extractParameter("render-for-video", node, _render_for_video);
         _extractParameter("render-output-folder", node, _render_output_folder);
     }
@@ -43,6 +46,10 @@ class SimulationRenderConfig : public Config_Base
     Vec3r cameraPosition() const { return _camera_position.value; }
     Vec3r cameraFocalPoint() const { return _camera_focal_point.value; }
     bool cameraOrthographic() const { return _camera_orthographic.value; }
+
+    Vec3r sceneLightPosition() const { return _scene_light_position.value; }
+    Vec3r sceneLightFocalPoint() const { return _scene_light_focal_point.value; }
+
     bool renderForVideo() const { return _render_for_video.value; }
     std::string renderOutputFolder() const { return _render_output_folder.value; }
 
@@ -58,6 +65,9 @@ class SimulationRenderConfig : public Config_Base
     ConfigParameter<Vec3r> _camera_position = ConfigParameter<Vec3r>(Vec3r(3, 4, 3));
     ConfigParameter<Vec3r> _camera_focal_point = ConfigParameter<Vec3r>(Vec3r(0, 0, 0));
     ConfigParameter<bool> _camera_orthographic = ConfigParameter<bool>(false);
+
+    ConfigParameter<Vec3r> _scene_light_position = ConfigParameter<Vec3r>(Vec3r(0,10,0));
+    ConfigParameter<Vec3r> _scene_light_focal_point = ConfigParameter<Vec3r>(Vec3r(0,0,0));
 
     ConfigParameter<bool> _render_for_video = ConfigParameter<bool>(false);
     ConfigParameter<std::string> _render_output_folder = ConfigParameter<std::string>(".");

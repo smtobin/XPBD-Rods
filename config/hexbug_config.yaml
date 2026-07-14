@@ -13,6 +13,8 @@ hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: False
 exposure: 0.3
 
+scene-light-position: [0, 2, 0]
+
 ground-plane: True
 
 camera-focal-point: [0e-1, 0, 1e-1]
@@ -23,6 +25,7 @@ hash-voxel-size: 1e-2
 num-hash-buckets: 31111
 rod-rod-collisions: false
 
+# uncomment to save video
 window-width: 2560
 window-height: 1440
 render-for-video: True

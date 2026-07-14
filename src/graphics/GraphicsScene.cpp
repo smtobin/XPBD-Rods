@@ -194,8 +194,10 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     vtkNew<vtkLight> light;
     light->SetLightTypeToSceneLight();
     light->SetPositional(true);
-    light->SetPosition(0.0, 10.0, 0.0);
-    light->SetFocalPoint(0, 0, 0);
+    Vec3r light_pos = _render_config.sceneLightPosition();
+    Vec3r light_fp = _render_config.sceneLightFocalPoint();
+    light->SetPosition(light_pos[0], light_pos[1], light_pos[2]);
+    light->SetFocalPoint(light_fp[0], light_fp[1], light_fp[2]);
     light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
@@ -277,16 +279,13 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         // enable offscreen rendering
         _render_window->SetOffScreenRendering(true);
     }
-    // if we are not rendering for video, set up the interactive renderer and timer-based callback
-    // else
-    // {
-        vtkNew<vtkCallbackCommand> render_callback;
-        render_callback->SetCallback(GraphicsScene::renderCallback);
-        render_callback->SetClientData(this);
-        _interactor->Initialize();
-        _interactor->AddObserver(vtkCommand::TimerEvent, render_callback);
-        _interactor->CreateRepeatingTimer(5);
-    // }
+
+    vtkNew<vtkCallbackCommand> render_callback;
+    render_callback->SetCallback(GraphicsScene::renderCallback);
+    render_callback->SetClientData(this);
+    _interactor->Initialize();
+    _interactor->AddObserver(vtkCommand::TimerEvent, render_callback);
+    _interactor->CreateRepeatingTimer(5);
 }
 
 void GraphicsScene::update(bool wait_for_complete)
