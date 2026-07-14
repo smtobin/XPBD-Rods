@@ -325,7 +325,7 @@ public:
 
     void _timeStep();
 
-    void _updateGraphics();
+    void _updateGraphics(bool wait_for_complete);
 
     /** Collision detection + processing */
 

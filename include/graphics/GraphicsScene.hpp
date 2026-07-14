@@ -18,6 +18,8 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkCallbackCommand.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
 
 #include <vector>
 #include <deque>
@@ -44,7 +46,8 @@ class GraphicsScene
 
     void setup(Sim::Simulation* sim=nullptr);
 
-    void update();
+    void update(bool wait_for_complete);
+    void writeFrame(int frame_index);
 
     template <typename ElementType>
     void addObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::XPBDObjectConfig& config)
@@ -78,6 +81,10 @@ private:
     vtkSmartPointer<vtkRenderWindow> _render_window;
     vtkSmartPointer<vtkRenderWindowInteractor> _interactor;
 
+    vtkSmartPointer<vtkWindowToImageFilter> _window_to_image;
+    vtkSmartPointer<vtkPNGWriter> _png_writer;
+    int _frame_index = 0;
+
     std::vector<std::unique_ptr<GraphicsObject>> _graphics_objects;
 
     /** Stores meshes that are used as additional visualization representations of other objects.
@@ -88,6 +95,7 @@ private:
     std::deque<Mesh> _graphics_meshes;
 
     std::atomic<bool> _should_render;
+    std::atomic<bool> _render_done;
 
     Config::SimulationRenderConfig _render_config;
 
