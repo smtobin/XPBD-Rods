@@ -15,7 +15,8 @@ hdr-scaling: 0.2
 
 ground-plane: True
 
-render-for-video: True
+render-for-video: False
+render-output-folder: "../output/render/test"
 
 objects:
   - 

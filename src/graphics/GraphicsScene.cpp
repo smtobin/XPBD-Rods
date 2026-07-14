@@ -50,6 +50,7 @@
 #include <vtkCoordinate.h>
 
 #include <thread>
+#include <filesystem>
 
 namespace Graphics
 {
@@ -57,6 +58,11 @@ namespace Graphics
 GraphicsScene::GraphicsScene(const Config::SimulationRenderConfig& render_config)
     : _should_render(false), _render_done(false), _render_config(render_config)
 {
+    if (_render_config.renderForVideo())
+    {
+        // make the output folder if it doesn't exist
+        std::filesystem::create_directories(_render_config.renderOutputFolder());
+    }
 }
 
 GraphicsScene::GraphicsScene()
@@ -69,10 +75,8 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
     
     GraphicsScene* scene = static_cast<GraphicsScene*>(client_data);
     
-    std::cout << "Should render? " << scene->_should_render.load(std::memory_order_acquire) << std::endl;
     if (scene->_should_render.exchange(false, std::memory_order_acquire))
     {
-        std::cout << "rendering..." << std::endl;
         // set the clipping range every time
         vtkCamera* camera = scene->_renderer->GetActiveCamera();
         camera->SetClippingRange(0.01, 10000.0);
@@ -90,7 +94,6 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
 
 void GraphicsScene::writeFrame(int frame_index)
 {
-    std::cout << "Writing frame..." << std::endl;
     // render
     // vtkCamera* camera = _renderer->GetActiveCamera();
     // camera->SetClippingRange(0.01, 10000.0);
@@ -101,12 +104,11 @@ void GraphicsScene::writeFrame(int frame_index)
     _window_to_image->Update();
 
     std::stringstream ss;
-    ss << "frame_" << std::setw(6) << std::setfill('0') << frame_index << ".png";
+    ss << _render_config.renderOutputFolder() + "/frame_" << std::setw(6) << std::setfill('0') << frame_index << ".png";
 
     _png_writer->SetFileName(ss.str().c_str());
     _png_writer->SetInputConnection(_window_to_image->GetOutputPort());
     _png_writer->Write();
-    std::cout << "Done. " << std::endl;
 }
 
 
@@ -206,7 +208,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     //////////////////////////////////////////////////////
     _render_window = vtkSmartPointer<vtkRenderWindow>::New();
     _render_window->AddRenderer(_renderer);
-    _render_window->SetSize(600, 600);
+    _render_window->SetSize(_render_config.windowWidth(), _render_config.windowHeight());
     _render_window->SetWindowName("Rod Test");
 
     _interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
@@ -273,7 +275,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
         _png_writer->SetInputConnection(_window_to_image->GetOutputPort());
 
         // enable offscreen rendering
-        // _render_window->SetOffScreenRendering(true);
+        _render_window->SetOffScreenRendering(true);
     }
     // if we are not rendering for video, set up the interactive renderer and timer-based callback
     // else
