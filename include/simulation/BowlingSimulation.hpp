@@ -31,7 +31,7 @@ private:
     };
     State _state = State::LOWERING;
 
-    std::vector<SimObject::XPBDRod_<SimObject::RodElement<1>>*> _strings;
+    std::vector<SimObject::XPBDRod_<SimObject::RodElement<2>>*> _strings;
     std::vector<SimObject::XPBDRigidBox*> _pins;
     SimObject::XPBDRigidSphere* _ball;
 };

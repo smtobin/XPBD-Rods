@@ -31,7 +31,7 @@ void BowlingSimulation::setup()
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
-    Real string_length = 1;
+    Real string_length = 2;
     Real string_dia = 0.004;
     for (int i = 0; i < num_pins; i++)
     {
@@ -67,7 +67,7 @@ void BowlingSimulation::setup()
             true,
             0.5,
             0.2,
-            Config::RodElementType::LINEAR,
+            Config::RodElementType::QUADRATIC,
             true,
             false,
             true,
@@ -81,8 +81,10 @@ void BowlingSimulation::setup()
             Vec3r(0,0,0)
         );
         _addObjectFromConfig(string_config);
-        auto string = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back().get();
+        auto string = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<2>>>>().back().get();
         _strings.push_back(string);
+        auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+        base_fixed_constraint.setAlpha(Vec6r(0, 1e-2, 0, 0, 0, 0));
 
         /** TODO: make this cleaner? */
         auto& fixed_joint_constraints = _constraints.template get<Constraint::FixedJointConstraint>();
@@ -102,6 +104,9 @@ void BowlingSimulation::setup()
             index_in_row = 0;
             num_pins_in_row++;
         }
+
+        if (i >= 2)
+            break;
     }
 
     // create the ball
@@ -122,6 +127,24 @@ void BowlingSimulation::setup()
     ball_config.renderConfig().setColor(Vec3r(0,0,1.0));
     _addObjectFromConfig(ball_config);
     _ball = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
+
+    // create the backstop and walls
+    Vec3r backstop_size(0.05, 1, 1);
+    Vec3r backstop_pos(front_pin_pos[0] - pin_spacing*6, backstop_size[1]/2, front_pin_pos[1]);
+    Config::XPBDRigidBoxConfig backstop_config(
+        "backstop",
+        backstop_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5,
+        0.2,
+        2000,
+        true,
+        backstop_size
+    );
+    _addObjectFromConfig(backstop_config);
 }
 
 void BowlingSimulation::_timeStep()
@@ -141,7 +164,7 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y < 1.0)
+        if (cur_base_y < 2.0)
         {
             _state = State::READY;
             
@@ -155,7 +178,7 @@ void BowlingSimulation::_timeStep()
     }
     else if (_state == State::THROWING)
     {
-        if (_ball->com().position[0] < -3)
+        if (_ball->com().position[0] < -30)
         {
             _state = State::RAISING;
             _ball->com().lin_velocity = Vec3r::Zero();
@@ -178,10 +201,13 @@ void BowlingSimulation::_timeStep()
             Vec3r new_base_pos = cur_base_pos + 0.1*_dt * Vec3r(0, 1, 0);
             base_fixed_constraint.setReferencePosition(new_base_pos);
 
+            Vec6r cur_alpha = base_fixed_constraint.alpha();
+            base_fixed_constraint.setAlpha(cur_alpha/(1 + 10*_dt));
+
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y > 2.0)
+        if (cur_base_y > 3.0)
         {
             _state = State::LOWERING;
         }
