@@ -49,16 +49,24 @@
 
 #include <vtkCoordinate.h>
 
+#include <thread>
+#include <filesystem>
+
 namespace Graphics
 {
 
 GraphicsScene::GraphicsScene(const Config::SimulationRenderConfig& render_config)
-    : _should_render(false), _render_config(render_config)
+    : _should_render(false), _render_done(false), _render_config(render_config)
 {
+    if (_render_config.renderForVideo())
+    {
+        // make the output folder if it doesn't exist
+        std::filesystem::create_directories(_render_config.renderOutputFolder());
+    }
 }
 
 GraphicsScene::GraphicsScene()
-    : _should_render(false), _render_config()
+    : _should_render(false), _render_done(false), _render_config()
 {
 }
 
@@ -66,16 +74,41 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
 {
     
     GraphicsScene* scene = static_cast<GraphicsScene*>(client_data);
-    // std::cout << "Callback! t=" << simulation->_time << std::endl;
-    if (scene->_should_render.exchange(false))
+    
+    if (scene->_should_render.exchange(false, std::memory_order_acquire))
     {
-        // std::cout << "Rendering... t=" << simulation->_time << std::endl;
         // set the clipping range every time
         vtkCamera* camera = scene->_renderer->GetActiveCamera();
         camera->SetClippingRange(0.01, 10000.0);
 
         scene->_render_window->Render();
+
+        if (scene->_render_config.renderForVideo())
+        {
+            scene->writeFrame(scene->_frame_index++);
+        }
+
+        scene->_render_done.store(true, std::memory_order_release);
     }
+}
+
+void GraphicsScene::writeFrame(int frame_index)
+{
+    // render
+    // vtkCamera* camera = _renderer->GetActiveCamera();
+    // camera->SetClippingRange(0.01, 10000.0);
+    // _render_window->Render();
+
+    // write to file
+    _window_to_image->Modified();
+    _window_to_image->Update();
+
+    std::stringstream ss;
+    ss << _render_config.renderOutputFolder() + "/frame_" << std::setw(6) << std::setfill('0') << frame_index << ".png";
+
+    _png_writer->SetFileName(ss.str().c_str());
+    _png_writer->SetInputConnection(_window_to_image->GetOutputPort());
+    _png_writer->Write();
 }
 
 
@@ -161,8 +194,10 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     vtkNew<vtkLight> light;
     light->SetLightTypeToSceneLight();
     light->SetPositional(true);
-    light->SetPosition(0.0, 10.0, 0.0);
-    light->SetFocalPoint(0, 0, 0);
+    Vec3r light_pos = _render_config.sceneLightPosition();
+    Vec3r light_fp = _render_config.sceneLightFocalPoint();
+    light->SetPosition(light_pos[0], light_pos[1], light_pos[2]);
+    light->SetFocalPoint(light_fp[0], light_fp[1], light_fp[2]);
     light->SetConeAngle(45);             
     light->SetColor(1.0, 1.0, 1.0);
     light->SetIntensity(1.0);
@@ -175,7 +210,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     //////////////////////////////////////////////////////
     _render_window = vtkSmartPointer<vtkRenderWindow>::New();
     _render_window->AddRenderer(_renderer);
-    _render_window->SetSize(600, 600);
+    _render_window->SetSize(_render_config.windowWidth(), _render_config.windowHeight());
     _render_window->SetWindowName("Rod Test");
 
     _interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
@@ -230,6 +265,21 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
     _renderer->SetPass(cameraP);
 
+    // if rendering for video, set up the window-to-image and PNG writer
+    if (_render_config.renderForVideo())
+    {
+        _window_to_image = vtkSmartPointer<vtkWindowToImageFilter>::New();
+        _window_to_image->SetInput(_render_window);
+        _window_to_image->SetInputBufferTypeToRGBA();
+        _window_to_image->ReadFrontBufferOff();
+
+        _png_writer = vtkSmartPointer<vtkPNGWriter>::New();
+        _png_writer->SetInputConnection(_window_to_image->GetOutputPort());
+
+        // enable offscreen rendering
+        _render_window->SetOffScreenRendering(true);
+    }
+
     vtkNew<vtkCallbackCommand> render_callback;
     render_callback->SetCallback(GraphicsScene::renderCallback);
     render_callback->SetClientData(this);
@@ -238,14 +288,25 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     _interactor->CreateRepeatingTimer(5);
 }
 
-void GraphicsScene::update()
+void GraphicsScene::update(bool wait_for_complete)
 {
     for (auto& obj : _graphics_objects)
     {
         obj->update();
     }
 
-    _should_render.store(true);
+    _render_done.store(false, std::memory_order_release);
+    _should_render.store(true, std::memory_order_release);
+
+    // if we are waiting for the render to complete, spin
+    if (wait_for_complete)
+    {
+        while (!_render_done.load(std::memory_order_acquire))
+        {
+            std::this_thread::yield();
+        }
+    }
+    
 }
 
 void GraphicsScene::addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& config)

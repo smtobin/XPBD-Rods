@@ -434,6 +434,7 @@ void Simulation::update()
 
     auto wall_time_start = std::chrono::steady_clock::now();
     auto last_redraw = std::chrono::steady_clock::now();
+    Real last_redraw_sim_time = _time;
 
     while (_time < _end_time)
     {
@@ -477,12 +478,18 @@ void Simulation::update()
         // the time in ms since the viewer was last redrawn
         auto time_since_last_redraw_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_redraw).count();
         // we want ~30 fps, so update the viewer every 33 ms
-        if (time_since_last_redraw_ms > _viewer_refresh_time_ms)
+        if (!_config.renderConfig().renderForVideo() && time_since_last_redraw_ms > _viewer_refresh_time_ms)
         {
             // std::cout << _haptic_device_manager->getPosition() << std::endl;
-            _updateGraphics();
+            _updateGraphics(false);
 
             last_redraw = std::chrono::steady_clock::now();
+            last_redraw_sim_time = _time;
+        }
+        else if (_config.renderConfig().renderForVideo() && _time > last_redraw_sim_time + _viewer_refresh_time_ms/1000.0)
+        {
+            _updateGraphics(true);
+            last_redraw_sim_time = _time;
         }
     }
 
@@ -666,7 +673,7 @@ void Simulation::notifyKeyPressed(const std::string& /*key*/)
     if (_config.simMode() == Config::SimulationMode::FRAME_BY_FRAME)
     {
         _timeStep();
-        _updateGraphics();
+        _updateGraphics(false);
     }
 }
 
@@ -947,9 +954,9 @@ void Simulation::_processRodRodCollision(SimObject::RodElement<Order1>* elem1, R
     }
 }
 
-void Simulation::_updateGraphics()
+void Simulation::_updateGraphics(bool wait_for_complete)
 {
-    _graphics_scene.update();
+    _graphics_scene.update(wait_for_complete);
 }
 
 } // namespace Simulation
