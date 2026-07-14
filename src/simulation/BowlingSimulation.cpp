@@ -32,7 +32,7 @@ void BowlingSimulation::setup()
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
     Real string_length = 1;
-    Real string_dia = 0.005;
+    Real string_dia = 0.004;
     for (int i = 0; i < num_pins; i++)
     {
         int num_spaces = num_pins_in_row - 1;
@@ -73,11 +73,11 @@ void BowlingSimulation::setup()
             true,
             string_length,
             string_dia,
-            25,
+            40,
             1150,
-            1e7,
+            1e8,
             0.4,
-            1e-3,
+            1e2,
             Vec3r(0,0,0)
         );
         _addObjectFromConfig(string_config);
@@ -108,7 +108,7 @@ void BowlingSimulation::setup()
     Real ball_radius = 0.07;
     Config::XPBDRigidSphereConfig ball_config(
         "ball",
-        Vec3r(front_pin_pos[0] + 5, ball_radius, 0.6),
+        Vec3r(front_pin_pos[0] + 5, ball_radius, 0.01),
         Vec3r::Zero(),
         Vec3r::Zero(),
         Vec3r::Zero(),
@@ -150,7 +150,7 @@ void BowlingSimulation::_timeStep()
 
     else if (_state == State::READY)
     {
-        _ball->com().lin_velocity = Vec3r(-5, 0, -0.5);
+        _ball->com().lin_velocity = Vec3r(-7, 0, 0);
         _state = State::THROWING;
     }
     else if (_state == State::THROWING)

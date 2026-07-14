@@ -14,6 +14,7 @@ create-skybox: True
 hdr-scaling: 0.2
 
 ground-plane: True
+rod-rod-collisions: True
 
 # render-for-video: False
 # render-output-folder: "../output/render/test"

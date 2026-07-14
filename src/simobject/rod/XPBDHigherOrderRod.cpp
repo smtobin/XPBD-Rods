@@ -389,6 +389,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     // if the base is fixed, compute the entries in the system matrix
     // the fixed base constraint gradient overlaps with just the constraint gradients of the first element, 
     //    and only w.r.t. the first node
+   
     if (_base_fixed)
     {
         // evaluate the fixed base constraint
@@ -405,13 +406,27 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
             // (fixed base constraint may involve an attachment between the first node and another body)
             typename ConstraintType::GradientMatType fixed_grad_full = fixed_base_constraint->gradient();
             Mat6r fixed_grad = Mat6r::Zero();
+
+            Mat6r other_grad = Mat6r::Zero();
+            bool dynamic_base_attachment = false;
+            Vec6r dynamic_base_inverse_inertia;
             for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
-                const OrientedParticle* particle_i = fixed_base_constraint->orientedParticles()[i];
+                OrientedParticle* particle_i = fixed_base_constraint->orientedParticles()[i];
                 if (particle_i == &_nodes.front())
                 {
                     fixed_grad = fixed_grad_full.template block<6,6>(0,6*i);
-                    break;
+                }
+                else
+                {
+                    // if there is an oriented particle affected by the constraint that is NOT the base node of the rod,
+                    // we have a 2-way joint constraint
+                    // so we must include the non-rod node in the system solve for better convergence and stability
+                    other_grad = fixed_grad_full.template block<6,6>(0,6*i);
+                    dynamic_base_inverse_inertia =
+                        Vec6r(1/particle_i->mass, 1/particle_i->mass, 1/particle_i->mass,
+                            1/particle_i->Ib[0], 1/particle_i->Ib[1], 1/particle_i->Ib[2]);
+                    dynamic_base_attachment = true;
                 }
             } 
                        
@@ -419,10 +434,17 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
             // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
             _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.front().asDiagonal() * fixed_grad.transpose();
             _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+
+            // if we have a dynamic fixed base attachment, include the part of the gradient involving the non-rod node as well
+            if (dynamic_base_attachment)
+            {
+                _diagonals[0][diag_block_ind] += other_grad * dynamic_base_inverse_inertia.asDiagonal() * other_grad.transpose();
+            }
             
 
             // off diagonals are just the blocks of the gradients corresponding to the first node in the
             //  delC_element * M1^-1 * delC_fixed^T
+            // (this is the same regardless of dynamic base or not since only the fixed base constraint involves this particle)
             for (int j = 0; j < NUM_GP; j++)
             {
                 Mat6r node1_block = _gradient_buffer[j].template block<6,6>(0,0);
@@ -521,19 +543,39 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
             // compute the gradient of the fixed base constraint
             typename ConstraintType::GradientMatType fixed_grad_full = fixed_tip_constraint->gradient();
             Mat6r fixed_grad = Mat6r::Zero();
+
+            Mat6r other_grad = Mat6r::Zero();
+            bool dynamic_tip_attachment = false;
+            Vec6r dynamic_tip_inverse_inertia;
             for (int i = 0; i < ConstraintType::NumOrientedParticles; i++)
             {
                 const OrientedParticle* particle_i = fixed_tip_constraint->orientedParticles()[i];
                 if (particle_i == &_nodes.back())
                 {
                     fixed_grad = fixed_grad_full.template block<6,6>(0,6*i);
-                    break;
+                }
+                else
+                {
+                    // if there is an oriented particle affected by the constraint that is NOT the base node of the rod,
+                    // we have a 2-way joint constraint
+                    // so we must include the non-rod node in the system solve for better convergence and stability
+                    other_grad = fixed_grad_full.template block<6,6>(0,6*i);
+                    dynamic_tip_inverse_inertia =
+                        Vec6r(1/particle_i->mass, 1/particle_i->mass, 1/particle_i->mass,
+                            1/particle_i->Ib[0], 1/particle_i->Ib[1], 1/particle_i->Ib[2]);
+                    dynamic_tip_attachment = true;
                 }
             }
             
             // main diagonal is just delC * M^-1 * delC^T + alpha_tilde
             _diagonals[0][diag_block_ind] = fixed_grad * _node_inverse_inertias.back().asDiagonal() * fixed_grad.transpose();
             _diagonals[0][diag_block_ind].diagonal() += fixed_alpha_tilde;
+
+            // if we have a dynamic fixed base attachment, include the part of the gradient involving the non-rod node as well
+            if (dynamic_tip_attachment)
+            {
+                _diagonals[0][diag_block_ind] += other_grad * dynamic_tip_inverse_inertia.asDiagonal() * other_grad.transpose();
+            }
 
             // off diagonals are just the blocks of the gradients corresponding to the last node in the
             //  delC_element * M1^-1 * delC_fixed^T
