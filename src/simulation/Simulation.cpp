@@ -408,7 +408,12 @@ void Simulation::setup()
     joint_configs.for_each_element([&](const auto& joint_config) {
         _addJointFromConfig(joint_config);
     });
+    
+}
 
+void Simulation::update()
+{
+    // we assume any derived Simulation classes have added their objects
     // add objects to collision scene
     /** TODO: determine grid size based on object sizes */
     _objects.for_each_element([&](auto& obj) {
@@ -423,10 +428,6 @@ void Simulation::setup()
         });
     });
     
-}
-
-void Simulation::update()
-{
     // we assume that other derived Simulation classes have already added their logged quantities
     // so we can start logging now (which will print the header and prevent us from adding new logged quantities)
     if (_logger)
