@@ -323,7 +323,7 @@ public:
     void _addJointFromConfig(const Config::PrismaticJointConfig& joint_config);
     void _addJointFromConfig(const Config::SphericalJointConfig& joint_config);
 
-    void _timeStep();
+    virtual void _timeStep();
 
     void _updateGraphics(bool wait_for_complete);
 
