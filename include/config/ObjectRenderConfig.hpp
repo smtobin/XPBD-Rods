@@ -93,6 +93,9 @@ class ObjectRenderConfig : public Config_Base
     Real opacity() const { return _opacity.value; }
     Vec3r color() const { return _color.value; }
 
+    void setOrmTextureFilename(const std::string& fname) { _orm_texture_filename.value = fname; }
+    void setNormalsTextureFilename(const std::string& fname) { _normals_texture_filename.value = fname; }
+    void setBaseColorTextureFilename(const std::string& fname) { _base_color_texture_filename.value = fname; }
     void setRender(bool render) { _render.value = render; }
     void setMetallic(Real metallic) { _metallic.value = metallic; }
     void setRoughness(Real roughness) { _roughness.value = roughness; }

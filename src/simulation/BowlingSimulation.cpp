@@ -111,8 +111,8 @@ void BowlingSimulation::setup()
             num_pins_in_row++;
         }
 
-        // if (i >= 5)
-        //     break;
+        if (i >= 0)
+            break;
     }
 
     // create the ball
@@ -150,6 +150,7 @@ void BowlingSimulation::setup()
         true,
         backstop_size
     );
+    backstop_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
     _addObjectFromConfig(backstop_config);
 
     Vec3r wall_size(0.05, 1.5, 1.7);
@@ -167,6 +168,7 @@ void BowlingSimulation::setup()
         true,
         wall_size
     );
+    wall1_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
     _addObjectFromConfig(wall1_config);
 
     Vec3r wall2_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2 - 0.2, front_pin_pos[2] + pin_spacing*4);
@@ -183,15 +185,16 @@ void BowlingSimulation::setup()
         true,
         wall_size
     );
+    wall2_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
     _addObjectFromConfig(wall2_config);
 
     // lane
-    Vec3r lane_size(18, 0.1, 1.05);
-    Vec3r lane_pos(front_pin_pos[0] - pin_spacing*4 + lane_size[0]/2, -lane_size[1]/2, front_pin_pos[2]);
+    Vec3r lane_size(1.05, 0.1, 18);
+    Vec3r lane_pos(front_pin_pos[0] - pin_spacing*4 + lane_size[2]/2, -lane_size[1]/2, front_pin_pos[2]);
     Config::XPBDRigidBoxConfig lane_config(
         "lane",
         lane_pos,
-        Vec3r::Zero(),
+        Vec3r(0,90,0),
         Vec3r::Zero(),
         Vec3r::Zero(),
         true,
@@ -200,12 +203,14 @@ void BowlingSimulation::setup()
         true,
         lane_size
     );
+    lane_config.renderConfig().setBaseColorTextureFilename("../resource/textures/bowling_lane/basecolor.png");
+    lane_config.renderConfig().setNormalsTextureFilename("../resource/textures/bowling_lane/normal.png");
     _addObjectFromConfig(lane_config);
 
     // gutters
-    Vec3r gutter_size(lane_size[0], 0.1, 0.23);
-    Vec3r left_gutter_pos(lane_pos[0], -lane_size[1] -gutter_size[1]/2, -lane_size[2]/2 - gutter_size[2]/2);
-    Vec3r right_gutter_pos(lane_pos[0], -lane_size[1] - gutter_size[1]/2, lane_size[2]/2 + gutter_size[2]/2);
+    Vec3r gutter_size(lane_size[2], 0.1, 0.23);
+    Vec3r left_gutter_pos(lane_pos[0], -lane_size[1] -gutter_size[1]/2, -lane_size[0]/2 - gutter_size[2]/2);
+    Vec3r right_gutter_pos(lane_pos[0], -lane_size[1] - gutter_size[1]/2, lane_size[0]/2 + gutter_size[2]/2);
     Config::XPBDRigidBoxConfig left_gutter_config(
         "left_gutter",
         left_gutter_pos,
@@ -218,6 +223,8 @@ void BowlingSimulation::setup()
         true,
         gutter_size
     );
+    left_gutter_config.renderConfig().setColor(Vec3r(0.0, 0.0, 0.0));
+    left_gutter_config.renderConfig().setRoughness(0.1);
     _addObjectFromConfig(left_gutter_config);
     Config::XPBDRigidBoxConfig right_gutter_config(
         "right_gutter",
@@ -231,15 +238,17 @@ void BowlingSimulation::setup()
         true,
         gutter_size
     );
+    right_gutter_config.renderConfig().setColor(Vec3r(0.0, 0.0, 0.0));
+    right_gutter_config.renderConfig().setRoughness(0.1);
     _addObjectFromConfig(right_gutter_config);
 
     // back gutter
-    Vec3r back_gutter_size(1, 0.1, lane_size[2] + 2*gutter_size[2]);
-    Vec3r back_gutter_pos(lane_pos[0] - lane_size[0]/2 -back_gutter_size[0]/2 , -lane_size[1] - gutter_size[1]/2, lane_pos[2]);
+    Vec3r back_gutter_size(1, 0.1, lane_size[0] + 2*gutter_size[2]);
+    Vec3r back_gutter_pos(lane_pos[0] - lane_size[2]/2 -back_gutter_size[0]/2 , -lane_size[1] - gutter_size[1]/2, lane_pos[2]);
     Config::XPBDRigidBoxConfig back_gutter_config(
         "back_gutter",
         back_gutter_pos,
-        Vec3r::Zero(),
+        Vec3r(0,0,0),
         Vec3r::Zero(),
         Vec3r::Zero(),
         true,
@@ -248,6 +257,8 @@ void BowlingSimulation::setup()
         true,
         back_gutter_size
     );
+    back_gutter_config.renderConfig().setColor(Vec3r(0.0, 0.0, 0.0));
+    back_gutter_config.renderConfig().setRoughness(0.1);
     _addObjectFromConfig(back_gutter_config);
 
     // front wall
@@ -265,6 +276,7 @@ void BowlingSimulation::setup()
         true,
         front_wall_size
     );
+    front_wall_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
     _addObjectFromConfig(front_wall_config);
 }
 
