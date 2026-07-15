@@ -27,12 +27,12 @@ void BowlingSimulation::setup()
     int num_pins_in_row = 1;
     int index_in_row = 0;
     int num_pins = 10;
-    Vec3r pin_size(0.035, 0.23, 0.035);
+    Vec3r pin_size(0.06, 0.38, 0.06);
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
     Real string_length = 1.5;
-    Real string_dia = 0.004;
+    Real string_dia = 0.01;
     for (int i = 0; i < num_pins; i++)
     {
         int num_spaces = num_pins_in_row - 1;
@@ -116,7 +116,7 @@ void BowlingSimulation::setup()
     }
 
     // create the ball
-    Real ball_radius = 0.07;
+    Real ball_radius = 0.2183/2;
     Config::XPBDRigidSphereConfig ball_config(
         "ball",
         Vec3r(front_pin_pos[0] + 5, ball_radius, 0.01),
@@ -126,7 +126,7 @@ void BowlingSimulation::setup()
         true,
         0.5,
         0.2,
-        2000,
+        1250,
         false,
         ball_radius
     );
@@ -197,13 +197,13 @@ void BowlingSimulation::_timeStep()
             // get the base fixed constraint
             auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
             Vec3r cur_base_pos = base_fixed_constraint.referencePosition();
-            Vec3r new_base_pos = cur_base_pos + 0.1*_dt * Vec3r(0, -1, 0);
+            Vec3r new_base_pos = cur_base_pos + 0.3*_dt * Vec3r(0, -1, 0);
             base_fixed_constraint.setReferencePosition(new_base_pos);
 
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y < 1.5)
+        if (cur_base_y < _string_length)
         {
             _state = State::READY;
             _state_change_time = _time;
@@ -218,7 +218,7 @@ void BowlingSimulation::_timeStep()
     }
     else if (_state == State::THROWING)
     {
-        if (_time - _state_change_time > 5)
+        if (_time - _state_change_time > 3)
         {
             _state = State::RAISING;
             _state_change_time = _time;
@@ -240,7 +240,7 @@ void BowlingSimulation::_timeStep()
             // get the base fixed constraint
             auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
             Vec3r cur_base_pos = base_fixed_constraint.referencePosition();
-            Vec3r new_base_pos = cur_base_pos + 0.1*_dt * Vec3r(0, 1, 0);
+            Vec3r new_base_pos = cur_base_pos + 0.3*_dt * Vec3r(0, 1, 0);
             base_fixed_constraint.setReferencePosition(new_base_pos);
 
             Vec6r cur_alpha = base_fixed_constraint.alpha();
@@ -249,10 +249,53 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y > 2.5)
+        if (cur_base_y > _string_length + 1.0)
+        {
+            _state = State::FIXING;
+            _state_change_time = _time;
+
+            // add elastic fixed constraints to constrain the pins
+            // auto& fixed_joint_constraints = _constraints.template get<Constraint::OneSidedFixedJointConstraint>();
+            // for (unsigned i = 0; i < _pins.size(); i++)
+            // {
+            //     auto& pin = _pins[i];
+            //     auto& string = _strings[i];
+
+            //     // desired pose is the base pose of the string, translated down the length of the string
+            //     Mat3r R_des = string->nodes().back().orientation;
+            //     Vec3r p_des = string->nodes().back().position + Vec3r(0,-_string_length,0);
+
+            //     Constraint::OneSidedFixedJointConstraint settle_constraint(
+            //         p_des, R_des,
+            //         &pin->com(),
+            //         Vec3r::Zero(),
+            //         Math::RotMatFromXYZEulerAngles(Vec3r(90,0,0)),
+            //         1*Vec6r::Ones()
+            //     );
+            //     fixed_joint_constraints.push_back(std::move(settle_constraint));
+            //     ConstVectorHandle<Constraint::OneSidedFixedJointConstraint> constraint_ref(&fixed_joint_constraints, fixed_joint_constraints.size()-1);
+            //     _solver.addConstraint(constraint_ref);
+
+            // }
+        }
+    }
+    else if (_state == State::FIXING)
+    {
+        for (unsigned i = 0; i < _pins.size(); i++)
+        {
+            auto& pin = _pins[i];
+            pin->com().lin_velocity *= 0.999;
+            pin->com().ang_velocity *= 0.999;
+        }
+        if (_time - _state_change_time > 10)
         {
             _state = State::LOWERING;
             _state_change_time = _time;
+
+            // clear fixed constraint projectors
+            // _solver.template clearProjectorsOfType<Constraint::OneSidedFixedJointConstraint>();
+            // // clear fixed constraints
+            // _constraints.template clear_types<Constraint::OneSidedFixedJointConstraint>();
         }
     }
 

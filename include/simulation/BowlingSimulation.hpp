@@ -27,7 +27,8 @@ private:
         LOWERING,
         READY,
         THROWING,
-        RAISING
+        RAISING,
+        FIXING
     };
     State _state = State::LOWERING;
     Real _state_change_time = 0;
@@ -35,6 +36,9 @@ private:
     std::vector<SimObject::XPBDRod_<SimObject::RodElement<1>>*> _strings;
     std::vector<SimObject::XPBDRigidBox*> _pins;
     SimObject::XPBDRigidSphere* _ball;
+
+    /** Parameters */
+    Real _string_length = 1.5;
 };
 
 } // namespace Sim
