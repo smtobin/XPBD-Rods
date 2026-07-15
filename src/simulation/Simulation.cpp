@@ -416,17 +416,17 @@ void Simulation::update()
     // we assume any derived Simulation classes have added their objects
     // add objects to collision scene
     /** TODO: determine grid size based on object sizes */
-    _objects.for_each_element([&](auto& obj) {
-        if (obj->collisions())
-            _collision_scene.addObject(obj.get());
-    });
-    _object_groups.for_each_element([&](auto& obj_group) {
-        auto& objects = obj_group->objects();
-        objects.for_each_element([&](auto& obj) {
-            if (obj.collisions())
-                _collision_scene.addObject(&obj);
-        });
-    });
+    // _objects.for_each_element([&](auto& obj) {
+    //     if (obj->collisions())
+    //         _collision_scene.addObject(obj.get());
+    // });
+    // _object_groups.for_each_element([&](auto& obj_group) {
+    //     auto& objects = obj_group->objects();
+    //     objects.for_each_element([&](auto& obj) {
+    //         if (obj.collisions())
+    //             _collision_scene.addObject(&obj);
+    //     });
+    // });
 
     // we assume that other derived Simulation classes have already added their logged quantities
     // so we can start logging now (which will print the header and prevent us from adding new logged quantities)

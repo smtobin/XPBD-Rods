@@ -3,7 +3,7 @@ name: "BowlingSim"
 # sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 1000
-solver-iters: 3
+solver-iters: 1
 
 logging: False
 logging-output-folder: "../output/convergence"
@@ -16,6 +16,9 @@ hdr-scaling: 0.2
 
 ground-plane: True
 rod-rod-collisions: True
+
+hash-voxel-size: 1e-1
+num-hash-buckets: 31111
 
 # render-for-video: False
 # render-output-folder: "../output/render/test"

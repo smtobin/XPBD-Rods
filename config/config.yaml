@@ -1,7 +1,7 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
-time-step: 1e-4
+time-step: 1e-3
 end-time: 10
 
 logging: False

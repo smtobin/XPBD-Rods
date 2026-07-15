@@ -31,8 +31,8 @@ void BowlingSimulation::setup()
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
-    Real string_length = 1;
-    Real string_dia = 0.003;
+    Real string_length = 1.5;
+    Real string_dia = 0.004;
     for (int i = 0; i < num_pins; i++)
     {
         int num_spaces = num_pins_in_row - 1;
@@ -47,7 +47,7 @@ void BowlingSimulation::setup()
             true,
             0.5,
             0.2,
-            200,
+            2000,
             false,
             pin_size
         );
@@ -73,9 +73,9 @@ void BowlingSimulation::setup()
             true,
             string_length,
             string_dia,
-            60,
+            70,
             1150,
-            1e8,
+            1e7,
             0.4,
             1e2,
             Vec3r(0,0,0)
@@ -86,7 +86,7 @@ void BowlingSimulation::setup()
         auto string = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back().get();
         _strings.push_back(string);
         auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
-        base_fixed_constraint.setAlpha(Vec6r(0, 1e-2, 0, 0, 0, 0));
+        base_fixed_constraint.setAlpha(Vec6r(0, 1, 0, 0, 0, 0));
 
         /** TODO: make this cleaner? */
         // auto& fixed_joint_constraints = _constraints.template get<Constraint::FixedJointConstraint>();
@@ -94,6 +94,7 @@ void BowlingSimulation::setup()
             &string->nodes().back(), Vec3r::Zero(), Mat3r::Identity(),
             &pin->com(), Vec3r(0, pin_size[1]/2, 0), Math::RotMatFromXYZEulerAngles(Vec3r(90,0,0))
         );
+        // string_pin_constraint.setAlpha(Vec6r(0, 0, 0, 0, 0, 1e-2));
         string->template addInternalConstraint<Constraint::FixedJointConstraint>(string_pin_constraint);
         auto& internal_fixed_joint_constraints = string->internalConstraints().template get<Constraint::FixedJointConstraint>();
         // fixed_joint_constraints.push_back(std::move(string_pin_constraint));
@@ -101,6 +102,7 @@ void BowlingSimulation::setup()
         // _solver.addConstraint(constraint_ref);
 
         string->setFixedTipConstraint(&internal_fixed_joint_constraints.back());
+        _collision_scene.addJoint(&string->nodes().back(), &pin->com());
 
         index_in_row++;
         if (index_in_row == num_pins_in_row)
@@ -109,8 +111,8 @@ void BowlingSimulation::setup()
             num_pins_in_row++;
         }
 
-        if (i >= 0)
-            break;
+        // if (i >= 5)
+        //     break;
     }
 
     // create the ball
@@ -133,8 +135,8 @@ void BowlingSimulation::setup()
     _ball = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
 
     // create the backstop and walls
-    Vec3r backstop_size(0.05, 1, 1);
-    Vec3r backstop_pos(front_pin_pos[0] - pin_spacing*6, backstop_size[1]/2, front_pin_pos[1]);
+    Vec3r backstop_size(0.05, 1, 2);
+    Vec3r backstop_pos(front_pin_pos[0] - pin_spacing*6, backstop_size[1]/2, front_pin_pos[2]);
     Config::XPBDRigidBoxConfig backstop_config(
         "backstop",
         backstop_pos,
@@ -149,6 +151,39 @@ void BowlingSimulation::setup()
         backstop_size
     );
     _addObjectFromConfig(backstop_config);
+
+    Vec3r wall_size(0.05, 0.5, 2);
+    Vec3r wall1_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2, front_pin_pos[2] - pin_spacing*4);
+    Config::XPBDRigidBoxConfig wall1_config(
+        "wall1",
+        wall1_pos,
+        Vec3r(0, 90, 0),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5,
+        0.2,
+        2000,
+        true,
+        wall_size
+    );
+    _addObjectFromConfig(wall1_config);
+
+    Vec3r wall2_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2, front_pin_pos[2] + pin_spacing*4);
+    Config::XPBDRigidBoxConfig wall2_config(
+        "wall2",
+        wall2_pos,
+        Vec3r(0, 90, 0),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5,
+        0.2,
+        2000,
+        true,
+        wall_size
+    );
+    _addObjectFromConfig(wall2_config);
 }
 
 void BowlingSimulation::_timeStep()
@@ -168,7 +203,7 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y < 1.0)
+        if (cur_base_y < 1.5)
         {
             _state = State::READY;
             _state_change_time = _time;
@@ -177,7 +212,7 @@ void BowlingSimulation::_timeStep()
 
     else if (_state == State::READY)
     {
-        _ball->com().lin_velocity = Vec3r(-7, 0, 0);
+        _ball->com().lin_velocity = Vec3r(-10, 0, 0);
         _state = State::THROWING;
         _state_change_time = _time;
     }
@@ -214,7 +249,7 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y > 2.0)
+        if (cur_base_y > 2.5)
         {
             _state = State::LOWERING;
             _state_change_time = _time;

@@ -157,7 +157,12 @@ public:
             new_obj_ptr = _object_groups.template get<ObjPtrType>().back().get();
             new_obj_ptr->setup();
 
-            
+            // add objects to collision scene
+            auto& objects = new_obj_ptr->objects();
+            objects.for_each_element([&](auto& obj) {
+                if (obj.collisions())
+                    _collision_scene.addObject(&obj);
+            });
 
             // add the ObjectGroup's constraints to the solver
             _addConstraintsFromObject(new_obj_ptr, obj_config.projectorType());
@@ -167,6 +172,10 @@ public:
             _objects.template emplace_back<ObjPtrType>(std::make_unique<ObjType>(obj_config));
             new_obj_ptr = _objects.template get<ObjPtrType>().back().get();
             new_obj_ptr->setup();
+
+            // add object to collision scene
+            if (new_obj_ptr->collisions())
+                _collision_scene.addObject(new_obj_ptr);
         }
 
         _graphics_scene.addObject(new_obj_ptr, obj_config);
@@ -221,6 +230,10 @@ public:
                 _addConstraintsFromObject(new_rod_ptr);
             }
 
+            // add object to collision scene
+            if (new_rod_ptr->collisions())
+                _collision_scene.addObject(new_rod_ptr);
+
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
 
@@ -238,6 +251,10 @@ public:
             {
                 _addConstraintsFromObject(new_rod_ptr);
             }
+
+            // add object to collision scene
+            if (new_rod_ptr->collisions())
+                _collision_scene.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
@@ -257,6 +274,10 @@ public:
                 _addConstraintsFromObject(new_rod_ptr);
             }
 
+            // add object to collision scene
+            if (new_rod_ptr->collisions())
+                _collision_scene.addObject(new_rod_ptr);
+
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
 
@@ -274,6 +295,10 @@ public:
             {
                 _addConstraintsFromObject(new_rod_ptr);
             }
+
+            // add object to collision scene
+            if (new_rod_ptr->collisions())
+                _collision_scene.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
