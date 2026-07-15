@@ -14,7 +14,7 @@ hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
 hdr-scaling: 0.2
 
-ground-plane: True
+ground-plane: False
 rod-rod-collisions: True
 
 hash-voxel-size: 1e-1

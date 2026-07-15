@@ -135,8 +135,8 @@ void BowlingSimulation::setup()
     _ball = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
 
     // create the backstop and walls
-    Vec3r backstop_size(0.05, 1, 2);
-    Vec3r backstop_pos(front_pin_pos[0] - pin_spacing*6, backstop_size[1]/2, front_pin_pos[2]);
+    Vec3r backstop_size(0.05, 1.5, 2);
+    Vec3r backstop_pos(front_pin_pos[0] - pin_spacing*6, backstop_size[1]/2 - 0.2, front_pin_pos[2]);
     Config::XPBDRigidBoxConfig backstop_config(
         "backstop",
         backstop_pos,
@@ -152,8 +152,8 @@ void BowlingSimulation::setup()
     );
     _addObjectFromConfig(backstop_config);
 
-    Vec3r wall_size(0.05, 0.5, 2);
-    Vec3r wall1_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2, front_pin_pos[2] - pin_spacing*4);
+    Vec3r wall_size(0.05, 1.5, 1.7);
+    Vec3r wall1_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2 - 0.2, front_pin_pos[2] - pin_spacing*4);
     Config::XPBDRigidBoxConfig wall1_config(
         "wall1",
         wall1_pos,
@@ -169,7 +169,7 @@ void BowlingSimulation::setup()
     );
     _addObjectFromConfig(wall1_config);
 
-    Vec3r wall2_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2, front_pin_pos[2] + pin_spacing*4);
+    Vec3r wall2_pos(front_pin_pos[0] - pin_spacing*3, wall_size[1]/2 - 0.2, front_pin_pos[2] + pin_spacing*4);
     Config::XPBDRigidBoxConfig wall2_config(
         "wall2",
         wall2_pos,
@@ -184,6 +184,88 @@ void BowlingSimulation::setup()
         wall_size
     );
     _addObjectFromConfig(wall2_config);
+
+    // lane
+    Vec3r lane_size(18, 0.1, 1.05);
+    Vec3r lane_pos(front_pin_pos[0] - pin_spacing*4 + lane_size[0]/2, -lane_size[1]/2, front_pin_pos[2]);
+    Config::XPBDRigidBoxConfig lane_config(
+        "lane",
+        lane_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5, 0.1,
+        1000,
+        true,
+        lane_size
+    );
+    _addObjectFromConfig(lane_config);
+
+    // gutters
+    Vec3r gutter_size(lane_size[0], 0.1, 0.23);
+    Vec3r left_gutter_pos(lane_pos[0], -lane_size[1] -gutter_size[1]/2, -lane_size[2]/2 - gutter_size[2]/2);
+    Vec3r right_gutter_pos(lane_pos[0], -lane_size[1] - gutter_size[1]/2, lane_size[2]/2 + gutter_size[2]/2);
+    Config::XPBDRigidBoxConfig left_gutter_config(
+        "left_gutter",
+        left_gutter_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5, 0.1,
+        1000,
+        true,
+        gutter_size
+    );
+    _addObjectFromConfig(left_gutter_config);
+    Config::XPBDRigidBoxConfig right_gutter_config(
+        "right_gutter",
+        right_gutter_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5, 0.1,
+        1000,
+        true,
+        gutter_size
+    );
+    _addObjectFromConfig(right_gutter_config);
+
+    // back gutter
+    Vec3r back_gutter_size(1, 0.1, lane_size[2] + 2*gutter_size[2]);
+    Vec3r back_gutter_pos(lane_pos[0] - lane_size[0]/2 -back_gutter_size[0]/2 , -lane_size[1] - gutter_size[1]/2, lane_pos[2]);
+    Config::XPBDRigidBoxConfig back_gutter_config(
+        "back_gutter",
+        back_gutter_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5, 0.1,
+        1000,
+        true,
+        back_gutter_size
+    );
+    _addObjectFromConfig(back_gutter_config);
+
+    // front wall
+    Vec3r front_wall_size(0.05, 1.5, 2*back_gutter_size[2]);
+    Vec3r front_wall_pos(front_pin_pos[0] + 0.2, 0.7 + front_wall_size[1]/2, lane_pos[2]);
+    Config::XPBDRigidBoxConfig front_wall_config(
+        "front_wall",
+        front_wall_pos,
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        Vec3r::Zero(),
+        true,
+        0.5, 0.1,
+        1000,
+        true,
+        front_wall_size
+    );
+    _addObjectFromConfig(front_wall_config);
 }
 
 void BowlingSimulation::_timeStep()
@@ -249,7 +331,7 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y > _string_length + 1.0)
+        if (cur_base_y > _string_length + 0.6)
         {
             _state = State::FIXING;
             _state_change_time = _time;
