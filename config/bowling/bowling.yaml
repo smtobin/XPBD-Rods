@@ -3,6 +3,7 @@ name: "BowlingSim"
 # sim-mode: "AFAP"
 time-step: 1e-3
 end-time: 1000
+solver-iters: 3
 
 logging: False
 logging-output-folder: "../output/convergence"

@@ -48,6 +48,7 @@ objects:
     draw-centerline: False
     centerline-samples: 50
     draw-end-caps: True
+    draw-frames: True
     
 
   # - 

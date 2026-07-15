@@ -427,7 +427,7 @@ void Simulation::update()
                 _collision_scene.addObject(&obj);
         });
     });
-    
+
     // we assume that other derived Simulation classes have already added their logged quantities
     // so we can start logging now (which will print the header and prevent us from adding new logged quantities)
     if (_logger)

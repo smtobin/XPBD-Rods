@@ -25,6 +25,7 @@ public:
     virtual void update() override;
 
     vtkSmartPointer<vtkActor> centerlineActor() { return _vtk_centerline_actor; }
+    vtkSmartPointer<vtkActor> framesActor() { return _frames_actor; }
 
 private:
     void _generateInitialPolyData();
@@ -59,8 +60,14 @@ private:
     /** Whether or not to visualize the centerline of the rod. */
     bool _draw_centerline;
 
-    /** Whether or not to draw end caps on the rod. */
+/** Whether or not to draw end caps on the rod. */
     bool _draw_end_caps;
+
+    /** Whether or not to draw frames at nodes in the rod */
+    bool _draw_frames;
+    Real _frame_scale = 0.1;
+    vtkSmartPointer<vtkPolyData> _frames_poly_data;
+    vtkSmartPointer<vtkActor> _frames_actor;
 
     /** Number of cross sections in the end caps (when applicable) */
     int _cap_resolution = 6;
