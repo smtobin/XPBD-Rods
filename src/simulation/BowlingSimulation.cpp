@@ -27,7 +27,7 @@ void BowlingSimulation::setup()
     int num_pins_in_row = 1;
     int index_in_row = 0;
     int num_pins = 10;
-    Vec3r pin_size(0.06, 0.38, 0.06);
+    Vec3r pin_size(0.06, 0.317216, 0.06);
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
@@ -52,6 +52,17 @@ void BowlingSimulation::setup()
             pin_size
         );
         pin_config.renderConfig().setColor(Vec3r(0.3, 0.3, 0.3));
+        Config::MeshRenderConfig pin_mesh_config(
+            Config::ObjectRenderConfig::RenderType::PBR,
+            "../resource/meshes/bowling_pin.obj",
+            std::nullopt, std::nullopt,
+            "../resource/textures/bowling_pin_and_ball.png",
+            0, 0.3, 1.0, Vec3r(1.0,1.0, 1.0),
+            true,
+            true, false,
+            Vec3r(0,-0.05,0), Vec3r(0,0,0), Vec3r::Ones()
+        );
+        pin_config.addRenderMeshConfig(pin_mesh_config);
         _addObjectFromConfig(pin_config);
         auto pin = _objects.template get<std::unique_ptr<SimObject::XPBDRigidBox>>().back().get();
         _pins.push_back(pin);
@@ -111,12 +122,12 @@ void BowlingSimulation::setup()
             num_pins_in_row++;
         }
 
-        if (i >= 0)
+        if (i >= 3)
             break;
     }
 
     // create the ball
-    Real ball_radius = 0.2183/2;
+    Real ball_radius = 0.210023/2;
     Config::XPBDRigidSphereConfig ball_config(
         "ball",
         Vec3r(front_pin_pos[0] + 5, ball_radius, 0.01),
@@ -130,8 +141,19 @@ void BowlingSimulation::setup()
         false,
         ball_radius
     );
-    ball_config.renderConfig().setColor(Vec3r(0,0,1.0));
+    Config::MeshRenderConfig ball_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/bowling_ball.obj",
+        std::nullopt, std::nullopt,
+        "../resource/textures/bowling_pin_and_ball.png",
+        0, 0.1, 1.0, Vec3r(1,1,1),
+        true,
+        true, false,
+        Vec3r(0,0,0), Vec3r(0,0,0), Vec3r::Ones()
+    );
+    ball_config.addRenderMeshConfig(ball_mesh_config);
     _addObjectFromConfig(ball_config);
+    
     _ball = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
 
     // create the backstop and walls

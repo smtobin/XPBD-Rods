@@ -19,6 +19,7 @@ find_package(VTK COMPONENTS
     CommonCore
     FiltersSources
     IOImage
+    IOGeometry
     InteractionStyle
     RenderingContextOpenGL2
     RenderingCore
