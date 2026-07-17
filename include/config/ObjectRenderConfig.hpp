@@ -102,6 +102,7 @@ class ObjectRenderConfig : public Config_Base
     void setOpacity(Real opacity) { _opacity.value = opacity; }
     void setColor(Vec3r color) { _color.value = color; }
     void setCenterlineSamples(int samples) { _num_centerline_samples.value = samples; }
+    void setColorElements(bool color_elements) { _color_elements.value = color_elements; }
     void setDrawEndCaps(bool draw_end_caps) { _draw_end_caps.value = draw_end_caps; }
     void setDrawFrames(bool draw_frames) { _draw_frames.value = draw_frames; }
 

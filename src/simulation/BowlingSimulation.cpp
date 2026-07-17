@@ -27,7 +27,7 @@ void BowlingSimulation::setup()
     int num_pins_in_row = 1;
     int index_in_row = 0;
     int num_pins = 10;
-    Vec3r pin_size(0.06, 0.317216, 0.06);
+    Vec3r pin_size(0.07, 0.317216, 0.07);
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
@@ -47,7 +47,7 @@ void BowlingSimulation::setup()
             true,
             0.5,
             0.2,
-            2000,
+            1000,
             false,
             pin_size
         );
@@ -66,6 +66,7 @@ void BowlingSimulation::setup()
         _addObjectFromConfig(pin_config);
         auto pin = _objects.template get<std::unique_ptr<SimObject::XPBDRigidBox>>().back().get();
         _pins.push_back(pin);
+        std::cout << "Pin mass: " << pin->com().mass << std::endl;
         
         Vec3r pin_top_pos = pos + Vec3r(0, pin_size[1]/2, 0);
         Vec3r string_base_pos = pin_top_pos + Vec3r(0, string_length, 0);
@@ -78,23 +79,25 @@ void BowlingSimulation::setup()
             true,
             0.5,
             0.2,
-            Config::RodElementType::LINEAR,
+            Config::RodElementType::CUBIC,
             true,
             false,
             true,
             string_length,
             string_dia,
-            70,
+            8,
             1150,
             1e7,
             0.4,
-            1e2,
+            1e1,
             Vec3r(0,0,0)
         );
         string_config.renderConfig().setCenterlineSamples(100);
+        string_config.renderConfig().setColorElements(true);
+        string_config.renderConfig().setColor(Vec3r(1,0,0));
         // string_config.renderConfig().setDrawFrames(true);
         _addObjectFromConfig(string_config);
-        auto string = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<1>>>>().back().get();
+        auto string = _objects.template get<std::unique_ptr<SimObject::XPBDRod_<SimObject::RodElement<3>>>>().back().get();
         _strings.push_back(string);
         auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
         base_fixed_constraint.setAlpha(Vec6r(0, 1, 0, 0, 0, 0));
@@ -122,8 +125,8 @@ void BowlingSimulation::setup()
             num_pins_in_row++;
         }
 
-        if (i >= 3)
-            break;
+        // if (i >= 3)
+        //     break;
     }
 
     // create the ball
@@ -155,6 +158,7 @@ void BowlingSimulation::setup()
     _addObjectFromConfig(ball_config);
     
     _ball = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
+    std::cout << "Ball mass: " << _ball->com().mass << std::endl;
 
     // create the backstop and walls
     Vec3r backstop_size(0.05, 1.5, 2);
@@ -284,22 +288,22 @@ void BowlingSimulation::setup()
     _addObjectFromConfig(back_gutter_config);
 
     // front wall
-    Vec3r front_wall_size(0.05, 1.5, 2*back_gutter_size[2]);
-    Vec3r front_wall_pos(front_pin_pos[0] + 0.2, 0.7 + front_wall_size[1]/2, lane_pos[2]);
-    Config::XPBDRigidBoxConfig front_wall_config(
-        "front_wall",
-        front_wall_pos,
-        Vec3r::Zero(),
-        Vec3r::Zero(),
-        Vec3r::Zero(),
-        true,
-        0.5, 0.1,
-        1000,
-        true,
-        front_wall_size
-    );
-    front_wall_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
-    _addObjectFromConfig(front_wall_config);
+    // Vec3r front_wall_size(0.05, 1.5, 2*back_gutter_size[2]);
+    // Vec3r front_wall_pos(front_pin_pos[0] + 0.2, 0.7 + front_wall_size[1]/2, lane_pos[2]);
+    // Config::XPBDRigidBoxConfig front_wall_config(
+    //     "front_wall",
+    //     front_wall_pos,
+    //     Vec3r::Zero(),
+    //     Vec3r::Zero(),
+    //     Vec3r::Zero(),
+    //     true,
+    //     0.5, 0.1,
+    //     1000,
+    //     true,
+    //     front_wall_size
+    // );
+    // front_wall_config.renderConfig().setColor(Vec3r(0.05, 0.05, 0.05));
+    // _addObjectFromConfig(front_wall_config);
 }
 
 void BowlingSimulation::_timeStep()
@@ -313,16 +317,23 @@ void BowlingSimulation::_timeStep()
             // get the base fixed constraint
             auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
             Vec3r cur_base_pos = base_fixed_constraint.referencePosition();
-            Vec3r new_base_pos = cur_base_pos + 0.3*_dt * Vec3r(0, -1, 0);
+            Vec3r new_base_pos = cur_base_pos + 0.2*_dt * Vec3r(0, -1, 0);
             base_fixed_constraint.setReferencePosition(new_base_pos);
 
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y < _string_length)
+        if (cur_base_y < _string_length + 0.2)
         {
             _state = State::READY;
             _state_change_time = _time;
+
+            for (auto& string : _strings)
+            {
+                // get the base fixed constraint
+                auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+                base_fixed_constraint.setAlpha(Vec6r(0, 1, 0, 0, 0, 0));
+            }
         }
     }
 
@@ -334,7 +345,7 @@ void BowlingSimulation::_timeStep()
     }
     else if (_state == State::THROWING)
     {
-        if (_time - _state_change_time > 3)
+        if (_time - _state_change_time > 6)
         {
             _state = State::RAISING;
             _state_change_time = _time;
@@ -343,7 +354,7 @@ void BowlingSimulation::_timeStep()
             _ball->com().prev_lin_velocity = Vec3r::Zero();
             _ball->com().ang_velocity = Vec3r::Zero();
             _ball->com().prev_ang_velocity = Vec3r::Zero();
-            _ball->com().position = Vec3r(5, _ball->radius(), 0.01);
+            _ball->com().position = Vec3r(15, _ball->radius(), 0.01);
             _ball->com().prev_position = _ball->com().position;
         }
     }
@@ -356,7 +367,7 @@ void BowlingSimulation::_timeStep()
             // get the base fixed constraint
             auto& base_fixed_constraint = string->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
             Vec3r cur_base_pos = base_fixed_constraint.referencePosition();
-            Vec3r new_base_pos = cur_base_pos + 0.3*_dt * Vec3r(0, 1, 0);
+            Vec3r new_base_pos = cur_base_pos + 0.2*_dt * Vec3r(0, 1, 0);
             base_fixed_constraint.setReferencePosition(new_base_pos);
 
             Vec6r cur_alpha = base_fixed_constraint.alpha();
