@@ -20,6 +20,7 @@
 #include <vtkImageData.h>
 
 #include <vtkNew.h>
+#include <vtkOBJReader.h>
 
 namespace Graphics
 {
@@ -28,29 +29,47 @@ MeshGraphicsObject::MeshGraphicsObject(const Mesh* mesh, const SimObject::Orient
     : GraphicsObject(render_config), _mesh(mesh), _com(com)
 {
 
-    vtkNew<vtkPolyData> poly_data;
-
-    // create points
-    vtkNew<vtkPoints> vtk_points;
-    for (const auto& vertex : _mesh->vertices())
+    vtkSmartPointer<vtkPolyData> poly_data;
+    
+    // check for .obj files
+    // obj files may have texture coordinates built in that we should use
+    if (std::filesystem::path(render_config.filename()).extension().compare(".obj") == 0)
     {
-        vtk_points->InsertNextPoint(vertex[0], vertex[1], vertex[2]);
+        vtkNew<vtkOBJReader> reader;
+        reader->SetFileName(render_config.filename().c_str());
+        reader->Update();
+
+        poly_data = reader->GetOutput();
+    }
+    else
+    {
+        poly_data = vtkSmartPointer<vtkPolyData>::New();
+        // create points
+        vtkNew<vtkPoints> vtk_points;
+        for (const auto& vertex : _mesh->vertices())
+        {
+            vtk_points->InsertNextPoint(vertex[0], vertex[1], vertex[2]);
+        }
+
+        // create faces
+        vtkNew<vtkCellArray> vtk_faces;
+        for (const auto& face : _mesh->faces())
+        {
+            vtkNew<vtkTriangle> tri;
+            tri->GetPointIds()->SetId(0, face[0]);
+            tri->GetPointIds()->SetId(1, face[1]);
+            tri->GetPointIds()->SetId(2, face[2]);
+
+            vtk_faces->InsertNextCell(tri);
+        }
+
+        poly_data->SetPoints(vtk_points);
+        poly_data->SetPolys(vtk_faces);
     }
 
-    // create faces
-    vtkNew<vtkCellArray> vtk_faces;
-    for (const auto& face : _mesh->faces())
-    {
-        vtkNew<vtkTriangle> tri;
-        tri->GetPointIds()->SetId(0, face[0]);
-        tri->GetPointIds()->SetId(1, face[1]);
-        tri->GetPointIds()->SetId(2, face[2]);
+    
 
-        vtk_faces->InsertNextCell(tri);
-    }
-
-    poly_data->SetPoints(vtk_points);
-    poly_data->SetPolys(vtk_faces);
+    
 
     _vtk_transform = vtkSmartPointer<vtkTransform>::New();
 

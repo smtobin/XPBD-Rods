@@ -75,6 +75,7 @@ public:
     virtual GradientMatType gradient() const = 0;
 
     const AlphaVecType& alpha() const { return _alpha; }
+    void setAlpha(const AlphaVecType& new_alpha) { _alpha = new_alpha; }
     Real beta() const { return _beta; }
     const OrientedParticlePtrArray& orientedParticles() const { return _oriented_particles; }
     const ParticlePtrArray& particles() const { return _particles; }

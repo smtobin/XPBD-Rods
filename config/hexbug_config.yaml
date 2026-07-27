@@ -26,10 +26,10 @@ num-hash-buckets: 31111
 rod-rod-collisions: false
 
 # uncomment to save video
-window-width: 2560
-window-height: 1440
-render-for-video: True
-render-output-folder: "../output/render/hexbug"
+# window-width: 2560
+# window-height: 1440
+# render-for-video: True
+# render-output-folder: "../output/render/hexbug"
 
 objects:
   -

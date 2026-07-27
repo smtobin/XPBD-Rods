@@ -13,7 +13,12 @@ ground-plane: False
 
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
+create-skybox: False
+exposure: 0.3
+
+camera-focal-point: [0, -1.5, 0]
+camera-position: [0, -1.5, 7]
+window-width: 1000
 
 objects:
   - 
@@ -21,7 +26,7 @@ objects:
     name: "pendulum"
     num-bodies: 3
     initial-angle: 80
-    projector-type: "separate"
+    projector-type: "block"
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

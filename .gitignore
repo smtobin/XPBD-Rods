@@ -1,6 +1,5 @@
 .vscode/
 build/
-resource/textures/
 output/
 
 ros_workspace/log/

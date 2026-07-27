@@ -19,6 +19,8 @@
 #include <vtkTubeFilter.h>
 #include <vtkLookupTable.h>
 #include <vtkCellData.h>
+#include <vtkLine.h>
+#include <vtkLineSource.h>
 
 #include <filesystem>
 #include <optional>
@@ -30,7 +32,7 @@ template<typename ElementType>
 HigherOrderRodGraphicsObject<ElementType>::HigherOrderRodGraphicsObject(const SimObject::XPBDRod_<ElementType>* rod, const Config::ObjectRenderConfig& render_config)
     : GraphicsObject(render_config), _rod(rod), _render_config(render_config), 
     _color_elements(render_config.colorElements()),
-    _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline()), _draw_end_caps(render_config.drawEndCaps())
+    _num_samples(render_config.numCenterlineSamples()), _draw_centerline(render_config.drawCenterline()), _draw_end_caps(render_config.drawEndCaps()), _draw_frames(render_config.drawFrames())
 {
 
     // if we are coloring the elements individually, the number of centerline samples is a multiple of the elements + 1 so that some samples are at element boundaries
@@ -434,6 +436,67 @@ void HigherOrderRodGraphicsObject<ElementType>::_generateInitialPolyData()
         }
     }
     _vtk_poly_data->GetPointData()->SetTCoords(textureCoords);
+
+    // create frame geometries (if drawing node frames)
+    if (_draw_frames)
+    {
+        vtkNew<vtkPoints> points;
+        vtkNew<vtkCellArray> lines;
+        vtkNew<vtkUnsignedCharArray> colors;
+
+        colors->SetNumberOfComponents(3);
+        colors->SetName("Colors");
+
+        _frames_poly_data = vtkSmartPointer<vtkPolyData>::New();
+        for (const auto& node : nodes)
+        {
+            vtkIdType origin = points->InsertNextPoint(node.position[0], node.position[1], node.position[2]);
+
+            Vec3r x = node.position + _frame_scale * node.orientation.col(0);
+            vtkIdType px = points->InsertNextPoint(x[0], x[1], x[2]);
+
+            Vec3r y = node.position + _frame_scale * node.orientation.col(1);
+            vtkIdType py = points->InsertNextPoint(y[0], y[1], y[2]);
+
+            Vec3r z = node.position + _frame_scale * node.orientation.col(2);
+            vtkIdType pz = points->InsertNextPoint(z[0], z[1], z[2]);
+
+            auto addAxis = [&](vtkIdType a, vtkIdType b,
+                            unsigned char r,
+                            unsigned char g,
+                            unsigned char bcol)
+            {
+                vtkNew<vtkLine> line;
+                line->GetPointIds()->SetId(0,a);
+                line->GetPointIds()->SetId(1,b);
+                lines->InsertNextCell(line);
+
+                unsigned char c[3] = {r,g,bcol};
+                colors->InsertNextTypedTuple(c);
+            };
+
+            addAxis(origin, px,255,0,0);
+            addAxis(origin, py,0,255,0);
+            addAxis(origin, pz,0,0,255);
+        }
+
+        _frames_poly_data->SetPoints(points);
+        _frames_poly_data->SetLines(lines);
+        _frames_poly_data->GetCellData()->SetScalars(colors);
+
+        vtkNew<vtkPolyDataMapper> mapper;
+        mapper->SetInputData(_frames_poly_data);
+        mapper->SetScalarModeToUseCellData();
+        mapper->ScalarVisibilityOn();
+        mapper->SetColorModeToDirectScalars();
+
+        _frames_actor = vtkSmartPointer<vtkActor>::New();
+        _frames_actor->SetMapper(mapper);
+        _frames_actor->GetProperty()->SetLineWidth(2);
+        _frames_actor->GetProperty()->SetInterpolationToFlat();
+        _frames_actor->GetProperty()->LightingOff();
+        _frames_actor->GetProperty()->SetColor(0.0, 0.0, 1.0);
+    }
 }
 
 template<typename ElementType>
@@ -539,6 +602,33 @@ void HigherOrderRodGraphicsObject<ElementType>::_updatePolyData()
     }
 
     points->Modified();
+
+    // update nodal coordinate frames (if drawing)
+    if (_draw_frames)
+    {
+        vtkPoints* pts = _frames_poly_data->GetPoints();
+
+        for (size_t i=0;i<nodes.size();i++)
+        {
+            const auto& node = nodes[i];
+
+            vtkIdType id = 4*i;
+
+            pts->SetPoint(id+0,
+                node.position.data());
+
+            Vec3r x = node.position + _frame_scale*node.orientation.col(0);
+            pts->SetPoint(id+1, x.data());
+
+            Vec3r y = node.position + _frame_scale*node.orientation.col(1);
+            pts->SetPoint(id+2, y.data());
+
+            Vec3r z = node.position + _frame_scale*node.orientation.col(2);
+            pts->SetPoint(id+3, z.data());
+        }
+
+        pts->Modified();
+    }
 }
 
 template class HigherOrderRodGraphicsObject<SimObject::RodElement<0>>;

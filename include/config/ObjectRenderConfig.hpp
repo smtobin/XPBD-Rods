@@ -58,6 +58,7 @@ class ObjectRenderConfig : public Config_Base
         _extractParameter("centerline-samples", node, _num_centerline_samples);
         _extractParameter("color-elements", node, _color_elements);
         _extractParameter("draw-end-caps", node, _draw_end_caps);
+        _extractParameter("draw-frames", node, _draw_frames);
     }
 
     explicit ObjectRenderConfig(
@@ -92,13 +93,18 @@ class ObjectRenderConfig : public Config_Base
     Real opacity() const { return _opacity.value; }
     Vec3r color() const { return _color.value; }
 
+    void setOrmTextureFilename(const std::string& fname) { _orm_texture_filename.value = fname; }
+    void setNormalsTextureFilename(const std::string& fname) { _normals_texture_filename.value = fname; }
+    void setBaseColorTextureFilename(const std::string& fname) { _base_color_texture_filename.value = fname; }
     void setRender(bool render) { _render.value = render; }
     void setMetallic(Real metallic) { _metallic.value = metallic; }
     void setRoughness(Real roughness) { _roughness.value = roughness; }
     void setOpacity(Real opacity) { _opacity.value = opacity; }
     void setColor(Vec3r color) { _color.value = color; }
     void setCenterlineSamples(int samples) { _num_centerline_samples.value = samples; }
+    void setColorElements(bool color_elements) { _color_elements.value = color_elements; }
     void setDrawEndCaps(bool draw_end_caps) { _draw_end_caps.value = draw_end_caps; }
+    void setDrawFrames(bool draw_frames) { _draw_frames.value = draw_frames; }
 
     bool smoothNormals() const { return _smooth_normals.value; }
 
@@ -106,6 +112,7 @@ class ObjectRenderConfig : public Config_Base
     int numCenterlineSamples() const { return _num_centerline_samples.value; }
     bool colorElements() const { return _color_elements.value; }
     bool drawEndCaps() const { return _draw_end_caps.value; }
+    bool drawFrames() const { return _draw_frames.value; }
 
     protected:
     ConfigParameter<bool> _render = ConfigParameter<bool>(true);
@@ -128,6 +135,7 @@ class ObjectRenderConfig : public Config_Base
     ConfigParameter<int> _num_centerline_samples = ConfigParameter<int>(50);
     ConfigParameter<bool> _color_elements = ConfigParameter<bool>(false);
     ConfigParameter<bool> _draw_end_caps = ConfigParameter<bool>(false);
+    ConfigParameter<bool> _draw_frames = ConfigParameter<bool>(false);
     
 };
 

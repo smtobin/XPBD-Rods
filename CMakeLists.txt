@@ -19,6 +19,7 @@ find_package(VTK COMPONENTS
     CommonCore
     FiltersSources
     IOImage
+    IOGeometry
     InteractionStyle
     RenderingContextOpenGL2
     RenderingCore
@@ -74,6 +75,9 @@ target_link_libraries(Sim Simulation ${VTK_LIBRARIES})
 add_executable(RodConvergenceSim src/exec/rod_convergence_sim.cpp)
 target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 
+add_executable(BowlingSim src/exec/bowling_sim.cpp)
+target_link_libraries(BowlingSim Simulation ${VTK_LIBRARIES})
+
 
 ###################################################
 # TESTS
@@ -126,6 +130,11 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS RodConvergenceSim
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS BowlingSim
   MODULES ${VTK_LIBRARIES}
 )
 

@@ -62,6 +62,9 @@ class GraphicsScene
         if (config.renderConfig().drawCenterline())
             _renderer->AddActor(rod_go->centerlineActor());
 
+        if (config.renderConfig().drawFrames())
+            _renderer->AddActor(rod_go->framesActor());
+
         _graphics_objects.push_back(std::move(rod_go));
     }
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& render_config);
