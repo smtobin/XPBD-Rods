@@ -35,7 +35,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_bottom.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 0.2, _body_color,
+        0, 0.5, 1.0, _body_color,
         false,
         true, false,
         Vec3r(0,-4.2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()
@@ -176,7 +176,21 @@ void HexBug::setup()
     
     motor_mass_config.renderConfig().setColor(Vec3r(0.7,0.7,0.7));
     motor_mass_config.renderConfig().setMetallic(1.0);
+
+    Config::MeshRenderConfig motor_mesh_config(
+        Config::ObjectRenderConfig::RenderType::PBR,
+        "../resource/meshes/hexbug_motor_shaft.stl",
+        std::nullopt, std::nullopt, std::nullopt,
+        1.0, 0.5, 1.0, Vec3r(0.7, 0.7, 0.7),
+        true,
+        true, false,
+        Vec3r(0,1e-3,-1e-3), Vec3r(0,0,0), Vec3r(0.8, 0.8, 1)
+    );
+    motor_mass_config.addRenderMeshConfig(motor_mesh_config);
+
     auto& motor_mass = _objects.template emplace_back<XPBDRigidBox>(motor_mass_config);
+    
+
     std::cout << "Motor mass: " << motor_mass.com().mass *1000 << " grams" << std::endl;
 
     // create fixed joint joining eccentric mass to body
