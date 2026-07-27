@@ -304,8 +304,8 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     /** Compute gradients of bending strain */
 
     // gradients of bending strain
-    // Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
-    Mat3r dexpmap_contract_j_approx = Math::DExpMap_RightJacobian_Contract_j_approx(theta, dtheta_ds);
+    Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
+    // Mat3r dexpmap_contract_j_approx = Math::DExpMap_RightJacobian_Contract_j_approx(theta, dtheta_ds);
 
     // std::cout << "||theta||: " << theta.norm() << std::endl;
     // std::cout << "dexpmap_contract_j full:\n" << dexpmap_contract_j << std::endl;
@@ -317,7 +317,7 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
         grad.template block<3,3>(3, 6*i) = Mat3r::Zero();
 
         // gradient w.r.t. orientation
-        grad.template block<3,3>(3, 6*i+3) = dexpmap_contract_j_approx * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
+        grad.template block<3,3>(3, 6*i+3) = dexpmap_contract_j * dtheta_dRi[i] + gam_theta * dtheta_ds_dRi[i];    
     }
 
     return grad;
@@ -679,7 +679,7 @@ Vec3r RodElement<0>::shearStrain(Real /* s_hat */) const
 template<>
 Vec3r RodElement<0>::bendingStrain(Real /* s_hat */) const
 {
-    Vec3r u = 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation); 
+    Vec3r u = 1.0/_rest_length * Math::Minus_SO3(_nodes[1]->orientation, _nodes[0]->orientation) - _curvature;
     return u;
 }
 

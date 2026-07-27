@@ -292,6 +292,51 @@ void XPBDRod_<ElementType>::_allocateSpace()
 }
 
 template <typename ElementType>
+std::vector<ConstraintAndLambda> XPBDRod_<ElementType>::internalConstraintsAndLambdas() const
+{
+    std::vector<ConstraintAndLambda> output;
+
+    int lambda_offset = 0;
+    // fixed base constraint first
+    if (_base_fixed)
+    {
+        std::visit([&](const auto& fixed_base) {
+            XPBDConstraints_ConstPtrVariantType var(fixed_base);
+            const Real* lambda_ptr = _internal_lambda.data() + lambda_offset;
+            output.emplace_back(var, lambda_ptr);
+
+            lambda_offset += 6;
+
+        }, _fixed_base_constraint);
+    }
+
+    // elastic constraints
+    const std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
+    for (const auto& elastic_constraint : elastic_constraints)
+    {
+        XPBDConstraints_ConstPtrVariantType var(&elastic_constraint);
+        const Real* lambda_ptr = _internal_lambda.data() + lambda_offset;
+        output.emplace_back(var, lambda_ptr);
+
+        lambda_offset += 6;
+    }
+
+    // fixed tip constraint last
+    if (_tip_fixed)
+    {
+        std::visit([&](const auto& fixed_tip) {
+            XPBDConstraints_ConstPtrVariantType var(fixed_tip);
+            const Real* lambda_ptr = _internal_lambda.data() + lambda_offset;
+            output.emplace_back(var, lambda_ptr);
+
+            lambda_offset += 6;
+        }, _fixed_tip_constraint);
+    }
+
+    return output;
+}
+
+template <typename ElementType>
 void XPBDRod_<ElementType>::setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint)
 {   
     _base_fixed = true;
@@ -355,13 +400,13 @@ void XPBDRod_<ElementType>::velocityUpdate(Real dt)
     {
         _nodes[i].velocityUpdate(dt);
     }
-
-    _internal_lambda = VecXr::Zero(6*_num_constraints);
 }
 
 template <typename ElementType>
 void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 {
+    _internal_lambda = VecXr::Zero(6*_num_constraints);
+
     // if we are not solving the system globally (i.e. using Gauss-Seidel or other iterative method instead),
     // don't do the internal constraint solve
     // assume that we have added the constraints to the top-level Gauss-Seidel solver, and let it do the work

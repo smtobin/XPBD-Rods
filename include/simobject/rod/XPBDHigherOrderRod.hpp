@@ -45,7 +45,7 @@ public:
 
     virtual AABB boundingBox() const override;
 
-    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override { return std::vector<ConstraintAndLambda>{}; }
+    virtual std::vector<ConstraintAndLambda> internalConstraintsAndLambdas() const override;
 
     Real radius() const { return _radius; }
     bool globalSolve() const { return _global_solve; }

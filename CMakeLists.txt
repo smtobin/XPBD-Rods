@@ -78,6 +78,9 @@ target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 add_executable(BowlingSim src/exec/bowling_sim.cpp)
 target_link_libraries(BowlingSim Simulation ${VTK_LIBRARIES})
 
+add_executable(SpringSim src/exec/spring_sim.cpp)
+target_link_libraries(SpringSim Simulation ${VTK_LIBRARIES})
+
 
 ###################################################
 # TESTS

@@ -8,6 +8,7 @@ set(SIMULATION_HEADERS
     ${SIMULATION_INCLUDE_DIR}/Simulation.hpp
     ${SIMULATION_INCLUDE_DIR}/RodConvergenceSimulation.hpp
     ${SIMULATION_INCLUDE_DIR}/BowlingSimulation.hpp
+    ${SIMULATION_INCLUDE_DIR}/SpringSimulation.hpp
 
     ${SIMULATION_INCLUDE_DIR}/SimulationLogger.hpp
 )
@@ -16,6 +17,7 @@ set(SIMULATION_SOURCES
     ${SIMULATION_SRC_DIR}/Simulation.cpp
     ${SIMULATION_SRC_DIR}/RodConvergenceSimulation.cpp
     ${SIMULATION_SRC_DIR}/BowlingSimulation.cpp
+    ${SIMULATION_SRC_DIR}/SpringSimulation.cpp
 
     ${SIMULATION_SRC_DIR}/SimulationLogger.cpp
 )
