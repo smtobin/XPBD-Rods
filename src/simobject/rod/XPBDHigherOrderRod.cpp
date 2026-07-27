@@ -54,7 +54,9 @@ XPBDRod_<ElementType>::XPBDRod_(const Config::RodConfig& config)
         Real ds = _length/(_num_nodes-1);
         Vec3r dR = _curvature*ds;
 
-        _nodes[i].position = _nodes[i-1].position + _nodes[i-1].orientation * Vec3r(0,0,ds);
+        Mat3r Rmid = _nodes[i-1].orientation * Math::Exp_so3(0.5*dR);
+        _nodes[i].position = _nodes[i-1].position + Rmid * Vec3r(0,0,ds);
+
         _nodes[i].lin_velocity = _nodes[i-1].lin_velocity;
         _nodes[i].orientation = _nodes[i-1].orientation*Math::Exp_so3(dR);
         _nodes[i].ang_velocity = _nodes[i-1].ang_velocity;
