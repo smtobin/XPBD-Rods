@@ -141,3 +141,8 @@ vtk_module_autoinit(
   MODULES ${VTK_LIBRARIES}
 )
 
+vtk_module_autoinit(
+  TARGETS SpringSim
+  MODULES ${VTK_LIBRARIES}
+)
+

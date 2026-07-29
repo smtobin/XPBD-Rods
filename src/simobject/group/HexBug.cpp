@@ -35,7 +35,7 @@ void HexBug::setup()
         Config::ObjectRenderConfig::RenderType::PBR,
         "../resource/meshes/hexbug_plastic_bottom.STL",
         std::nullopt, std::nullopt, std::nullopt,
-        0, 0.5, 1.0, _body_color,
+        0, 0.5, 0.2, _body_color,
         false,
         true, false,
         Vec3r(0,-4.2e-3,0), Vec3r(0,-90,0), 1e-3*Vec3r::Ones()

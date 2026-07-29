@@ -33,21 +33,35 @@ void SpringSimulation::setup()
     for (auto& cub_rod : cub_rods)
         _rods.push_back(cub_rod.get());
 
+    _logger->addOutput("Displacement", &_displacement);
+
     // get initial tip positions of rods
     for (const auto& rod_variant : _rods)
     {
         std::visit([&](const auto& rod) {
             _rod_initial_tips.push_back(rod->nodes().back().position);
         }, rod_variant);
+
+        _logger->addOutput("Midpoint-Horizontal-Displacement", [&]() -> Real {
+            return std::visit([&](const auto& rod) -> Real {
+                Vec3r pos = rod->nodes()[rod->nodes().size()/2].position;
+                return std::sqrt(pos[0]*pos[0] + pos[2]*pos[2]);
+            }, rod_variant);
+        });
     }
+
+    
+    
 }
 
 void SpringSimulation::_timeStep()
 {
     Simulation::_timeStep();
 
-    if (_time > 3 && std::abs(_displacement) < 0.01)
+    if (_time > 1 && std::abs(_displacement) < 0.6)
         _displacement -= 0.01*_dt;
+
+    std::cout << "Displacement: " << _displacement << std::endl;
 
     // go through rods and update fixed joint constraint
     for (unsigned i = 0; i < _rods.size(); i++)

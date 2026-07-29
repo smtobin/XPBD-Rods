@@ -8,6 +8,7 @@ solver-iters: 1
 camera-focal-point: [0,0,0]
 # camera-position: [0.25,1.5,4]
 camera-position: [2,1.5,2]
+scene-light-position: [0,1000,0]
 
 logging: True
 logging-output-folder: "../output/rps_robot"
@@ -15,9 +16,15 @@ logging-interval: 0.01
 log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
+create-skybox: False
+hdr-scaling: 0.3
 
-ground-plane: True
+window-width: 2560
+window-height: 1440
+render-for-video: True
+render-output-folder: "../output/render/rps/"
+
+ground-plane: False
 
 objects:
   -

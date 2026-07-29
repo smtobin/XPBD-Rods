@@ -3,11 +3,11 @@ name: "Plectoneme Sim"
 sim-mode: "AFAP"
 time-step: 1e-3
 solver-iters: 1
-end-time: 100
+end-time: 40
 
-camera-focal-point: [2,10,0]
+camera-focal-point: [4,8,0]
 # camera-position: [0.25,1.5,4]
-camera-position: [2,10,20]
+camera-position: [4,8,12]
 
 logging: False
 logging-output-folder: "../output/rps_robot"
@@ -16,9 +16,14 @@ log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: False
-exposure: 0.3
+hdr-scaling: 0.3
 
 ground-plane: False
+
+window-width: 2560
+window-height: 1440
+render-for-video: True
+render-output-folder: "../output/render/plectoneme/linear30"
 
 hash-voxel-size: 1
 num-hash-buckets: 14909
@@ -29,7 +34,7 @@ objects:
     revolutions: 6
 
     name: "plectoneme"
-    element-type: "Cubic"
+    element-type: "Linear"
     initial-position: [0, 10, 0.0]
     initial-rotation: [0, 90, 0]
     E: 5e7
@@ -38,7 +43,7 @@ objects:
     diameter: 0.1
     length: 10
     density: 1000
-    elements: 40
+    elements: 30
     global-solve: true
     base-fixed: True
     tip-fixed: True

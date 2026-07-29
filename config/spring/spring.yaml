@@ -2,42 +2,52 @@ name: "RodSim"
 
 # by default, the sim attempts to run in real-time
 # sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
-# sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
+sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
 
-time-step: 1e-3                   # the time step used by the sim
-end-time: 100000                  # the end time in the sim (some large number)
+time-step: 5e-3                   # the time step used by the sim
+end-time: 70                  # the end time in the sim (some large number)
 
 # logging - leave disabled
-logging: False
-logging-output-folder: "../output/convergence"
-logging-interval: 10
-log-residuals: True
+logging: True
+logging-output-folder: "../output/spring"
+logging-interval: 1e-2
+log-residuals: False
 
 # simulating render settings
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
-hdr-scaling: 0.2
+create-skybox: False
+hdr-scaling: 0.3
 
-ground-plane: True                # whether or not to create a ground plane
+ground-plane: False                # whether or not to create a ground plane
+
+camera-focal-point: [0, 0.5, 0]
+camera-position: [4, 1, 0]
+
+window-width: 2560
+window-height: 1440
+render-for-video: True
+render-output-folder: "../output/render/spring/cubic40"
 
 objects:
   # === The rod object ===
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Quadratic"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
-    elements: 50                # number of finite elements used in the discretization
-    initial-position: [0, 1, 0.0] # initial position of base of rod
-    initial-rotation: [0, 0, 0]   # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
-    curvature: [0,10,1]
+    element-type: "Cubic"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
+    elements: 40                # number of finite elements used in the discretization
+    initial-position: [0, 0, 0.0] # initial position of base of rod
+    initial-rotation: [-8.5307, 0, 0]   # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
+    curvature: [0,10,1.5]
 
     # material parameters
-    E: 1e9                       # Young's modulus
-    nu: 0.4                       # Poisson ratio
-    beta: 1                     # damping coefficient in the rod
-    diameter: 0.03                 # diameter of rod cross-section
-    length: 10                     # rest length of rod
-    density: 1000                 # density (kg/m^3)
+    E: 60e9                       # Young's modulus
+    nu: 0.3                       # Poisson ratio
+    beta: 0                     # damping coefficient in the rod
+    diameter: 0.01                 # diameter of rod cross-section
+    length: 9.5                     # rest length of rod
+    density: 7650                 # density (kg/m^3)
+    static-friction-coeff: 0.1
+    dynamic-friction-coeff: 0.05
     
     # solver parameters
     global-solve: True            # whether or not to use a global solve on the rod subsystem (should always be true)
@@ -50,9 +60,9 @@ objects:
     render-type: "PBR"            # use PBR rendering
     metallic: 0.0                 # metallicity of PBR material (should be 0 unless material is a metal, then it should be 1.0)
     roughness: 0.5                # roughness of rod surface in the range [0-1]
-    color: [1.0, 0, 0]            # color of the rod
+    color: [1.0, 0.5, 0.0]            # color of the rod
     opacity: 1                    # opacity of the rod
     draw-centerline: False        # optionally visualize the centerline of the rod
-    centerline-samples: 500        # number of samples along the centerline to use for visualization
-    # color-elements: True
+    centerline-samples: 1000        # number of samples along the centerline to use for visualization
+    color-elements: True
     # draw-frames: True

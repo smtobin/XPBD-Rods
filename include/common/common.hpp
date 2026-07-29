@@ -382,7 +382,7 @@ using XPBDJointConfigs_TypeList = TypeList<
 using XPBDJointConfigs_Container = VariadicVectorContainerFromTypeList<XPBDJointConfigs_TypeList>::type;
 
 /** Universal constants used by the simulation */
-#define G_ACCEL 0    // acceleration due to gravity
+#define G_ACCEL 9.81    // acceleration due to gravity
 #define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
 #define COLLISION_CHECK_INTERVAL 0//1.0/500.0 // time between collision detection
 #define CONSTRAINT_EPS 1e-13    // epsilon for constraints - i.e. any number less than this is treated as 0

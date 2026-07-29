@@ -20,6 +20,7 @@
 #include <vtkImageReader2Factory.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLight.h>
+#include <vtkLightCollection.h>
 #include <vtkNamedColors.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOpenGLTexture.h>
@@ -80,6 +81,8 @@ void GraphicsScene::renderCallback(vtkObject* /*caller*/, long unsigned int /*ev
         // set the clipping range every time
         vtkCamera* camera = scene->_renderer->GetActiveCamera();
         camera->SetClippingRange(0.01, 10000.0);
+        scene->_renderer->GetLights()->Modified();
+        // scene->_renderer->ResetCameraClippingRange();
 
         scene->_render_window->Render();
 
@@ -97,7 +100,13 @@ void GraphicsScene::writeFrame(int frame_index)
     // render
     // vtkCamera* camera = _renderer->GetActiveCamera();
     // camera->SetClippingRange(0.01, 10000.0);
+    // 
+
+    // _window_to_image->ShouldRerenderOff();
+    // _renderer->ResetCameraClippingRange();
+
     // _render_window->Render();
+    
 
     // write to file
     _window_to_image->Modified();
@@ -209,8 +218,10 @@ void GraphicsScene::setup(Sim::Simulation* sim)
     // Create the render window and interactor
     //////////////////////////////////////////////////////
     _render_window = vtkSmartPointer<vtkRenderWindow>::New();
-    _render_window->AddRenderer(_renderer);
     _render_window->SetSize(_render_config.windowWidth(), _render_config.windowHeight());
+    _render_window->SetOffScreenRendering(_render_config.renderForVideo());
+    _render_window->AddRenderer(_renderer);
+    
     _render_window->SetWindowName("Rod Test");
 
     _interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
@@ -275,9 +286,6 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
         _png_writer = vtkSmartPointer<vtkPNGWriter>::New();
         _png_writer->SetInputConnection(_window_to_image->GetOutputPort());
-
-        // enable offscreen rendering
-        _render_window->SetOffScreenRendering(true);
     }
 
     vtkNew<vtkCallbackCommand> render_callback;

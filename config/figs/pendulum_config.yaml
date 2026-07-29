@@ -1,8 +1,8 @@
 name: "Pendulum Sim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
+sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 1000
+end-time: 10
 
 logging: False
 logging-output-folder: "../output/pendulum"
@@ -14,11 +14,15 @@ ground-plane: False
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: False
-exposure: 0.3
+hdr-scaling: 0.3
 
 camera-focal-point: [0, -1.5, 0]
 camera-position: [0, -1.5, 7]
-window-width: 1000
+
+window-width: 2560
+window-height: 1440
+render-for-video: True
+render-output-folder: "../output/render/pendulum/"
 
 objects:
   - 
