@@ -1,9 +1,9 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
-time-step: 1e-2
+time-step: 1e-4
 end-time: 100
-solver-iters: 100
+solver-iters: 1
 
 logging: False
 logging-output-folder: "../output/global_solve"
@@ -12,13 +12,19 @@ log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: False
+hdr-scaling: 0.3
 
-ground-plane: True
+ground-plane: False
 
 camera-focal-point: [0.25,1.5,0]
 # camera-position: [0.25,1.5,4]
 camera-position: [4,3,4]
 camera-orthographic: False
+
+window-width: 2000
+window-height: 2000
+render-for-video: True
+render-output-folder: "../output/render/global_solve/100substeps"
 
 objects:
   # - 
@@ -74,37 +80,11 @@ objects:
   #   opacity: 1
   #   centerline-samples: 50
 
-  - 
-    type: "Rod"
-    name: "gs_solve100iters"
-    element-type: "Cubic"
-    initial-position: [0, 1.5, -0.3]
-    initial-rotation: [0, 90, 0]
-    E: 5e6
-    nu: 0.4
-    diameter: 0.1
-    length: 1
-    density: 1000
-    elements: 5
-    global-solve: False
-    base-fixed: True
-    tip-fixed: False
-    collisions: False
-    log-particles: True
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.0
-    roughness: 0.5
-    color: [0.0, 1.0, 0]
-    opacity: 1
-    centerline-samples: 50
-
   # - 
   #   type: "Rod"
-  #   name: "gs_solve100substeps"
+  #   name: "gs_solve100iters"
   #   element-type: "Cubic"
-  #   initial-position: [0, 1.5, -0.8]
+  #   initial-position: [0, 1.5, -0.3]
   #   initial-rotation: [0, 90, 0]
   #   E: 5e6
   #   nu: 0.4
@@ -122,9 +102,36 @@ objects:
   #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
   #   metallic: 0.0
   #   roughness: 0.5
-  #   color: [1.0, 0.0, 1.0]
+  #   color: [0.0, 1.0, 0]
   #   opacity: 1
   #   centerline-samples: 50
+
+  - 
+    type: "Rod"
+    name: "gs_solve100substeps"
+    element-type: "Cubic"
+    initial-position: [0, 1.5, -0.8]
+    initial-rotation: [0, 90, 0]
+    E: 5e6
+    nu: 0.4
+    diameter: 0.1
+    length: 1
+    density: 1000
+    beta: 1e6
+    elements: 5
+    global-solve: False
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [1.0, 0.0, 1.0]
+    opacity: 1
+    centerline-samples: 50
 
   -
     type: "RigidBox"

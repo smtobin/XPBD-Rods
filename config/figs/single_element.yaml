@@ -10,13 +10,19 @@ logging-interval: 1
 log-residuals: True
 
 hdr-image-filename: "../resource/studio_1k.hdr"
-create-skybox: True
+create-skybox: False
+hdr-scaling: 0.3
 
-ground-plane: True
+ground-plane: False
 
 camera-focal-point: [0.25,1.5,0]
 # camera-position: [0.25,1.5,4]
 camera-position: [4,3,4]
+
+window-width: 2000
+window-height: 2000
+render-for-video: True
+render-output-folder: "../output/render/single_element"
 
 objects:
   - 
