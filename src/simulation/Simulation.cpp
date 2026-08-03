@@ -701,7 +701,7 @@ void Simulation::notifyLeftMouseButtonReleased()
 void Simulation::_timeStep()
 {
     // collision detection
-    if (_time > _last_collision_check_time + COLLISION_CHECK_INTERVAL)
+    if (_time >= _last_collision_check_time + COLLISION_CHECK_INTERVAL)
     {
         _detectCollisions();
 
