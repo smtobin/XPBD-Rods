@@ -178,7 +178,8 @@ public:
                 _collision_scene.addObject(new_obj_ptr);
         }
 
-        _graphics_scene.addObject(new_obj_ptr, obj_config);
+        if (obj_config.renderConfig().render())
+            _graphics_scene.addObject(new_obj_ptr, obj_config);
         
 
         // assign global indices to the new object's nodes

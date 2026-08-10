@@ -25,7 +25,7 @@ Simulation::Simulation()
 Simulation::Simulation(const Config::SimulationConfig& sim_config)
     : _setup(false), _time(0),
     _dt(sim_config.timeStep()), _end_time(sim_config.endTime()), _g_accel(sim_config.gAccel()),
-    _viewer_refresh_time_ms(1000.0/30.0),
+    _viewer_refresh_time_ms(static_cast<int>(1000.0 / sim_config.fps())),
     _solver_iters(sim_config.solverIters()),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
@@ -400,6 +400,7 @@ void Simulation::setup()
             1000, 1000,
             Vec3r(0,1,0)
         );
+        plane_config.renderConfig().setRender(_config.showGroundPlane());
         _addObjectFromConfig(plane_config);
     }
 

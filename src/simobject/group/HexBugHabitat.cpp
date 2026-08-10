@@ -21,7 +21,7 @@ HexBugHabitat::HexBugHabitat(const Config::HexBugHabitatConfig& config)
 void HexBugHabitat::setup()
 {
 
-    _objects.template reserve<XPBDRigidBox>(12);
+    _objects.template reserve<XPBDRigidBox>(13);
 
     // create walls
     for (int i = 0; i < 6; i++)
@@ -63,7 +63,23 @@ void HexBugHabitat::setup()
         
         
     }
-    
+
+    // create ground
+    Config::XPBDRigidBoxConfig ground_config(
+        "ground", _center, Vec3r(0,0,0), Vec3r::Zero(), Vec3r::Zero(), false, 0.1, 0.0,
+        100, true, Vec3r(0.001, 0.001, 0.001)
+    );
+    Config::MeshRenderConfig ground_mesh_config(
+        Config::ObjectRenderConfig::RenderType::FLAT,
+        "../resource/meshes/extruded_hexagon.stl",
+        std::nullopt, std::nullopt, std::nullopt,
+        0.0, 0.5, 1.0, Vec3r(1.0, 1.0, 1.0),
+        true,
+        true, false,
+        Vec3r(0,-0.1*_wall_length/2/10,0), Vec3r(0,30,0), Vec3r(_wall_length*1.005, _wall_length/10, _wall_length*1.005)
+    );
+    ground_config.addRenderMeshConfig(ground_mesh_config);
+    _objects.template emplace_back<XPBDRigidBox>(ground_config);
 
     
 }

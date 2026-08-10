@@ -43,6 +43,8 @@ class SimulationConfig : public Config_Base
         _extractParameter("end-time", node, _end_time);
         _extractParameter("g-accel", node, _g_accel);
         _extractParameter("ground-plane", node, _ground_plane);
+        _extractParameter("show-ground-plane", node, _show_ground_plane);
+        _extractParameter("fps", node, _fps);
 
         _extractParameter("logging", node, _logging);
         _extractParameter("logging-output-folder", node, _logging_output_dir);
@@ -165,7 +167,9 @@ class SimulationConfig : public Config_Base
     Real timeStep() const { return _time_step.value; }
     Real endTime() const { return _end_time.value; }
     Real gAccel() const { return _g_accel.value; }
+    Real fps() const { return _fps.value; }
     bool groundPlane() const { return _ground_plane.value; }
+    bool showGroundPlane() const { return _show_ground_plane.value; }
     int solverIters() const { return _solver_iters.value; }
 
     bool logging() const { return _logging.value; }
@@ -184,9 +188,11 @@ class SimulationConfig : public Config_Base
     ConfigParameter<SimulationMode> _sim_mode = ConfigParameter<SimulationMode>(SimulationMode::VISUALIZATION);
 
     ConfigParameter<bool> _ground_plane = ConfigParameter<bool>(true);
+    ConfigParameter<bool> _show_ground_plane = ConfigParameter<bool>(true);
     ConfigParameter<Real> _time_step = ConfigParameter<Real>(1e-3);
     ConfigParameter<Real> _end_time = ConfigParameter<Real>(60);
     ConfigParameter<Real> _g_accel = ConfigParameter<Real>(9.81);
+    ConfigParameter<Real> _fps = ConfigParameter<Real>(30);
 
     ConfigParameter<bool> _logging = ConfigParameter<bool>(false);
     ConfigParameter<std::string> _logging_output_dir = ConfigParameter<std::string>("../output/");

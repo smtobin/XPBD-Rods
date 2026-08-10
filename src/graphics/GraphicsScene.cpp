@@ -253,7 +253,7 @@ void GraphicsScene::setup(Sim::Simulation* sim)
 
     // Shadow map
     vtkNew<vtkShadowMapPass> shadowPass;
-    shadowPass->GetShadowMapBakerPass()->SetResolution(4096);
+    shadowPass->GetShadowMapBakerPass()->SetResolution(16384);
 
     // IMPORTANT: depth peeling must wrap translucent pass
     vtkNew<vtkDepthPeelingPass> peelingPass;
