@@ -9,7 +9,7 @@ namespace Collision
 
 enum class ColliderType : uint8_t
 {
-    Sphere, Box, RodSegment, Plane,
+    Sphere, Box, Mesh, RodSegment, Plane,
     COUNT
 };
 
@@ -25,6 +25,7 @@ struct CollisionObject
     CollisionObject(SimObject::XPBDRigidSphere* sphere);
     CollisionObject(SimObject::XPBDRigidBox* box);
     CollisionObject(SimObject::RodCollisionSegment* segment);
+    CollisionObject(SimObject::XPBDRigidMesh* mesh);
     CollisionObject(SimObject::XPBDPlane* plane);
 
     SimObject::AABB boundingBox() const;

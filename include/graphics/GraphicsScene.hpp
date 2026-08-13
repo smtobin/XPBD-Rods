@@ -2,6 +2,7 @@
 
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
+#include "simobject/rigidbody/XPBDRigidMesh.hpp"
 #include "simobject/group/XPBDObjectGroup_Base.hpp"
 #include "graphics/GraphicsObject.hpp"
 #include "graphics/HigherOrderRodGraphicsObject.hpp"
@@ -69,6 +70,7 @@ class GraphicsScene
     }
     void addObject(const SimObject::XPBDRigidSphere* sphere, const Config::XPBDObjectConfig& render_config);
     void addObject(const SimObject::XPBDRigidBox* box, const Config::XPBDObjectConfig& render_config);
+    void addObject(const SimObject::XPBDRigidMesh* mesh, const Config::XPBDObjectConfig& render_config);
     void addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& render_config);
     void addObject(const SimObject::XPBDObjectGroup_Base* pen, const Config::XPBDObjectConfig& render_config);
 

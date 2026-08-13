@@ -8,6 +8,7 @@
 class Mesh
 {
 public:
+    Mesh() = default;
     Mesh(const std::vector<Vec3r>& vertices, const std::vector<Vec3i>& faces);
 
     /** Loads from a file with Assimp. */
