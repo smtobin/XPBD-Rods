@@ -1,8 +1,8 @@
 name: "Pendulum Sim"
 # sim-mode: "Frame-by-frame"
-sim-mode: "AFAP"
+# sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 10
+end-time: 30
 
 logging: False
 logging-output-folder: "../output/pendulum"
@@ -17,12 +17,12 @@ create-skybox: False
 hdr-scaling: 0.3
 
 camera-focal-point: [0, -1.5, 0]
-camera-position: [0, -1.5, 7]
+camera-position: [0, -1.5, 12]
 
-window-width: 2560
-window-height: 1440
+window-width: 2000
+window-height: 2000
 render-for-video: True
-render-output-folder: "../output/render/pendulum/"
+render-output-folder: "../output/render/pendulum/vectorseparate"
 
 objects:
   - 
@@ -30,7 +30,7 @@ objects:
     name: "pendulum"
     num-bodies: 3
     initial-angle: 80
-    projector-type: "block"
+    projector-type: "separate"
     render-type: "PBR"
     # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
     # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"

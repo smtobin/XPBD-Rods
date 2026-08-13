@@ -2,7 +2,7 @@ name: "BowlingSim"
 # sim-mode: "Frame-by-frame"
 # sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 30
+end-time: 50
 solver-iters: 1
 
 logging: False
@@ -16,7 +16,7 @@ hdr-scaling: 0.3
 exposure: 0.2
 
 camera-focal-point: [0, 0.1, 0]
-camera-position: [3, 0.1, 0]
+camera-position: [4, 0.5, 0]
 
 ground-plane: False
 rod-rod-collisions: True
@@ -25,9 +25,10 @@ hash-voxel-size: 1e-1
 num-hash-buckets: 31111
 
 # uncomment to save video
-window-width: 2560
-window-height: 1440
+window-width: 2000
+window-height: 2000
 render-for-video: True
-render-output-folder: "../output/render/bowling"
+render-output-folder: "../output/render/bowling_teaser"
+fps: 10
 
 # objects:

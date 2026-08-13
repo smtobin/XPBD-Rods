@@ -23,18 +23,18 @@ ground-plane: False                # whether or not to create a ground plane
 camera-focal-point: [0, 0.5, 0]
 camera-position: [4, 1, 0]
 
-window-width: 2560
-window-height: 1440
-render-for-video: True
-render-output-folder: "../output/render/spring/cubic40"
+# window-width: 2000
+# window-height: 2000
+# render-for-video: True
+# render-output-folder: "../output/render/spring/cubic40"
 
 objects:
   # === The rod object ===
   - 
     type: "Rod"
     name: "rod1"
-    element-type: "Cubic"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
-    elements: 40                # number of finite elements used in the discretization
+    element-type: "Rigid Body"        # the finite element type for the rod - "Linear", "Quadratic", "Cubic" (this is the degree of basis polynomial used)
+    elements: 120                # number of finite elements used in the discretization
     initial-position: [0, 0, 0.0] # initial position of base of rod
     initial-rotation: [-8.5307, 0, 0]   # initial rotation of base of rod (XYZ Euler angles, specified in degrees)
     curvature: [0,10,1.5]
@@ -63,6 +63,6 @@ objects:
     color: [1.0, 0.5, 0.0]            # color of the rod
     opacity: 1                    # opacity of the rod
     draw-centerline: False        # optionally visualize the centerline of the rod
-    centerline-samples: 1000        # number of samples along the centerline to use for visualization
-    color-elements: True
+    centerline-samples: 100        # number of samples along the centerline to use for visualization
+    color-elements: False
     # draw-frames: True

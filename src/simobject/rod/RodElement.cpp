@@ -304,8 +304,8 @@ typename RodElement<Order>::StrainGradientMatType RodElement<Order>::strainGradi
     /** Compute gradients of bending strain */
 
     // gradients of bending strain
-    Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
-    // Mat3r dexpmap_contract_j_approx = Math::DExpMap_RightJacobian_Contract_j_approx(theta, dtheta_ds);
+    // Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j(theta, dtheta_ds);
+    Mat3r dexpmap_contract_j = Math::DExpMap_RightJacobian_Contract_j_approx(theta, dtheta_ds);
 
     // std::cout << "||theta||: " << theta.norm() << std::endl;
     // std::cout << "dexpmap_contract_j full:\n" << dexpmap_contract_j << std::endl;

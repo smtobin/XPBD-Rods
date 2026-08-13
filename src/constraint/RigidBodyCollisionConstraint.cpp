@@ -141,7 +141,7 @@ void RigidBodyCollisionConstraint::applyFriction(Real lambda_n) const
 
 void RigidBodyCollisionConstraint::applyRestitution() const
 {
-    Real e = 0.0;
+    Real e = 0.9;
 
     // get previous relative velocity between contact points, in the normal direction
     Vec3r v_cp1_prev = _oriented_particles[0]->prev_lin_velocity + _oriented_particles[0]->prev_orientation * Math::Skew3(_oriented_particles[0]->prev_ang_velocity) * _r1;

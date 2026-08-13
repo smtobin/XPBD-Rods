@@ -139,7 +139,7 @@ void RPSRobot::setup()
         if (_normed_constraints)
         {
             Constraint::OneSidedRevoluteJointConstraint revolute_constraint(
-                base.com().position + Vec3r(base_radius*std::sin(angles[i]*M_PI/180.0), 0, base_radius*std::cos(angles[i]*M_PI/180.0)), base.com().orientation * base_rev_joint_rot_offset,
+                first_link_base_pos - base.com().position, base.com().orientation * base_rev_joint_rot_offset,
                 &first_links[i]->com(), Vec3r(0,0,first_link_length/2), Math::RotMatFromXYZEulerAngles(Vec3r(0,-90,0))
             );
             _constraints.template push_back<Constraint::OneSidedRevoluteJointConstraint>(std::move(revolute_constraint));

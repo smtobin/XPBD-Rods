@@ -1,6 +1,6 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
-# sim-mode: "AFAP"
+sim-mode: "AFAP"
 time-step: 1e-4
 end-time: 10
 
@@ -37,10 +37,10 @@ rod-rod-collisions: false
 # uncomment to save video
 # window-width: 2560
 # window-height: 1440
-window-width: 2000
-window-height: 2000
-render-for-video: True
-render-output-folder: "../output/render/hexbug_single_enclosure"
+# window-width: 2000
+# window-height: 2000
+# render-for-video: True
+# render-output-folder: "../output/render/hexbug_single_enclosure"
 
 objects:
   -

@@ -2,7 +2,7 @@ name: "RodSim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
 time-step: 1e-2
-end-time: 100
+end-time: 30
 
 logging: False
 logging-output-folder: "../output/single_element"
@@ -19,10 +19,10 @@ camera-focal-point: [0.25,1.5,0]
 # camera-position: [0.25,1.5,4]
 camera-position: [4,3,4]
 
-window-width: 2000
-window-height: 2000
-render-for-video: True
-render-output-folder: "../output/render/many_elements"
+# window-width: 2000
+# window-height: 2000
+# render-for-video: True
+# render-output-folder: "../output/render/many_elements"
 
 objects:
   - 

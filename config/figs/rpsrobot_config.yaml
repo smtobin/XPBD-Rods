@@ -2,7 +2,7 @@ name: "RPS Sim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
 time-step: 1e-3
-end-time: 10
+end-time: 20
 solver-iters: 1
 
 camera-focal-point: [0,0,0]
@@ -10,7 +10,7 @@ camera-focal-point: [0,0,0]
 camera-position: [2,1.5,2]
 scene-light-position: [0,1000,0]
 
-logging: True
+logging: False
 logging-output-folder: "../output/rps_robot"
 logging-interval: 0.01
 log-residuals: True
@@ -19,10 +19,10 @@ hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: False
 hdr-scaling: 0.3
 
-window-width: 2560
-window-height: 1440
+window-width: 2000
+window-height: 2000
 render-for-video: True
-render-output-folder: "../output/render/rps/"
+render-output-folder: "../output/render/rps/vectorblock"
 
 ground-plane: False
 
@@ -32,6 +32,6 @@ objects:
     log-particles: False
 
     use-normed-constraints: False
-    projector-type: "separate"
+    projector-type: "block"
 
     color: [1.0, 0.5, 0.0]

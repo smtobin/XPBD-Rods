@@ -15,9 +15,9 @@ Plectoneme::Plectoneme(const Config::PlectonemeConfig& config)
 
 void Plectoneme::setup()
 {
-    _rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
-    _rod_config.renderConfig().setRoughness(0.2);
-    _rod_config.renderConfig().setCenterlineSamples(100);
+    // _rod_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
+    // _rod_config.renderConfig().setRoughness(0.2);
+    // _rod_config.renderConfig().setCenterlineSamples(100);
 
     if (_rod_config.elementType() == Config::RodElementType::LINEAR)
     {

@@ -27,7 +27,7 @@ void BowlingSimulation::setup()
     int num_pins_in_row = 1;
     int index_in_row = 0;
     int num_pins = 10;
-    Vec3r pin_size(0.07, 0.317216, 0.07);
+    Vec3r pin_size(0.07, 0.3, 0.07);
     Real pin_spacing = 0.2;
     Vec3r front_pin_pos = Vec3r(0, pin_size[1]/2, 0);
 
@@ -60,7 +60,7 @@ void BowlingSimulation::setup()
             0, 0.3, 1.0, Vec3r(1.0,1.0, 1.0),
             true,
             true, false,
-            Vec3r(0,-0.05,0), Vec3r(0,0,0), Vec3r::Ones()
+            Vec3r(0,-0.05,0), Vec3r(0,0,0), Vec3r(1, 1, 1)
         );
         pin_config.addRenderMeshConfig(pin_mesh_config);
         _addObjectFromConfig(pin_config);
@@ -323,7 +323,7 @@ void BowlingSimulation::_timeStep()
             cur_base_y = new_base_pos[1];
         }
 
-        if (cur_base_y < _string_length + 0.2)
+        if (cur_base_y < _string_length + 0.3)
         {
             _state = State::READY;
             _state_change_time = _time;

@@ -1,8 +1,8 @@
 name: "RodSim"
 # sim-mode: "Frame-by-frame"
 sim-mode: "AFAP"
-time-step: 1e-2
-end-time: 100
+time-step: 1e-3
+end-time: 20
 solver-iters: 1
 
 logging: False
@@ -21,15 +21,15 @@ camera-focal-point: [0.25,1.5,0]
 camera-position: [4,3,4]
 camera-orthographic: False
 
-window-width: 2000
-window-height: 2000
-render-for-video: True
-render-output-folder: "../output/render/global_solve/global"
+# window-width: 4000
+# window-height: 4000
+# render-for-video: True
+# render-output-folder: "../output/render/damping"
 
 objects:
   - 
     type: "Rod"
-    name: "global_solve"
+    name: "rod1"
     element-type: "Cubic"
     initial-position: [0, 1.5, 0.7]
     initial-rotation: [0, 90, 0]
@@ -38,6 +38,7 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
+    beta: 0
     elements: 5
     global-solve: true
     base-fixed: True
@@ -56,7 +57,7 @@ objects:
 
   - 
     type: "Rod"
-    name: "gs_solve1"
+    name: "rod2"
     element-type: "Cubic"
     initial-position: [0, 1.5, 0.2]
     initial-rotation: [0, 90, 0]
@@ -65,8 +66,9 @@ objects:
     diameter: 0.1
     length: 1
     density: 1000
+    beta: 1e1
     elements: 5
-    global-solve: False
+    global-solve: True
     base-fixed: True
     tip-fixed: False
     collisions: False
@@ -80,58 +82,59 @@ objects:
     opacity: 1
     centerline-samples: 200
 
-  # - 
-  #   type: "Rod"
-  #   name: "gs_solve100iters"
-  #   element-type: "Cubic"
-  #   initial-position: [0, 1.5, -0.3]
-  #   initial-rotation: [0, 90, 0]
-  #   E: 5e6
-  #   nu: 0.4
-  #   diameter: 0.1
-  #   length: 1
-  #   density: 1000
-  #   elements: 5
-  #   global-solve: False
-  #   base-fixed: True
-  #   tip-fixed: False
-  #   collisions: False
-  #   log-particles: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.0
-  #   roughness: 0.5
-  #   color: [0.0, 1.0, 0]
-  #   opacity: 1
-  #   centerline-samples: 200
+  - 
+    type: "Rod"
+    name: "rod3"
+    element-type: "Cubic"
+    initial-position: [0, 1.5, -0.3]
+    initial-rotation: [0, 90, 0]
+    E: 5e6
+    nu: 0.4
+    diameter: 0.1
+    length: 1
+    density: 1000
+    beta: 1e3
+    elements: 5
+    global-solve: True
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [0.0, 1.0, 0]
+    opacity: 1
+    centerline-samples: 200
 
-  # - 
-  #   type: "Rod"
-  #   name: "gs_solve100substeps"
-  #   element-type: "Cubic"
-  #   initial-position: [0, 1.5, -0.8]
-  #   initial-rotation: [0, 90, 0]
-  #   E: 5e6
-  #   nu: 0.4
-  #   diameter: 0.1
-  #   length: 1
-  #   density: 1000
-  #   beta: 1e6
-  #   elements: 5
-  #   global-solve: False
-  #   base-fixed: True
-  #   tip-fixed: False
-  #   collisions: False
-  #   log-particles: True
-  #   render-type: "PBR"
-  #   # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-  #   # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-  #   metallic: 0.0
-  #   roughness: 0.5
-  #   color: [1.0, 0.0, 1.0]
-  #   opacity: 1
-  #   centerline-samples: 200
+  - 
+    type: "Rod"
+    name: "rod4"
+    element-type: "Cubic"
+    initial-position: [0, 1.5, -0.8]
+    initial-rotation: [0, 90, 0]
+    E: 5e6
+    nu: 0.4
+    diameter: 0.1
+    length: 1
+    density: 1000
+    beta: 1e6
+    elements: 5
+    global-solve: True
+    base-fixed: True
+    tip-fixed: False
+    collisions: False
+    log-particles: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [1.0, 0.0, 1.0]
+    opacity: 1
+    centerline-samples: 200
 
   -
     type: "RigidBox"
