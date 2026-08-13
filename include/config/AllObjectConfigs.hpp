@@ -9,4 +9,5 @@
 #include "config/PlectonemeConfig.hpp"
 #include "config/XPBDRigidBoxConfig.hpp"
 #include "config/XPBDRigidSphereConfig.hpp"
+#include "config/XPBDRigidMeshConfig.hpp"
 #include "config/XPBDPlaneConfig.hpp"

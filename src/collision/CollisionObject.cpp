@@ -2,6 +2,7 @@
 
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/rigidbody/XPBDRigidMesh.hpp"
 #include "simobject/rod/RodCollisionSegment.hpp"
 #include "simobject/rigidbody/XPBDPlane.hpp"
 
@@ -22,6 +23,10 @@ CollisionObject::CollisionObject(SimObject::RodCollisionSegment* segment)
 
 CollisionObject::CollisionObject(SimObject::XPBDPlane* plane)
     : obj(plane), type(ColliderType::Plane), fixed(plane->com().fixed)
+{}
+
+CollisionObject::CollisionObject(SimObject::XPBDRigidMesh* mesh)
+    : obj(mesh), type(ColliderType::Mesh), fixed(mesh->com().fixed)
 {}
 
 SimObject::AABB CollisionObject::boundingBox() const
