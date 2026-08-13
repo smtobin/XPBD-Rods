@@ -23,6 +23,12 @@ public:
      * Uses the same algorithm as massProperties(), but without calculating the moment of inertia.
      */
     Vec3r massCenter() const;
+    static Vec3r massCenter(const std::vector<Vec3r>& vertices, const std::vector<Vec3i>& faces);
+
+    /** Computes the mass properties of the mesh.
+     * Returns a tuple (mass, center of mass, moment of inertia)
+     */
+    std::tuple<Real, Vec3r, Mat3r> massProperties(Real density) const;
 
     /** Moves each vertex in the mesh by the same amount. */
     void moveDelta(const Vec3r& delta);
