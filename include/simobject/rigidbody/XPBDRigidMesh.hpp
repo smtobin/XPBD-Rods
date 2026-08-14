@@ -18,6 +18,7 @@ public:
 
 private:
     Mesh _mesh;
+    Vec3r _unoriented_size;
 };
 
 } // namespace SimObject

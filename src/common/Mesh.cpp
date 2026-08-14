@@ -64,6 +64,19 @@ Mesh Mesh::loadFromFile(const std::string& filename)
     return mesh;
 }
 
+SimObject::AABB Mesh::boundingBox() const
+{
+    SimObject::AABB aabb;
+    for (const auto& vert : _vertices)
+    {
+        aabb.min = aabb.min.cwiseMin(vert);
+        aabb.max = aabb.max.cwiseMax(vert);
+    }
+
+    return aabb;
+
+}
+
 Vec3r Mesh::massCenter() const
 {
     return massCenter(_vertices, _faces);

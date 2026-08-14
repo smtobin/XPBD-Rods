@@ -2,6 +2,8 @@
 
 #include "common/common.hpp"
 
+#include "simobject/AABB.hpp"
+
 /** Basic mesh class.
  * Stores an array of vertices and faces.
  */
@@ -19,6 +21,8 @@ public:
 
     const Vec3r& vertex(int vertex_ind) const { return _vertices[vertex_ind]; }
     const Vec3i& face(int face_ind) const { return _faces[face_ind]; }
+
+    SimObject::AABB boundingBox() const;
 
     /** Computes the current center of mass for the mesh.
      * Uses the same algorithm as massProperties(), but without calculating the moment of inertia.
