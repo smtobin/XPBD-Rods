@@ -9,7 +9,7 @@ namespace Collision
 
 enum class ColliderType : uint8_t
 {
-    Sphere, Box, Mesh, RodSegment, Plane,
+    Sphere, Box, RodSegment, Plane, Mesh,
     COUNT
 };
 

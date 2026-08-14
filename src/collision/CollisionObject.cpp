@@ -65,6 +65,20 @@ SimObject::AABB CollisionObject::boundingBox() const
         SimObject::RodCollisionSegment* segment = static_cast<SimObject::RodCollisionSegment*>(obj);
         return segment->boundingBox();
     }
+    else if (type == ColliderType::Mesh)
+    {
+        SimObject::XPBDRigidMesh* mesh = static_cast<SimObject::XPBDRigidMesh*>(obj);
+        SimObject::AABB bbox = mesh->boundingBox();
+        Vec3r center = (bbox.max + bbox.min)/2;
+        Vec3r halfsize = (bbox.max - bbox.min)/2;
+        halfsize[0] += 2*std::abs(mesh->com().lin_velocity[0]) * COLLISION_CHECK_INTERVAL;
+        halfsize[1] += 2*std::abs(mesh->com().lin_velocity[1]) * COLLISION_CHECK_INTERVAL;
+        halfsize[2] += 2*std::abs(mesh->com().lin_velocity[2]) * COLLISION_CHECK_INTERVAL;
+
+        bbox.max = center + halfsize;
+        bbox.min = center - halfsize;
+        return bbox;
+    }
     else
     {
         throw std::runtime_error("CollisionObject::boundingBox object type unknown!");
