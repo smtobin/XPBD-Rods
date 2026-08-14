@@ -3,6 +3,7 @@
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
 #include "simobject/rigidbody/XPBDPlane.hpp"
+#include "simobject/rigidbody/XPBDRigidMesh.hpp"
 #include "simobject/rod/RodCollisionSegment.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 
@@ -44,6 +45,10 @@ void CollisionScene::_initCollisionTable()
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
+    _collision_table[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::Mesh)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
+    };
+
     // first type is a box
     _collision_table[static_cast<int>(ColliderType::Box)][static_cast<int>(ColliderType::Sphere)] = [](CollisionScene* scene,void* a, void* b) {
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::XPBDRigidBox*>(a));     // switched
@@ -57,6 +62,10 @@ void CollisionScene::_initCollisionTable()
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
     };
 
+    _collision_table[static_cast<int>(ColliderType::Box)][static_cast<int>(ColliderType::Mesh)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
+    };
+
     // first type is a rod segment
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Sphere)] = [](CollisionScene* scene, void* a, void* b) {
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::RodCollisionSegment*>(a));     // switched
@@ -68,6 +77,10 @@ void CollisionScene::_initCollisionTable()
 
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
         CollisionScene::_checkCollision(scene, static_cast<SimObject::RodCollisionSegment*>(a), static_cast<SimObject::RodCollisionSegment*>(b));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Mesh)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::RodCollisionSegment*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
     };
 
     // first type is a plane
@@ -85,6 +98,31 @@ void CollisionScene::_initCollisionTable()
 
     _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Plane)] = [](CollisionScene* scene, void* a, void* b) {
         CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDPlane*>(b));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Plane)][static_cast<int>(ColliderType::Mesh)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
+    };
+
+    // first type is a mesh
+    _collision_table[static_cast<int>(ColliderType::Mesh)][static_cast<int>(ColliderType::Sphere)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::XPBDRigidMesh*>(a));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Mesh)][static_cast<int>(ColliderType::Box)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidBox*>(b), static_cast<SimObject::XPBDRigidMesh*>(a));     // switched
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Mesh)][static_cast<int>(ColliderType::RodSegment)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::RodCollisionSegment*>(b), static_cast<SimObject::XPBDRigidMesh*>(a));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Mesh)][static_cast<int>(ColliderType::Plane)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDPlane*>(b), static_cast<SimObject::XPBDRigidMesh*>(a));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::Mesh)][static_cast<int>(ColliderType::Mesh)] = [](CollisionScene* scene, void* a, void* b) {
+        CollisionScene::_checkCollision(scene, static_cast<SimObject::XPBDRigidMesh*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
     };
 
     _collision_table_initialized = true;
@@ -523,15 +561,33 @@ void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollis
     }
 }
 
+void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPBDPlane* /* plane */, SimObject::XPBDRigidMesh* /* mesh */)
+{
+
+}
+
+void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPBDRigidSphere* /* sphere */, SimObject::XPBDRigidMesh* /* mesh */)
+{
+
+}
+
+void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPBDRigidBox* /* box */, SimObject::XPBDRigidMesh* /* mesh */)
+{
+
+}
+
+void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment, SimObject::XPBDRigidMesh* mesh)
+{
+    scene->_checkRigidSegmentCollision(mesh, &mesh->sdf(), segment);
+}
+
+void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPBDRigidMesh* /* mesh1 */, SimObject::XPBDRigidMesh* /* mesh2 */)
+{
+
+}
+
 void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* rb, const SDF* rb_sdf, SimObject::RodCollisionSegment* segment)
 {
-    /** TODO: expand collision distance by relative velocity
-     * 
-     * 
-     * 
-     * 
-     */
-
     // if there are multiple elements in the collision segment, approximate the entire collision segment as a linear element
     // as an initial coarse pass
     if (segment->elements().size() > 1)

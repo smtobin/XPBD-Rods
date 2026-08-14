@@ -4,7 +4,7 @@ namespace SimObject
 {
 
 XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
-    : XPBDRigidBody_Base(config)
+    : XPBDRigidBody_Base(config), _sdf(config.filename())
 {
     // load mesh from file
     _mesh = Mesh::loadFromFile(config.filename());

@@ -69,15 +69,21 @@ private:
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidSphere* sphere);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidBox* box);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::RodCollisionSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDPlane* plane, SimObject::XPBDRigidMesh* mesh);
 
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere1, SimObject::XPBDRigidSphere* sphere2);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRigidBox* box);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::RodCollisionSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidSphere* sphere, SimObject::XPBDRigidMesh* mesh);
 
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box1, SimObject::XPBDRigidBox* box2);
     static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::RodCollisionSegment* segment);
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidBox* box, SimObject::XPBDRigidMesh* mesh);
     
     static void _checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2);
+    static void _checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment, SimObject::XPBDRigidMesh* mesh);
+
+    static void _checkCollision(CollisionScene* scene, SimObject::XPBDRigidMesh* mesh1, SimObject::XPBDRigidMesh* mesh2);
 
     static void _initCollisionTable();
 
