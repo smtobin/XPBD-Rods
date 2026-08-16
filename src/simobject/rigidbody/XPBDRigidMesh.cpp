@@ -4,7 +4,7 @@ namespace SimObject
 {
 
 XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
-    : XPBDRigidBody_Base(config), _sdf(config.filename())
+    : XPBDRigidBody_Base(config)
 {
     // load mesh from file
     _mesh = Mesh::loadFromFile(config.filename());
@@ -14,6 +14,10 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
 
     // translate mesh so that its mass center is at the origin
     _mesh.moveDelta(-center_of_mass);
+
+    // create collision geometry (if necessary)
+    if (config.collisions())
+        _sdf = Collision::MeshSDF(&_com, _mesh.vertices(), _mesh.faces(), 128);
 
     _com.mass = mass;
     
