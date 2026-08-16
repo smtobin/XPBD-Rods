@@ -16,6 +16,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <filesystem>
 
 namespace Collision
 {
@@ -135,6 +136,7 @@ void MeshSDF::writeToFile(const std::string& filename) const
     std::vector<std::byte> buf;
     serialize(buf);
 
+    std::filesystem::create_directories(std::filesystem::path(filename).parent_path());
     std::ofstream outfile(filename, std::ios::binary);
     if (!outfile.is_open())
     {

@@ -1,5 +1,5 @@
 #include "simobject/rigidbody/XPBDRigidMesh.hpp"
-
+#include <filesystem>
 namespace SimObject
 {
 
@@ -17,7 +17,27 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
 
     // create collision geometry (if necessary)
     if (config.collisions())
-        _sdf = Collision::MeshSDF(&_com, _mesh.vertices(), _mesh.faces(), 128);
+    {
+        int sdf_grid_size = 128;
+        std::string sdf_filename = config.filename();
+        std::replace(sdf_filename.begin(), sdf_filename.end(), '/', '-');
+        std::replace(sdf_filename.begin(), sdf_filename.end(), '.', '_');
+        sdf_filename = ".sdf/" + sdf_filename + "_" + std::to_string(sdf_grid_size) + ".sdf";
+
+        // check to see if cached SDF exists
+        if (std::filesystem::exists(sdf_filename))
+        {
+            // load from cache file
+            _sdf = Collision::MeshSDF(&_com, sdf_filename);
+        }
+        else
+        {
+            // create the SDF
+            _sdf = Collision::MeshSDF(&_com, _mesh.vertices(), _mesh.faces(), sdf_grid_size);
+            _sdf.writeToFile(sdf_filename);
+        }
+    }
+        
 
     _com.mass = mass;
     
