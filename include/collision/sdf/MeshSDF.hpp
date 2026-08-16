@@ -3,6 +3,8 @@
 #include "common/common.hpp"
 #include "common/serialize.hpp"
 #include "common/array3.hpp"
+#include "simobject/OrientedParticle.hpp"
+
 
 #include "collision/sdf/SDF.hpp"
 
@@ -14,6 +16,9 @@ class MeshSDF : public SDF
     using Array3i = Array3<int>;
     public:
 
+    /** Default constructor - no memory allocated */
+    MeshSDF() = default;
+
     /** Construct a SDF from input vertices and triangles.
      * @param verts - the vertices of the mesh
      * @param tris - the triangles of the mesh, specified as lists of 3 integers
@@ -21,10 +26,10 @@ class MeshSDF : public SDF
      * @param padding - the number of cells of padding around the mesh - by default 1
      * @param with_gradient - whether or not to store and evaluate the gradient when computing the SDF - by default true
      */
-    MeshSDF(const std::vector<Vec3r>& verts, const std::vector<Vec3i>& tris, int grid_size, int padding=1, bool with_gradient = true);
+    MeshSDF(const SimObject::OrientedParticle* particle, const std::vector<Vec3r>& verts, const std::vector<Vec3i>& tris, int grid_size, int padding=1, bool with_gradient = true);
 
     /** Loads a SDF that was written to file by this class. Expects a .sdf extension. */
-    MeshSDF(const std::string& filename);
+    MeshSDF(const SimObject::OrientedParticle* particle, const std::string& filename);
 
     /** Evaluates the SDF at the given point. */
     Real evaluate(const Vec3r& p) const override;
@@ -106,6 +111,8 @@ class MeshSDF : public SDF
 
     private:
     static constexpr int FLOAT_PRECISION = 10;  // the number of places after the decimal to use when printing the SDF to file
+
+    const SimObject::OrientedParticle* _particle;
 
     int _N;  // number of voxels per side in the grid
     Vec3r _cell_size;  // size of each voxel in the grid

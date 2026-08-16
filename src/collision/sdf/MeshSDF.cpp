@@ -20,15 +20,17 @@
 namespace Collision
 {
 
-MeshSDF::MeshSDF(const std::vector<Vec3r>& verts, const std::vector<Vec3i>& tris, int grid_size, int padding, bool with_gradient)
+MeshSDF::MeshSDF(const SimObject::OrientedParticle* particle, const std::vector<Vec3r>& verts, const std::vector<Vec3i>& tris, int grid_size, int padding, bool with_gradient)
     : SDF(),
+    _particle(particle),
     _N(grid_size), _with_gradient(with_gradient)
 {
     _makeSDF(verts, tris, padding, with_gradient);
 }
 
-MeshSDF::MeshSDF(const std::string& filename)
-    : _N(0), _cell_size(),
+MeshSDF::MeshSDF(const SimObject::OrientedParticle* particle, const std::string& filename)
+    : _particle(particle),
+      _N(0), _cell_size(),
      _grid_bbox_min(Vec3r::Zero()), _grid_bbox_max(Vec3r::Zero()),
      _mesh_bbox_min(Vec3r::Zero()), _mesh_bbox_max(Vec3r::Zero()),
      _with_gradient(false)
@@ -38,7 +40,10 @@ MeshSDF::MeshSDF(const std::string& filename)
 
 Real MeshSDF::evaluate(const Vec3r& p) const
 {
-    const Vec3r& ijk = _gridIJKFromPoint(p);
+    // convert to local frame
+    Vec3r p_local = _particle->orientation.transpose() * (p - _particle->position);
+
+    const Vec3r& ijk = _gridIJKFromPoint(p_local);
     
     const int i0 = std::floor(ijk[0]);    const int i1 = i0+1;
     const int j0 = std::floor(ijk[1]);    const int j1 = j0+1;
@@ -70,7 +75,7 @@ Real MeshSDF::evaluate(const Vec3r& p) const
     // so the best we can do is an estimate ==> (Distance From p to SDF Grid border) + (Distance from SDF Grid border to mesh)
     if (!_with_gradient)
     {
-        return dist_from_border + (p - border_point).norm();    // THIS IS NOT EXACT! But without the gradient (I think) this is the best we can do
+        return dist_from_border + (p_local - border_point).norm();    // THIS IS NOT EXACT! But without the gradient (I think) this is the best we can do
     }
 
     // if we have the gradient, we can be more exact by getting the closest point on the mesh
@@ -80,13 +85,16 @@ Real MeshSDF::evaluate(const Vec3r& p) const
     const Vec3r closest_point = border_point - dist_from_border * grad_from_border;
 
     // now that we have the closest point on the mesh, we can find the distance
-    return (p - closest_point).norm();
+    return (p_local - closest_point).norm();
 }
 
 Vec3r MeshSDF::gradient(const Vec3r& p) const
 {
+    // convert to local frame
+    Vec3r p_local = _particle->orientation.transpose() * (p - _particle->position);
+
     assert(_with_gradient);
-    const Vec3r& ijk = _gridIJKFromPoint(p);
+    const Vec3r& ijk = _gridIJKFromPoint(p_local);
     const int i0 = std::floor(ijk[0]);    const int i1 = i0+1;
     const int j0 = std::floor(ijk[1]);    const int j1 = j0+1;
     const int k0 = std::floor(ijk[2]);    const int k1 = k0+1;
@@ -116,7 +124,8 @@ Vec3r MeshSDF::gradient(const Vec3r& p) const
     // find the closest point on the mesh from the grid border
     const Vec3r closest_point = border_point - dist_from_border * grad_from_border;
 
-    return (p - closest_point).normalized();
+    Vec3r grad_local = (p_local - closest_point).normalized();
+    return _particle->orientation * grad_local;
 }
 
 void MeshSDF::writeToFile(const std::string& filename) const
