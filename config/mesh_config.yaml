@@ -21,20 +21,21 @@ render-output-folder: "../output/render/test"
 objects:
   -
     type: "RigidMesh"
-    filename: "../resource/meshes/pendulum_female.stl"
-    initial-position: [0, 0.0, 0]
-    initial-rotation: [0, 0, 0]
+    filename: "../resource/meshes/Scissor_Straight.stl"
+    scale: [1e-2, 1e-2, 1e-2]
+    initial-position: [0, 0.5, 0]
+    initial-rotation: [0, 0, 90]
     collisions: true
     fixed: true
 
   - 
     type: "Rod"
     name: "rod1"
-    initial-position: [0.0, 1, -0.5]
+    initial-position: [0.0, 0.8, -0.5]
     initial-rotation: [0, 0, 0]
     nodes: 20
     E: 1e6
-    diameter: 0.1
+    diameter: 0.05
     length: 1
     nu: 0.3
     base-fixed: False

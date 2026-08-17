@@ -9,6 +9,9 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
     // load mesh from file
     _mesh = Mesh::loadFromFile(config.filename());
 
+    // scale the mesh according to input size
+    _mesh.resize(config.scale()[0], config.scale()[1], config.scale()[2]);
+
     // compute mass properties
     auto [mass, center_of_mass, rot_inertia] = _mesh.massProperties(config.density());
 
@@ -22,7 +25,8 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
         std::string sdf_filename = config.filename();
         std::replace(sdf_filename.begin(), sdf_filename.end(), '/', '-');
         std::replace(sdf_filename.begin(), sdf_filename.end(), '.', '_');
-        sdf_filename = ".sdf/" + sdf_filename + "_" + std::to_string(sdf_grid_size) + ".sdf";
+        sdf_filename = ".sdf/" + sdf_filename + "_" + std::to_string(sdf_grid_size) + "_" + 
+            std::to_string(config.scale()[0]) + "x" + std::to_string(config.scale()[1]) + "x" + std::to_string(config.scale()[2]) + ".sdf";
 
         // check to see if cached SDF exists
         if (std::filesystem::exists(sdf_filename))
@@ -58,8 +62,8 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
     _com.Ib = D.diagonal();
 
     // update the orientation to reflect the rotation required for the rotational inertia to be diagonal
-    _com.orientation = R * _com.orientation;
-    _com.prev_orientation = _com.orientation;
+    // _com.orientation = R * _com.orientation;
+    // _com.prev_orientation = _com.orientation;
 
     // compute the unoriented AABB size of the mesh for computing the updated AABB later
     SimObject::AABB aabb = _mesh.boundingBox();

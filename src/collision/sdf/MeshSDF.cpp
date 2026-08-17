@@ -108,7 +108,7 @@ Vec3r MeshSDF::gradient(const Vec3r& p) const
     // check to make sure we are inside the grid boundaries
     if (i0 >= 0 && i0 < _N-1 && j0 >= 0 && j0 < _N-1 && k0 >= 0 && k0 < _N-1)
     {
-        return _interpolateGradientGrid(i0, j0, k0, i1, j1, k1, id, jd, kd);
+        return _particle->orientation * _interpolateGradientGrid(i0, j0, k0, i1, j1, k1, id, jd, kd);
     }
 
     // we are outside the bounds of the grid - so clamp to the grid border
