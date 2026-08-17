@@ -24,14 +24,17 @@ public:
         : XPBDRigidBodyConfig(node), _mesh_render_config(node)
     {
         _extractParameter("filename", node, _filename);
+        _extractParameter("scale", node, _scale);
 
         _render_mesh_configs.emplace(_render_mesh_configs.begin(), node);
     }
 
     std::string filename() const { return _filename.value;}
+    Vec3r scale() const { return _scale.value; }
 
 private:
     ConfigParameter<std::string> _filename = ConfigParameter<std::string>("");
+    ConfigParameter<Vec3r> _scale = ConfigParameter<Vec3r>(Vec3r(1,1,1));
 
     MeshRenderConfig _mesh_render_config;
 };
