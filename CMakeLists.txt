@@ -78,6 +78,9 @@ target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 add_executable(BowlingSim src/exec/bowling_sim.cpp)
 target_link_libraries(BowlingSim Simulation ${VTK_LIBRARIES})
 
+add_executable(SuturingSim src/exec/suturing_sim.cpp)
+target_link_libraries(SuturingSim Simulation ${VTK_LIBRARIES})
+
 
 ###################################################
 # TESTS
@@ -135,6 +138,11 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS BowlingSim
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS SuturingSim
   MODULES ${VTK_LIBRARIES}
 )
 
