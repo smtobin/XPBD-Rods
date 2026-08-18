@@ -247,7 +247,7 @@ template <typename ElementType>
 void XPBDRod_<ElementType>::_allocateSpace()
 {
     const std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
-    _num_constraints = elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed;
+    _num_constraints = elastic_constraints.size() + (int)_base_fixed + (int)_tip_fixed + (int)_fixed_mid;
 
     /** Allocate space */
     _RHS_vec = VecXr::Zero(6*_num_constraints);
@@ -271,7 +271,7 @@ void XPBDRod_<ElementType>::_allocateSpace()
     }
 
     /** Ensure proper setup of block banded solver */
-    int bandwidth = 2*NUM_GP - 1;
+    int bandwidth = 2*NUM_GP - 1 + (int)_fixed_mid;
     _gradient_buffer.reserve(elastic_constraints.size());
 
     // number of diagonals = bandwidth + 1
@@ -283,11 +283,12 @@ void XPBDRod_<ElementType>::_allocateSpace()
     _solver.setNumDiagBlocks(_num_constraints);
 
     // velocity solver
-    _velocity_diagonals.resize(bandwidth+1);
-    for (int i = 0; i < bandwidth+1; i++)
+    int velocity_bandwidth = 2*NUM_GP - 1;
+    _velocity_diagonals.resize(velocity_bandwidth+1);
+    for (int i = 0; i < velocity_bandwidth+1; i++)
         _velocity_diagonals[i].resize(elastic_constraints.size(), Mat6r::Zero());
     
-    _velocity_solver.setBandwidth(bandwidth);
+    _velocity_solver.setBandwidth(velocity_bandwidth);
     _velocity_solver.setNumDiagBlocks(elastic_constraints.size());
 }
 
@@ -305,6 +306,32 @@ void XPBDRod_<ElementType>::setFixedTipConstraint(const Constraint::FixedJointCo
 {   
     _tip_fixed = true;
     _fixed_tip_constraint = new_fixed_tip_constraint;
+
+    _allocateSpace();
+}
+
+template <typename ElementType>
+void XPBDRod_<ElementType>::addFixedMidConstraint(int element_ind, Real s_hat, const Vec3r& p_ref, const Mat3r& R_ref)
+{
+    _internal_constraints.template get<Constraint::RodMidElementFixedConstraint<ElementType>>().clear();
+
+    /** (08/16/26) Temporary hack - don't add fixed element constraint to first element when base is fixed */
+    if (element_ind == 0 && _base_fixed)
+    {
+        element_ind = 1;
+        s_hat = 0;
+    }
+    if (element_ind == _num_elements-1 && _tip_fixed)
+    {
+        element_ind = _num_elements-2;
+        s_hat = 1;
+    }
+
+    _fixed_mid = true;
+    _fixed_element_ind = element_ind;
+
+    _internal_constraints.template emplace_back<Constraint::RodMidElementFixedConstraint<ElementType>>(&_elements[element_ind], s_hat, p_ref, R_ref, Vec6r::Zero());
+    _fixed_mid_constraint = &_internal_constraints.template get<Constraint::RodMidElementFixedConstraint<ElementType>>().back();
 
     _allocateSpace();
 }
@@ -456,6 +483,10 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
         }, _fixed_base_constraint);
     }
 
+    // keep track of whether there was a fixed mid constraint on the last element
+    // since this will affect the spacing of off-diagonal blocks
+    int num_extra_constraints_on_last_element = 0;
+    int fixed_mid_diag_block_ind = 0;
     for (int i = 0; i < _num_elements; i++)
     {
         // assemble element inertia
@@ -517,13 +548,90 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
                 // extract the block associated with the "first" node affected by the constraint
                 Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
 
-                _diagonals[diag_index][diag_block_ind] = other_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * this_block.transpose();
+                // if the current element has a fixed constraint on it, skip a row to make space for it
+                int adjusted_diag_index = diag_index;
+                if (_fixed_mid && _fixed_element_ind == i)
+                    adjusted_diag_index++;
+
+                _diagonals[adjusted_diag_index][diag_block_ind] = other_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * this_block.transpose();
             }
 
             // add alpha to main diagonal
             _diagonals[0][diag_block_ind].diagonal() += alpha_tilde;
 
             diag_block_ind++;
+        }
+
+        // if there is a fixed constraint on this element, skip a row - we will fill this out later
+        if (_fixed_mid && _fixed_element_ind == i)
+        {
+            fixed_mid_diag_block_ind = diag_block_ind;
+            diag_block_ind++;
+        }
+        else
+        {
+        }
+    }
+
+    // fill in rows/columns for the fixed mid-element constraint (if applicable)
+    if (_fixed_mid)
+    {
+        typename Constraint::RodMidElementFixedConstraint<ElementType>::ConstraintVecType C = _fixed_mid_constraint->evaluate();
+        typename Constraint::RodMidElementFixedConstraint<ElementType>::GradientMatType grad = _fixed_mid_constraint->gradient();
+        Vec6r alpha_tilde = _fixed_mid_constraint->alpha() / (dt * dt);
+        Eigen::Vector<Real, 6*(NUM_EN)> element_inverse_inertia;
+        for (int k = 0; k < NUM_EN; k++)
+        {
+            int node_ind = _fixed_element_ind*(NUM_EN-1) + k;
+            element_inverse_inertia.template block<6,1>(6*k,0) = _node_inverse_inertias[node_ind];
+        }
+
+        _RHS_vec.template block<6,1>(6*fixed_mid_diag_block_ind, 0) = -C - alpha_tilde.asDiagonal() * _internal_lambda.template block<6,1>(6*fixed_mid_diag_block_ind, 0);
+
+        // main diagonal
+        _diagonals[0][fixed_mid_diag_block_ind] = grad * element_inverse_inertia.asDiagonal() * grad.transpose();
+        _diagonals[0][fixed_mid_diag_block_ind].diagonal() += alpha_tilde;
+
+        // fill out the "row" - go through elastic constraints on previous element
+        for (int j = 0; j < NUM_GP; j++)
+        {
+            int diag_index = 2*NUM_GP - j;
+            int other = NUM_GP*(_fixed_element_ind-1) + j; 
+
+            // index of the node shared by the constraints
+            int shared_node_ind = (_fixed_element_ind)*(NUM_EN-1);
+
+            // extract block associated with the "first" node affected by the fixed constraint
+            Mat6r this_block = grad.template block<6,6>(0,0);
+            // extract block associated with the "last" node affected by the elastic constraint
+            Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,6*(NUM_EN-1));
+
+            _diagonals[diag_index][fixed_mid_diag_block_ind - diag_index] = this_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * other_block.transpose();
+        }
+        // go through elastic constraints on the element that is fixed
+        for (int j = 0; j < NUM_GP; j++)
+        {
+            int diag_index = NUM_GP - j;
+            int other = NUM_GP*_fixed_element_ind + j;
+
+            _diagonals[diag_index][fixed_mid_diag_block_ind - diag_index] =
+                    grad * element_inverse_inertia.asDiagonal() * _gradient_buffer[other].transpose();
+        }
+        // fill out the "column" - go through elastic constraint on next element
+        for (int j = 0; j < NUM_GP; j++)
+        {
+            int diag_index = j;
+            int other = NUM_GP*(_fixed_element_ind+1) + j;
+
+            // index of the node shared by the constraints
+            int shared_node_ind = (_fixed_element_ind+1)*(NUM_EN-1);
+
+            // extract block associated with "last" node affected by the fixed constraint
+            Mat6r this_block = grad.template block<6,6>(0, 6*(NUM_EN-1));
+            // extract block associated with "first" node affect by the elastic constraint
+            Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
+
+            _diagonals[diag_index][fixed_mid_diag_block_ind] = other_block * _node_inverse_inertias[shared_node_ind].asDiagonal() * this_block.transpose();
         }
     }
 
@@ -644,6 +752,22 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
                 _dx.template block<6,1>(6*node_ind,0) += 
                     _node_inverse_inertias[node_ind].asDiagonal() * delC_block.transpose() * constraint_dlam;
+            }
+
+            constraint_ind++;
+        }
+
+        // if this element has a mid-element fixed constraint, compute its update
+        if (_fixed_mid && _fixed_element_ind  == i)
+        {
+            typename Constraint::RodMidElementFixedConstraint<ElementType>::GradientMatType grad = _fixed_mid_constraint->gradient();
+            for (int k = 0; k < NUM_EN; k++)
+            {
+                int node_ind = first_node_ind + k;
+                Mat6r delC_block = grad.template block<6,6>(0,6*k);
+                Vec6r constraint_dlam = _dlam.template block<6,1>(6*constraint_ind, 0);
+
+                _dx.template block<6,1>(6*node_ind, 0) += _node_inverse_inertias[node_ind].asDiagonal() * delC_block.transpose() * constraint_dlam;
             }
 
             constraint_ind++;
@@ -899,6 +1023,10 @@ void XPBDRod_<CubicHermiteRodElement>::internalConstraintSolve(Real /* dt */)
 
 template<>
 void XPBDRod_<CubicHermiteRodElement>::internalConstraintVelocitySolve(Real /* dt */)
+{}
+
+template<>
+void XPBDRod_<CubicHermiteRodElement>::addFixedMidConstraint(int, Real, const Vec3r&, const Mat3r&)
 {}
 
 template class XPBDRod_<RodElement<0>>;
