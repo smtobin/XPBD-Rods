@@ -18,6 +18,34 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
     // translate mesh so that its mass center is at the origin
     _mesh.moveDelta(-center_of_mass);
 
+    // compute orientation where rotational inertia is diagonal
+    // Since I is symmetric, use SelfAdjointEigenSolver
+    Eigen::SelfAdjointEigenSolver<Mat3r> solver(rot_inertia);
+
+    if (solver.info() != Eigen::Success)
+    {
+        throw std::runtime_error("XPBDRigidMesh::XPBDRigidMesh rotational inertia not symmetric?");
+    }
+
+    // principal axes are the columns of the rotational matrix
+    Mat3r R = solver.eigenvectors();
+
+    // transform inertia tensor into principal-axis coordinates
+    Mat3r D = R.transpose() * rot_inertia * R;
+    _com.Ib = D.diagonal();
+
+    std::cout << "Ib: " << _com.Ib.transpose() << std::endl;
+    std::cout << R * rot_inertia * R.transpose() << std::endl;
+
+    _mesh.applyRotation(R.transpose());
+
+    AABB mesh_bbox = _mesh.boundingBox();
+    _unoriented_size = mesh_bbox.max - mesh_bbox.min;
+
+    // update the orientation to reflect the rotation required for the rotational inertia to be diagonal
+    _com.orientation = R * _com.orientation;
+    _com.prev_orientation = _com.orientation;
+
     // create collision geometry (if necessary)
     if (config.collisions())
     {
@@ -42,40 +70,9 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
         }
     }
         
-
     _com.mass = mass;
-    
-    // compute orientation where rotational inertia is diagonal
-    // Since I is symmetric, use SelfAdjointEigenSolver
-    Eigen::SelfAdjointEigenSolver<Mat3r> solver(rot_inertia);
 
-    if (solver.info() != Eigen::Success)
-    {
-        throw std::runtime_error("XPBDRigidMesh::XPBDRigidMesh rotational inertia not symmetric?");
-    }
-
-    // principal axes are the columns of the rotational matrix
-    Mat3r R = solver.eigenvectors();
-
-    // transform inertia tensor into principal-axis coordinates
-    Mat3r D = R.transpose() * rot_inertia * R;
-    _com.Ib = D.diagonal();
-
-    std::cout << "Ib: " << _com.Ib.transpose() << std::endl;
-    std::cout << R * rot_inertia * R.transpose() << std::endl;
-
-    // update the orientation to reflect the rotation required for the rotational inertia to be diagonal
-    _com.orientation = R * _com.orientation;
-    _com.prev_orientation = _com.orientation;
-
-    // compute the unoriented AABB size of the mesh for computing the updated AABB later
-    SimObject::AABB aabb = _mesh.boundingBox();
-    Vec3r size = aabb.max - aabb.min;
-    // rotate the bounding box back to what the XPBDRigidMesh thinks is 0 rotation
-    // _unoriented_size = R.transpose().cwiseAbs() * size;
-    _unoriented_size = size;
-
-    std::cout << "Mesh bbox: " << aabb.min.transpose() << " to " << aabb.max.transpose() << std::endl;
+    std::cout << "Mesh bbox: " << mesh_bbox.min.transpose() << " to " << mesh_bbox.max.transpose() << std::endl;
     std::cout << "Unoriented size: " << _unoriented_size.transpose() << std::endl;
     AABB bbox = boundingBox();
     std::cout << "Oriented bbox: " << bbox.min.transpose() << " to " << bbox.max.transpose() << std::endl;
