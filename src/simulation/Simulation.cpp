@@ -669,18 +669,20 @@ VecXr Simulation::constraintResidual() const
     return constraint_residual;
 }
 
-void Simulation::notifyKeyPressed(const std::string& /*key*/)
+void Simulation::notifyKeyPressed(const std::string& key)
 {
     if (_config.simMode() == Config::SimulationMode::FRAME_BY_FRAME)
     {
         _timeStep();
         _updateGraphics(false);
     }
+
+    _keys_held.insert(key);
 }
 
-void Simulation::notifyKeyReleased(const std::string& /*key*/)
+void Simulation::notifyKeyReleased(const std::string& key)
 {
-    
+    _keys_held.erase(key);
 }
 
 void Simulation::notifyMouseMoved(double /*mx*/, double /*my*/)

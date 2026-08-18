@@ -578,7 +578,7 @@ void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPB
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment, SimObject::XPBDRigidMesh* mesh)
 {
-    std::cout << "Potential segment-mesh collision!" << std::endl;
+    // std::cout << "Potential segment-mesh collision!" << std::endl;
     scene->_checkRigidSegmentCollision(mesh, &mesh->sdf(), segment);
 }
 

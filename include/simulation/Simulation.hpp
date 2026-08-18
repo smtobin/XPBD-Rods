@@ -385,6 +385,8 @@ public:
 
     Real _last_collision_check_time;
 
+    std::unordered_set<std::string> _keys_held;
+
     XPBDConstraints_Container _constraints;
     XPBDObjects_UniquePtrContainer _objects;
     XPBDObjectGroups_UniquePtrContainer _object_groups;

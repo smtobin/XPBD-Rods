@@ -9,7 +9,24 @@ SuturingSimulation::SuturingSimulation()
 
 SuturingSimulation::SuturingSimulation(const Config::SimulationConfig& config)
     : Simulation(config)
-{}
+{
+    _straight_tool_tip_offset = Vec3r(130,0,0);
+    _curved_tool_tip_offset = Vec3r(130,0,0);
+}
+
+void SuturingSimulation::notifyKeyPressed(const std::string& key)
+{
+    Simulation::notifyKeyPressed(key);
+
+    // std::cout << "Key pressed: " << key << std::endl;
+}
+
+void SuturingSimulation::notifyKeyReleased(const std::string& key)
+{
+    Simulation::notifyKeyReleased(key);
+
+    // std::cout << "Key released: " << key << std::endl;
+}
 
 void SuturingSimulation::setup()
 {
@@ -18,96 +35,230 @@ void SuturingSimulation::setup()
     // reserve space
     _objects.template reserve<std::unique_ptr<LinearRod>>(2);
     _objects.template reserve<std::unique_ptr<QuadraticRod>>(2);
+    _objects.template reserve<std::unique_ptr<SimObject::XPBDRigidMesh>>(2);
 
     // create threads
-    // Config::RodConfig thread1_config(
-    //     "thread1",
-    //     Vec3r(0, 1, 0.15),
-    //     Vec3r(0, 0, 0),
-    //     Vec3r(0,0,0),
-    //     Vec3r(0,0,0),
-    //     true,
-    //     0.5,
-    //     0.2,
-    //     Config::RodElementType::LINEAR,
-    //     true,
-    //     false,
-    //     true,
-    //     125,    // length
-    //     0.2,    // diameter
-    //     300,    // num elements
-    //     1.1e-6, // density
-    //     2000,   // E
-    //     0.4,    // nu
-    //     1e5,    // beta
-    //     Vec3r(0,0,0)    // curvature
-    // );
-    // thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
-    // _addObjectFromConfig(thread1_config);
-    // _thread1 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
-
-    // Config::RodConfig thread2_config(
-    //     "thread2",
-    //     Vec3r(0, 1, -0.15),
-    //     Vec3r(0, 180, 0),
-    //     Vec3r(0,0,0),
-    //     Vec3r(0,0,0),
-    //     true,
-    //     0.5,
-    //     0.2,
-    //     Config::RodElementType::LINEAR,
-    //     true,
-    //     false,
-    //     true,
-    //     65,    // length
-    //     0.2,    // diameter
-    //     100,    // num elements
-    //     1.1e-6, // density
-    //     2000,   // E
-    //     0.4,    // nu
-    //     1e5,    // beta
-    //     Vec3r(0,0,0)    // curvature
-    // );
-    // thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
-    // _addObjectFromConfig(thread2_config);
-    // _thread2 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
-
-    // // update the fixed base constraints on thread1 and thread2 so that they go into the ground
-    // auto& base_fixed_constraint1 = _thread1->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
-    // base_fixed_constraint1.setReferencePosition(Vec3r(0, 0.01, 1.0));
-    // base_fixed_constraint1.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
-    // auto& base_fixed_constraint2 = _thread2->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
-    // base_fixed_constraint2.setReferencePosition(Vec3r(0, 0.01, -1.0));
-    // base_fixed_constraint2.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
-
-
-    Config::RodConfig test_config(
-        "thread2",
-        Vec3r(0, 10, 0),
+    Config::RodConfig thread1_config(
+        "thread1",
+        Vec3r(0, 1, 0.15),
         Vec3r(0, 0, 0),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
         true,
         0.5,
         0.2,
-        Config::RodElementType::QUADRATIC,
-        false,
+        Config::RodElementType::LINEAR,
+        true,
         false,
         true,
-        10,    // length
+        125,    // length
         0.2,    // diameter
-        3,    // num elements
+        200,    // num elements
         1.1e-6, // density
-        200,   // E
+        2000,   // E
         0.4,    // nu
         1e5,    // beta
         Vec3r(0,0,0)    // curvature
     );
+    thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
+    _addObjectFromConfig(thread1_config);
+    _thread1 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
 
-    _addObjectFromConfig(test_config);
-    auto new_rod = _objects.template get<std::unique_ptr<QuadraticRod>>().back().get();
-    std::cout << "Rod name: " << new_rod->name() << std::endl;
-    new_rod->addFixedMidConstraint(1, 0.5, Vec3r(0,10,5), Mat3r::Identity());
+    Config::RodConfig thread2_config(
+        "thread2",
+        Vec3r(0, 1, -0.15),
+        Vec3r(0, 180, 0),
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        true,
+        0.5,
+        0.2,
+        Config::RodElementType::LINEAR,
+        true,
+        false,
+        true,
+        65,    // length
+        0.2,    // diameter
+        100,    // num elements
+        1.1e-6, // density
+        2000,   // E
+        0.4,    // nu
+        1e5,    // beta
+        Vec3r(0,0,0)    // curvature
+    );
+    thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
+    _addObjectFromConfig(thread2_config);
+    _thread2 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
+
+    // update the fixed base constraints on thread1 and thread2 so that they go into the ground
+    auto& base_fixed_constraint1 = _thread1->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+    base_fixed_constraint1.setReferencePosition(Vec3r(0, 0.01, 1.0));
+    base_fixed_constraint1.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
+    auto& base_fixed_constraint2 = _thread2->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+    base_fixed_constraint2.setReferencePosition(Vec3r(0, 0.01, -1.0));
+    base_fixed_constraint2.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
+
+
+    // create tools
+    Config::XPBDRigidMeshConfig straight_tool_config(
+        "straight_tool",
+        Vec3r(0, 200, -50),
+        Vec3r(0,0,180),
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        true,
+        0.5,
+        0.2,
+        1000,
+        true,
+        "../resource/meshes/Scissor_Straight.stl",
+        Vec3r(1,1,1)
+    );
+    _addObjectFromConfig(straight_tool_config);
+    _straight_tool = _objects.template get<std::unique_ptr<SimObject::XPBDRigidMesh>>().back().get();
+
+    Config::XPBDRigidSphereConfig straight_tool_grasp_sphere_config(
+        "straight_tool_grasp_sphere",
+        _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset,
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        false,
+        0.0,
+        0.0,
+        1000,
+        true,
+        10  
+    );
+    straight_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
+    straight_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
+    _addObjectFromConfig(straight_tool_grasp_sphere_config);
+    _straight_tool_grasp_sphere = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
+
+    Config::XPBDRigidMeshConfig curved_tool_config(
+        "curved_tool",
+        Vec3r(0, 200, 50),
+        Vec3r(0,0,180),
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        true,
+        0.5,
+        0.2,
+        1000,
+        true,
+        "../resource/meshes/Scissor_Curved.stl",
+        Vec3r(1,1,1)
+    );
+    _addObjectFromConfig(curved_tool_config);
+    _curved_tool = _objects.template get<std::unique_ptr<SimObject::XPBDRigidMesh>>().back().get();
+
+    Config::XPBDRigidSphereConfig curved_tool_grasp_sphere_config(
+        "curved_tool_grasp_sphere",
+        _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset,
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        Vec3r(0,0,0),
+        false,
+        0.0,
+        0.0,
+        1000,
+        true,
+        10  
+    );
+    curved_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
+    curved_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
+    _addObjectFromConfig(curved_tool_grasp_sphere_config);
+    _curved_tool_grasp_sphere = _objects.template get<std::unique_ptr<SimObject::XPBDRigidSphere>>().back().get();
+
+}
+
+void SuturingSimulation::_timeStep()
+{
+    _updateToolPositionsFromKeyboard();
+
+    Simulation::_timeStep();
+
+    // if (!_straight_tool_grasping)
+    // {
+    //     _thread1->addFixedMidConstraint(50, 0.5, Vec3r(0,10,10), Mat3r::Identity());
+    //     _straight_tool_grasping = true;
+    // }
+}
+
+void SuturingSimulation::_updateToolPositionsFromKeyboard()
+{
+    if (_keys_held.empty())
+        return;
+
+    Real position_delta = 100*_dt;
+    Real rotation_delta = 2*_dt;
+
+    if (_keys_held.count("q") > 0)
+        _straight_tool->com().position += Vec3r(position_delta, 0, 0);
+    if (_keys_held.count("w") > 0)
+        _straight_tool->com().position -= Vec3r(position_delta, 0, 0);
+    if (_keys_held.count("a") > 0)
+        _straight_tool->com().position += Vec3r(0, position_delta, 0);
+    if (_keys_held.count("s") > 0)
+        _straight_tool->com().position -= Vec3r(0, position_delta, 0);
+    if (_keys_held.count("z") > 0)
+        _straight_tool->com().position += Vec3r(0, 0, position_delta);
+    if (_keys_held.count("x") > 0)
+        _straight_tool->com().position -= Vec3r(0, 0, position_delta);
+
+    Vec3r straight_dR = Vec3r::Zero();
+    if (_keys_held.count("e") > 0)
+        straight_dR += Vec3r(rotation_delta, 0, 0);
+    if (_keys_held.count("r") > 0)
+        straight_dR -= Vec3r(rotation_delta, 0, 0);
+    if (_keys_held.count("d") > 0)
+        straight_dR += Vec3r(0, rotation_delta, 0);
+    if (_keys_held.count("f") > 0)
+        straight_dR -= Vec3r(0, rotation_delta, 0);
+    if (_keys_held.count("c") > 0)
+        straight_dR += Vec3r(0, 0, rotation_delta);
+    if (_keys_held.count("v") > 0)
+        straight_dR -= Vec3r(0, 0, rotation_delta);
+
+    Mat3r straight_new_R = _straight_tool->com().orientation * Math::Exp_so3(straight_dR);
+    Vec3r straight_tip_pos = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
+    _straight_tool->com().position = straight_tip_pos - straight_new_R * _straight_tool_tip_offset;
+    _straight_tool->com().orientation = straight_new_R;
+    _straight_tool_grasp_sphere->com().position = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
+
+
+    if (_keys_held.count("t") > 0)
+        _curved_tool->com().position += Vec3r(position_delta, 0, 0);
+    if (_keys_held.count("y") > 0)
+        _curved_tool->com().position -= Vec3r(position_delta, 0, 0);
+    if (_keys_held.count("g") > 0)
+        _curved_tool->com().position += Vec3r(0, position_delta, 0);
+    if (_keys_held.count("h") > 0)
+        _curved_tool->com().position -= Vec3r(0, position_delta, 0);
+    if (_keys_held.count("b") > 0)
+        _curved_tool->com().position += Vec3r(0, 0, position_delta);
+    if (_keys_held.count("n") > 0)
+        _curved_tool->com().position -= Vec3r(0, 0, position_delta);
+
+    Vec3r curved_dR = Vec3r::Zero();
+    if (_keys_held.count("u") > 0)
+        curved_dR += Vec3r(rotation_delta, 0, 0);
+    if (_keys_held.count("i") > 0)
+        curved_dR -= Vec3r(rotation_delta, 0, 0);
+    if (_keys_held.count("j") > 0)
+        curved_dR += Vec3r(0, rotation_delta, 0);
+    if (_keys_held.count("k") > 0)
+        curved_dR -= Vec3r(0, rotation_delta, 0);
+    if (_keys_held.count("m") > 0)
+        curved_dR += Vec3r(0, 0, rotation_delta);
+    if (_keys_held.count("comma") > 0)
+        curved_dR -= Vec3r(0, 0, rotation_delta);
+
+    Mat3r curved_new_R = _curved_tool->com().orientation * Math::Exp_so3(curved_dR);
+    Vec3r curved_tip_pos = _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset;
+    _curved_tool->com().position = curved_tip_pos - curved_new_R * _curved_tool_tip_offset;
+    _curved_tool->com().orientation = curved_new_R;
+    _curved_tool_grasp_sphere->com().position = _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset;
 }
 
 } // namespace Sim
