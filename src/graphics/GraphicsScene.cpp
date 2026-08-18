@@ -349,6 +349,15 @@ void GraphicsScene::addObject(const SimObject::XPBDRigidBox* box, const Config::
     }
 }
 
+void GraphicsScene::addObject(const SimObject::XPBDRigidMesh* mesh_obj, const Config::XPBDObjectConfig& config)
+{
+    std::unique_ptr<MeshGraphicsObject> mesh_go = std::make_unique<MeshGraphicsObject>(&mesh_obj->mesh(), &mesh_obj->com(), config.renderMeshConfigs()[0]);
+    _renderer->AddActor(mesh_go->actor());
+    _renderer->AddActor(mesh_go->edgesActor());
+
+    _graphics_objects.push_back(std::move(mesh_go));
+}
+
 void GraphicsScene::addObject(const SimObject::XPBDPlane* plane, const Config::XPBDObjectConfig& config)
 {
     if (!config.renderConfig().render())

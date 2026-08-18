@@ -64,18 +64,36 @@ Mesh Mesh::loadFromFile(const std::string& filename)
     return mesh;
 }
 
+SimObject::AABB Mesh::boundingBox() const
+{
+    SimObject::AABB aabb;
+    for (const auto& vert : _vertices)
+    {
+        aabb.min = aabb.min.cwiseMin(vert);
+        aabb.max = aabb.max.cwiseMax(vert);
+    }
+
+    return aabb;
+
+}
+
 Vec3r Mesh::massCenter() const
+{
+    return massCenter(_vertices, _faces);
+}
+
+Vec3r Mesh::massCenter(const std::vector<Vec3r>& vertices, const std::vector<Vec3i>& faces)
 {
     Real total_volume = 0;
     Vec3r weighted_volume(0,0,0);
-    for (const auto& f : _faces)
+    for (const auto& f : faces)
     {
         // each triangle in the mesh + origin forms a tetrahedron
         // v0=origin, v1=f[0], v2=f[1], v3=f[2]
         const Vec3r v0(0,0,0);
-        const Vec3r v1 = vertex(f[0]);
-        const Vec3r v2 = vertex(f[1]);
-        const Vec3r v3 = vertex(f[2]);
+        const Vec3r v1 = vertices[f[0]];
+        const Vec3r v2 = vertices[f[1]];
+        const Vec3r v3 = vertices[f[2]];
 
         // tet basis matrix
         Mat3r A;
@@ -98,6 +116,58 @@ Vec3r Mesh::massCenter() const
     }
 
     return weighted_volume / total_volume;
+}
+
+std::tuple<Real, Vec3r, Mat3r> Mesh::massProperties(Real density) const
+{
+    // uses the algorithm described here: http://number-none.com/blow/inertia/index.html
+    Real total_volume = 0;
+    Vec3r weighted_volume(0,0,0);
+    Mat3r covariance = Mat3r::Zero();
+
+    // covariance of "canonical" tetrahedron which is (0,0,0), (1,0,0), (0,1,0), (0,0,1)
+    Mat3r C_canonical;
+    C_canonical <<  1.0/60.0, 1.0/120.0, 1.0/120.0,
+                    1.0/120.0, 1.0/60.0, 1.0/120.0,
+                    1.0/120.0, 1.0/120.0, 1.0/60.0;
+    for (const auto& f : _faces)
+    {
+        // each triangle in the mesh + origin forms a tetrahedron
+        // v0=origin, v1=f[0], v2=f[1], v3=f[2]
+        const Vec3r v0(0,0,0);
+        const Vec3r v1 = vertex(f[0]);
+        const Vec3r v2 = vertex(f[1]);
+        const Vec3r v3 = vertex(f[2]);
+
+        // tet basis matrix
+        Mat3r A;
+        A.col(0) = (v1 - v0);
+        A.col(1) = (v2 - v0);
+        A.col(2) = (v3 - v0);
+
+        // find signed volume of tet
+        const Real volume = A.determinant() / 6.0;
+
+        // calculate the center of mass of this tetrahedron - just average of 4 vertices
+        const Vec3r tet_cm = 0.25*(v0 + v1 + v2 + v3);
+        // update overall center of mass using a weighted average
+        weighted_volume += tet_cm*volume;
+
+        // add covariance matrix from this tet
+        covariance += A.determinant() * A * C_canonical * A.transpose();
+        // update overall volume
+        total_volume += volume;
+    }
+
+    Vec3r center_of_mass = weighted_volume / total_volume;
+
+    // move covariance matrix to center of mass
+    covariance = covariance + total_volume * ( 2*(-center_of_mass) * (center_of_mass).transpose() + (-center_of_mass)*(-center_of_mass).transpose());
+
+    // compute moment of inertia tensor from covariance mat
+    const Mat3r I = Mat3r::Identity() * covariance.trace() - covariance;
+
+    return std::tuple<Real, Vec3r, Mat3r>(density*total_volume, center_of_mass, density*I);
 }
 
 void Mesh::moveDelta(const Vec3r& delta)

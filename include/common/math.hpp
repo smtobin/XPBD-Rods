@@ -422,4 +422,193 @@ static Mat3r quaternionToRotationMatrix(const Vec4r& quat)
     return mat;
 }
 
+// =========== GEOMETRY UTILS ==============
+
+static Vec3r pointSegmentDirection(const Vec3r &x0, const Vec3r &x1, const Vec3r &x2)
+{
+    const Vec3r &dx(x2 - x1);
+    Real m2 = dx.squaredNorm();
+    // find parameter value of closest point on segment
+    Real s12 = (Real)dx.dot(x2 - x0) / m2;
+    // cap parameter value to [0,1]
+    if (s12 < 0)
+        s12 = 0;
+    else if (s12 > 1)
+        s12 = 1;
+
+    // and find the distance
+    const Vec3r closest_point_on_line = s12 * x1 + (1 - s12) * x2;
+    return (x0 - closest_point_on_line).normalized();
+}
+
+static Real pointSegmentDistance(const Vec3r &x0, const Vec3r &x1, const Vec3r &x2)
+{
+    const Vec3r dx = x2 - x1;
+    Real m2 = dx.squaredNorm();
+    // find parameter value of closest point on segment
+    Real s12 = (Real)dx.dot(x2 - x0) / m2;
+    // cap parameter value to [0,1]
+    if (s12 < 0)
+        s12 = 0;
+    else if (s12 > 1)
+        s12 = 1;
+
+    // and find the distance
+    const Vec3r closest_point_on_line = s12 * x1 + (1 - s12) * x2;
+    return (x0 - closest_point_on_line).norm();
+}
+
+/** Returns the minimum distance from a point to a triangle.
+ * @param x0 - the point
+ * @param x1 - 1st triangle vertex
+ * @param x2 - 2nd triangle vertex
+ * @param x3 - 3rd triangle vertex
+ */
+static Vec3r pointTriangleDirection(const Vec3r &x0, const Vec3r &x1, const Vec3r &x2, const Vec3r &x3)
+{
+    // first find barycentric coordinates of closest point on infinite plane
+    const Vec3r x13(x1 - x3), x23(x2 - x3), x03(x0 - x3);
+    Real m13 = x13.squaredNorm(), m23 = x23.squaredNorm(), d = x13.dot(x23);
+    Real invdet = 1.f / std::max(m13 * m23 - d * d, Real(1e-30));
+    Real a = x13.dot(x03), b = x23.dot(x03);
+
+    // the barycentric coordinates themselves
+    Real w23 = invdet * (m23 * a - d * b);
+    Real w31 = invdet * (m13 * b - d * a);
+    Real w12 = 1 - w23 - w31;
+
+    if (w23 >= 0 && w31 >= 0 && w12 >= 0) // if we're inside the triangle
+    {
+        const Vec3r closest_point_on_triangle = w23 * x1 + w31 * x2 + w12 * x3;
+        const Vec3r diff = x0 - closest_point_on_triangle;
+        const Real dist = diff.norm();
+        if (dist < GEOMETRY_EPS) // check if we're on the plane - if so use the plane normal as the gradient
+        {
+            const Vec3r x21 = x2 - x1;
+            const Vec3r x31 = x3 - x1;
+            const Vec3r n = x21.cross(x31).normalized();
+            return n;
+        }
+        return diff / dist;
+    }
+    else // we have to clamp to one of the edges
+    {
+        if (w23 > 0) // this rules out edge 2-3 for us
+            if (pointSegmentDistance(x0, x1, x2) < pointSegmentDistance(x0, x1, x3))
+                return pointSegmentDirection(x0, x1, x2);
+            else
+                return pointSegmentDirection(x0, x1, x3);
+        else if (w31 > 0) // this rules out edge 1-3
+            if (pointSegmentDistance(x0,x1,x2) < pointSegmentDistance(x0,x2,x3))
+                return pointSegmentDirection(x0,x1,x2);
+            else
+                return pointSegmentDirection(x0,x2,x3);
+        else // w12 must be >0, ruling out edge 1-2
+            if (pointSegmentDistance(x0,x1,x3) < pointSegmentDistance(x0,x2,x3))
+                return pointSegmentDirection(x0,x1,x3);
+            else
+                return pointSegmentDirection(x0,x2,x3);
+    }
+}
+
+static Real pointTriangleDistance(const Vec3r &x0, const Vec3r &x1, const Vec3r &x2, const Vec3r &x3)
+{
+    // first find barycentric coordinates of closest point on infinite plane
+    const Vec3r x13(x1 - x3), x23(x2 - x3), x03(x0 - x3);
+    Real m13 = x13.squaredNorm(), m23 = x23.squaredNorm(), d = x13.dot(x23);
+    Real invdet = 1.f / std::max(m13 * m23 - d * d, Real(1e-30));
+    Real a = x13.dot(x03), b = x23.dot(x03);
+
+    // the barycentric coordinates themselves
+    Real w23 = invdet * (m23 * a - d * b);
+    Real w31 = invdet * (m13 * b - d * a);
+    Real w12 = 1 - w23 - w31;
+
+    if (w23 >= 0 && w31 >= 0 && w12 >= 0) // if we're inside the triangle
+    {
+        const Vec3r closest_point_on_triangle = w23 * x1 + w31 * x2 + w12 * x3;
+        return (x0 - closest_point_on_triangle).norm();
+    }
+    else // we have to clamp to one of the edges
+    {
+        if (w23 > 0) // this rules out edge 2-3 for us
+            return std::min(pointSegmentDistance(x0, x1, x2), pointSegmentDistance(x0, x1, x3));
+        else if (w31 > 0) // this rules out edge 1-3
+            return std::min(pointSegmentDistance(x0, x1, x2), pointSegmentDistance(x0, x2, x3));
+        else // w12 must be >0, ruling out edge 1-2
+            return std::min(pointSegmentDistance(x0, x1, x3), pointSegmentDistance(x0, x2, x3));
+    }
+}
+
+/** Returns true if point (x0,y0) is in the triangle defined by (x1,y1), (x2,y2), (x3,y3).
+ * The barycentric coordinates (a,b,c) are computed.
+ * @param x0,y0 - the point
+ * @param x1,y1 - the 1st triangle vertex
+ * @param x2,y2 - the 2nd triangle vertex
+ * @param x3,y3 - the 3rd triangle vertex
+ * @param a,b,c (OUTPUT) - the barycentric coordinates of (x0,y0) in the triangle.
+ */
+static bool pointInTriangle2D(Real x0, Real y0,
+                       Real x1, Real y1, Real x2, Real y2, Real x3, Real y3,
+                       Real &a, Real &b, Real &c)
+{
+    a = ((y2 - y3) * (x0 - x3) + (x3 - x2) * (y0 - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+    b = ((y3 - y1) * (x0 - x3) + (x1 - x3) * (y0 - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+    c = 1 - a - b;
+
+    return (a + GEOMETRY_EPS) >= 0 && a <= 1 && (b + GEOMETRY_EPS) >= 0 && b <= 1 && (c + GEOMETRY_EPS) >= 0 && c <= 1;
+}
+
+
+static Real angleBetweenVectors(const Vec3r& v1, const Vec3r& v2)
+{
+    const Real dot = v1.dot(v2);
+    const Real det = v1.cross(v2).norm();
+    return std::atan2(det, dot);
+}
+
+static Vec3r vectorSlerp(const Vec3r& v1, const Vec3r& v2, Real t)
+{
+    const Real angle = angleBetweenVectors(v1, v2);
+    // in the unlikely case that v1 and v2 are colinear (i.e. have angle between them of 180 deg)
+    if (M_PI - std::abs(angle) < 1e-6)
+    {
+        // from https://math.stackexchange.com/a/211195 - find perpendicular vector
+        Vec3r perp_v(v1[2], v1[2], -v1[0]-v1[1]);
+        if (perp_v.squaredNorm() < GEOMETRY_EPS) perp_v = Vec3r(-v1[1]-v1[2], v1[0], v1[0]);
+        perp_v.normalize();
+
+        // this perpendicular vector is the halfway point
+        if (t < 0.5f)   return vectorSlerp(v1, perp_v, t*2.0);
+        else            return vectorSlerp(perp_v, v2, (t-0.5)*2.0);
+    }
+    // if angle is 0 between them, just return v1
+    else if (std::abs(angle) < 1e-6)
+    {
+        return v1;
+    }
+
+    const Real inv_sin_ang = 1 / std::sin(angle);
+    return std::sin( (1-t) * angle) * inv_sin_ang * v1 + std::sin(t*angle) * inv_sin_ang * v2;
+}
+
+static Vec3r vectorBiSlerp(const Vec3r& v00, const Vec3r& v10,
+                              const Vec3r& v01, const Vec3r& v11,
+                              Real t0, Real t1)
+{
+    return vectorSlerp( vectorSlerp(v00, v10, t0),
+                        vectorSlerp(v01, v11, t0),
+                        t1   );
+}
+
+static Vec3r vectorTriSlerp( const Vec3r& v000, const Vec3r& v100,
+                                const Vec3r& v010, const Vec3r& v110,
+                                const Vec3r& v001, const Vec3r& v101,
+                                const Vec3r& v011, const Vec3r& v111,
+                                Real t0, Real t1, Real t2)
+{
+    return vectorSlerp( vectorBiSlerp(v000, v100, v010, v110, t0, t1),
+                        vectorBiSlerp(v001, v101, v011, v111, t0, t1),
+                        t2  );
+}
 };

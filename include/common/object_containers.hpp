@@ -4,6 +4,7 @@
 #include "common/VariadicVectorContainer.hpp"
 #include "simobject/rigidbody/XPBDRigidBox.hpp"
 #include "simobject/rigidbody/XPBDRigidSphere.hpp"
+#include "simobject/rigidbody/XPBDRigidMesh.hpp"
 #include "simobject/rod/XPBDRod.hpp"
 #include "simobject/rod/XPBDHigherOrderRod.hpp"
 #include "simobject/rod/XPBDCubicHermiteRod.hpp"

@@ -177,9 +177,8 @@ public:
             if (new_obj_ptr->collisions())
                 _collision_scene.addObject(new_obj_ptr);
         }
-
-        _graphics_scene.addObject(new_obj_ptr, obj_config);
         
+        _graphics_scene.addObject(new_obj_ptr, obj_config);
 
         // assign global indices to the new object's nodes
         // NOTE: this assumes thatobjects are not deleted during the course of the sim

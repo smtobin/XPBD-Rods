@@ -2,12 +2,15 @@
 
 #include "common/common.hpp"
 
+#include "simobject/AABB.hpp"
+
 /** Basic mesh class.
  * Stores an array of vertices and faces.
  */
 class Mesh
 {
 public:
+    Mesh() = default;
     Mesh(const std::vector<Vec3r>& vertices, const std::vector<Vec3i>& faces);
 
     /** Loads from a file with Assimp. */
@@ -19,10 +22,18 @@ public:
     const Vec3r& vertex(int vertex_ind) const { return _vertices[vertex_ind]; }
     const Vec3i& face(int face_ind) const { return _faces[face_ind]; }
 
+    SimObject::AABB boundingBox() const;
+
     /** Computes the current center of mass for the mesh.
      * Uses the same algorithm as massProperties(), but without calculating the moment of inertia.
      */
     Vec3r massCenter() const;
+    static Vec3r massCenter(const std::vector<Vec3r>& vertices, const std::vector<Vec3i>& faces);
+
+    /** Computes the mass properties of the mesh.
+     * Returns a tuple (mass, center of mass, moment of inertia)
+     */
+    std::tuple<Real, Vec3r, Mat3r> massProperties(Real density) const;
 
     /** Moves each vertex in the mesh by the same amount. */
     void moveDelta(const Vec3r& delta);

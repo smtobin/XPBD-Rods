@@ -106,6 +106,7 @@ namespace SimObject
     class RodCollisionSegment;
     class XPBDRigidSphere;
     class XPBDRigidBox;
+    class XPBDRigidMesh;
     class XPBDPlane;
 
     class XPBDPendulum;
@@ -124,7 +125,7 @@ using XPBDObjects_TypeList = TypeList<
     SimObject::XPBDRod_<SimObject::RodElement<2>>,
     SimObject::XPBDRod_<SimObject::RodElement<3>>,
     SimObject::XPBDCubicHermiteRod,
-    SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDPlane>;
+    SimObject::XPBDRigidSphere, SimObject::XPBDRigidBox, SimObject::XPBDRigidMesh, SimObject::XPBDPlane>;
 using XPBDObjects_Container = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::type;
 using XPBDObjects_UniquePtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::unique_ptr_type;
 using XPBDObjects_PtrContainer = VariadicVectorContainerFromTypeList<XPBDObjects_TypeList>::ptr_type;
@@ -344,6 +345,7 @@ namespace Config
     class RodConfig;
     class XPBDRigidBoxConfig;
     class XPBDRigidSphereConfig;
+    class XPBDRigidMeshConfig;
     class XPBDPlaneConfig;
     class XPBDPendulumConfig;
     class XPBDConcentricTubeRobotConfig;
@@ -363,6 +365,7 @@ using XPBDObjectConfigs_TypeList = TypeList<
     Config::RodConfig,
     Config::XPBDRigidBoxConfig,
     Config::XPBDRigidSphereConfig,
+    Config::XPBDRigidMeshConfig,
     Config::XPBDPlaneConfig,
     Config::XPBDPendulumConfig,
     Config::XPBDConcentricTubeRobotConfig,
@@ -386,3 +389,4 @@ using XPBDJointConfigs_Container = VariadicVectorContainerFromTypeList<XPBDJoint
 #define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
 #define COLLISION_CHECK_INTERVAL 0//1.0/500.0 // time between collision detection
 #define CONSTRAINT_EPS 1e-13    // epsilon for constraints - i.e. any number less than this is treated as 0
+#define GEOMETRY_EPS 1e-8       // epsilon for geometry math
