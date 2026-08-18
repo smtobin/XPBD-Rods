@@ -4,8 +4,8 @@ name: "RodSim"
 # sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
 # sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
 
-time-step: 7e-4                   # the time step used by the sim
-end-time: 10000000                  # the end time in the sim (some large number)
+time-step: 5e-4                   # the time step used by the sim
+end-time: 1000000                  # the end time in the sim (some large number)
 
 # logging - leave disabled
 logging: False
