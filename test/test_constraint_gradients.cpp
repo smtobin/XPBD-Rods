@@ -186,6 +186,13 @@ int main()
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>> o3_constraint(&o3_element, 0.33, Vec6r::Zero());
     testConstraint(o3_constraint);
 
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>> o1_mid_constraint(&o1_element, 0.4, Vec3r(0.8,0.4,0.3), randomRotation(), Vec6r::Zero());
+    testConstraint(o1_mid_constraint);
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<2>> o2_mid_constraint(&o2_element, 0.4, Vec3r(0.8,0.4,0.3), randomRotation(), Vec6r::Zero());
+    testConstraint(o2_mid_constraint);
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<3>> o3_mid_constraint(&o3_element, 0.4, Vec3r(0.8,0.4,0.3), randomRotation(), Vec6r::Zero());
+    testConstraint(o3_mid_constraint);
+
     std::array<SimObject::OrientedParticle*, 2> cubic_hermite_element_particles = {&particle1, &particle2};
     SimObject::Particle pos1 = randomPositionalParticle();
     SimObject::Particle pos2 = randomPositionalParticle();

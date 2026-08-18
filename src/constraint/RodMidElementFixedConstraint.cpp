@@ -27,7 +27,7 @@ typename RodMidElementFixedConstraint<ElementType>::ConstraintVecType RodMidElem
 template<class ElementType>
 typename RodMidElementFixedConstraint<ElementType>::GradientMatType RodMidElementFixedConstraint<ElementType>::gradient() const
 {
-    GradientMatType grad;
+    GradientMatType grad = GradientMatType::Zero();
 
     // positional gradients
     for (int i = 0; i < ElementType::NumNodes; i++)
