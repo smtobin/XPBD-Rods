@@ -647,6 +647,8 @@ void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* 
             new_collision.normal = -sdf_grad;
             new_collision.cp_local_rb = cp_local_rb;
             _new_collisions.push_back(std::move(new_collision));
+
+            // std::cout << "Rigid-segment collision! Rigid body name: " << rb->name() << " dist: " << dist << " speculative margin: " << speculative_margin << " radius: " << segment->radius() <<std::endl;
         }
     }
 }

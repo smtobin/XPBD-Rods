@@ -22,6 +22,9 @@ public:
     virtual ConstraintVecType evaluate() const override;
     virtual GradientMatType gradient() const override;
 
+    void setReferencePosition(const Vec3r& new_pos) { _p_ref = new_pos; }
+    void setReferenceOrientation(const Mat3r& new_rot) { _R_ref = new_rot; }
+
 private:
     /** The rod element */
     const ElementType* _rod_element;
