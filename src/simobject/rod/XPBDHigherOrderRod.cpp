@@ -223,6 +223,11 @@ void XPBDRod_<ElementType>::setup()
     for (unsigned i = 0; i < elastic_constraints.size(); i++)
     {
         _ordered_constraints.emplace_back(&elastic_constraints[i]);
+
+        if (_fixed_mid && _fixed_element_ind == i)
+        {
+            _ordered_constraints.emplace_back(_fixed_mid_constraint);
+        }
     }
 
     if (_base_fixed)
@@ -332,6 +337,30 @@ void XPBDRod_<ElementType>::addFixedMidConstraint(int element_ind, Real s_hat, c
 
     _internal_constraints.template emplace_back<Constraint::RodMidElementFixedConstraint<ElementType>>(&_elements[element_ind], s_hat, p_ref, R_ref, Vec6r::Zero());
     _fixed_mid_constraint = &_internal_constraints.template get<Constraint::RodMidElementFixedConstraint<ElementType>>().back();
+
+    /** Update ordered constraints */
+    std::vector<ElasticConstraintType>& elastic_constraints = _internal_constraints.template get<ElasticConstraintType>();
+    _ordered_constraints.clear();
+    for (unsigned i = 0; i < elastic_constraints.size(); i++)
+    {
+        _ordered_constraints.emplace_back(&elastic_constraints[i]);
+
+        if (_fixed_mid && _fixed_element_ind == static_cast<int>(i))
+        {
+            _ordered_constraints.emplace_back(_fixed_mid_constraint);
+        }
+    }
+
+    if (_base_fixed)
+    {
+        _ordered_constraints.emplace(_ordered_constraints.begin(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().front());
+    }
+    if (_tip_fixed)
+    {
+        _ordered_constraints.emplace(_ordered_constraints.end(),
+            &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>().back());
+    }
 
     _allocateSpace();
 }
@@ -620,7 +649,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
         // fill out the "column" - go through elastic constraint on next element
         for (int j = 0; j < NUM_GP; j++)
         {
-            int diag_index = j;
+            int diag_index = j+1;
             int other = NUM_GP*(_fixed_element_ind+1) + j;
 
             // index of the node shared by the constraints
@@ -697,6 +726,15 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
         }, _fixed_tip_constraint);
     }
+
+    // for (int i = 0; i < _diagonals.size(); i++)
+    // {
+    //     int num_diagonals = _diagonals[0].size();
+    //     for (int j = 0; j < num_diagonals-i; j++)
+    //     {
+    //         std::cout << "Diagonal " << i << ", " << j << ":\n" << _diagonals[i][j] << std::endl;
+    //     }
+    // }
 
     // solve system
     _solver.solveInPlace(_diagonals, _RHS_vec, _dlam);
@@ -836,10 +874,10 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
     //     constraint_variant);
     // }
 
-    // // std::cout << "\nRodElement 1 strain: " << (_elements[1].strain(0.5) - Vec6r(0,0,1,0,0,0)).transpose() << std::endl;
-    // // std::cout << "Elastic constraint 1 strain: " << _elastic_constraints[1].evaluate().transpose() << std::endl;
-    // // std::cout << "RodElement 1 gradient:\n" << _elements[1].strainGradient(0.5) << std::endl;
-    // // std::cout << "Elastic constraint 1 gradient:\n" << _elastic_constraints[1].gradient() << std::endl;
+    // // // std::cout << "\nRodElement 1 strain: " << (_elements[1].strain(0.5) - Vec6r(0,0,1,0,0,0)).transpose() << std::endl;
+    // // // std::cout << "Elastic constraint 1 strain: " << _elastic_constraints[1].evaluate().transpose() << std::endl;
+    // // // std::cout << "RodElement 1 gradient:\n" << _elements[1].strainGradient(0.5) << std::endl;
+    // // // std::cout << "Elastic constraint 1 gradient:\n" << _elastic_constraints[1].gradient() << std::endl;
 
     // // Step 4: assemble and solve
     // // compute LHS

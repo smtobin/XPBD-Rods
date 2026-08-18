@@ -29,6 +29,8 @@ private:
     Constraint::OneSidedFixedJointConstraint* _curved_tool_rod_constraint;
 
     using LinearRod = SimObject::XPBDRod_<SimObject::RodElement<1>>;
+    using QuadraticRod = SimObject::XPBDRod_<SimObject::RodElement<2>>;
+    using CubicRod = SimObject::XPBDRod_<SimObject::RodElement<3>>;
     LinearRod* _thread1;
     LinearRod* _thread2;
 };

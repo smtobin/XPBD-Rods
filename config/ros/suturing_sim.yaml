@@ -1,7 +1,7 @@
 name: "SuturingSim"
 
 # by default, the sim attempts to run in real-time
-# sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
+sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
 # sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
 
 time-step: 5e-4                   # the time step used by the sim
