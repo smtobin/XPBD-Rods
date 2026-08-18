@@ -174,6 +174,9 @@ namespace Constraint
     template <typename ElementType>
     class RodElasticGaussPointConstraint;
 
+    template <typename ElementType>
+    class RodMidElementFixedConstraint;
+
     class PointLineConstraint;
 
     class RigidBodyCollisionConstraint;
@@ -248,6 +251,10 @@ using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<0>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<2>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<3>>,
     Constraint::PointLineConstraint
 >;
 

@@ -567,6 +567,55 @@ typename RodElement<Order>::ContactPointGradientMatType RodElement<Order>::conta
     return contactPointGradient(s_hat, cp_local);
 }
 
+template <int Order>
+typename RodElement<Order>::OrientationGradientMatType RodElement<Order>::orientationGradient(Real s_hat) const
+{
+    OrientationGradientMatType grad;
+    
+    // stores (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Vec3r, Order+1> Ri_minus_R1;
+    // stores Gamma^{-1} (Ri boxminus R1) for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> gam_inv_Ri_minus_R1;
+    // stores d theta(s) / d Ri for i = 1,...,Order+1
+    std::array<Mat3r, Order+1> dtheta_dRi;
+
+    // theta(s)
+    Vec3r theta = Vec3r::Zero();
+
+    // precompute quantities
+    dtheta_dRi[0] = Mat3r::Zero();
+    for (int i = 1; i < Order+1; i++)
+    {
+        Ri_minus_R1[i] = Math::Minus_SO3(_nodes[i]->orientation, _nodes[0]->orientation);
+        gam_inv_Ri_minus_R1[i] = Math::ExpMap_InvRightJacobian(Ri_minus_R1[i]);
+        dtheta_dRi[i] = _bases[i](s_hat) * gam_inv_Ri_minus_R1[i];
+
+        theta += _bases[i](s_hat) * Ri_minus_R1[i];
+
+        // add contribution to dtheta_dR0 and dtheta_ds_dR0
+        dtheta_dRi[0] -= dtheta_dRi[i].transpose();
+    }
+
+
+    /** Compute gradients w.r.t. rotation */
+
+    Mat3r exp_theta = Math::Exp_so3(theta);
+    Mat3r gam_theta = Math::ExpMap_RightJacobian(theta);
+    for (int i = 0; i < Order+1; i++)
+    {
+        if (i == 0)
+        {
+            grad.template block<3,3>(0,3*i) = exp_theta.transpose() + gam_theta * dtheta_dRi[i];
+        }
+        else
+        {
+            grad.template block<3,3>(0,3*i) = gam_theta * dtheta_dRi[i];
+        }
+    }
+
+    return grad;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Specialization for "rigid body" rod element (Order = 0)

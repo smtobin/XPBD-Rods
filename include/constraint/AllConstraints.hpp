@@ -10,6 +10,7 @@
 
 #include "constraint/RodElasticConstraint.hpp"
 #include "constraint/RodElasticGaussPointConstraint.hpp"
+#include "constraint/RodMidElementFixedConstraint.hpp"
 #include "constraint/PointLineConstraint.hpp"
 
 
