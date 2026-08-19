@@ -40,6 +40,7 @@ private:
     bool _straight_tool_grasping = false;
     Mat3r _straight_tool_grasp_rot_offset;
     Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>* _straight_tool_rod_constraint = nullptr;
+    LinearRod* _straight_tool_grasped_rod;
     SimObject::XPBDRigidMesh* _straight_tool = nullptr;
     Vec3r _straight_tool_tip_offset;
     SimObject::XPBDRigidSphere* _straight_tool_grasp_sphere;
@@ -47,6 +48,7 @@ private:
     bool _curved_tool_grasping = false;
     Mat3r _curved_tool_grasp_rot_offset;
     Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>* _curved_tool_rod_constraint = nullptr;
+    LinearRod* _curved_tool_grasped_rod;
     SimObject::XPBDRigidMesh* _curved_tool = nullptr;
     Vec3r _curved_tool_tip_offset;
     SimObject::XPBDRigidSphere* _curved_tool_grasp_sphere;

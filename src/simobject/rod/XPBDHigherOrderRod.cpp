@@ -366,6 +366,14 @@ void XPBDRod_<ElementType>::addFixedMidConstraint(int element_ind, Real s_hat, c
 }
 
 template <typename ElementType>
+void XPBDRod_<ElementType>::removeFixedMidConstraint()
+{
+    _internal_constraints.template get<Constraint::RodMidElementFixedConstraint<ElementType>>().clear();
+    _fixed_mid = false;
+    _allocateSpace();
+}
+
+template <typename ElementType>
 Vec3r XPBDRod_<ElementType>::totalRotation() const
 {
     Vec3r total_rotation = Vec3r::Zero();
@@ -514,7 +522,6 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
 
     // keep track of whether there was a fixed mid constraint on the last element
     // since this will affect the spacing of off-diagonal blocks
-    int num_extra_constraints_on_last_element = 0;
     int fixed_mid_diag_block_ind = 0;
     for (int i = 0; i < _num_elements; i++)
     {
@@ -1065,6 +1072,10 @@ void XPBDRod_<CubicHermiteRodElement>::internalConstraintVelocitySolve(Real /* d
 
 template<>
 void XPBDRod_<CubicHermiteRodElement>::addFixedMidConstraint(int, Real, const Vec3r&, const Mat3r&)
+{}
+
+template<>
+void XPBDRod_<CubicHermiteRodElement>::removeFixedMidConstraint()
 {}
 
 template class XPBDRod_<RodElement<0>>;

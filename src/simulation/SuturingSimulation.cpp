@@ -20,11 +20,11 @@ void SuturingSimulation::notifyKeyPressed(const std::string& key)
 
     if (key == "Shift_L")
     {
-        _toggleStraightToolGrasping();
+        addCallback([this]() { this->_toggleStraightToolGrasping(); });
     }
     if (key == "Shift_R")
     {
-        _toggleCurvedToolGrasping();
+        addCallback([this]() { this->_toggleCurvedToolGrasping(); });
     }
 
     // std::cout << "Key pressed: " << key << std::endl;
@@ -111,7 +111,7 @@ void SuturingSimulation::setup()
     // create tools
     Config::XPBDRigidMeshConfig straight_tool_config(
         "straight_tool",
-        Vec3r(0, 200, -50),
+        Vec3r(0, 150, 50),
         Vec3r(0,0,180),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -222,38 +222,45 @@ void SuturingSimulation::_updateCurvedToolPose(const Vec3r& new_pos, const Mat3r
 
 void SuturingSimulation::_updateToolPositionsFromKeyboard()
 {
-    if (_keys_held.empty())
+    // copy keys held to avoid race condition with event handling
+    std::unordered_set<std::string> keys_held;
+    {
+        std::lock_guard<std::mutex> l(_keys_mutex);
+        keys_held = _keys_held;
+    }
+
+    if (keys_held.empty())
         return;
 
     Real position_delta = 100*_dt;
     Real rotation_delta = 2*_dt;
 
     Vec3r straight_dp = Vec3r::Zero();
-    if (_keys_held.count("q") > 0)
+    if (keys_held.count("q") > 0)
         straight_dp += Vec3r(position_delta, 0, 0);
-    if (_keys_held.count("w") > 0)
+    if (keys_held.count("w") > 0)
         straight_dp -= Vec3r(position_delta, 0, 0);
-    if (_keys_held.count("a") > 0)
+    if (keys_held.count("a") > 0)
         straight_dp += Vec3r(0, position_delta, 0);
-    if (_keys_held.count("s") > 0)
+    if (keys_held.count("s") > 0)
         straight_dp -= Vec3r(0, position_delta, 0);
-    if (_keys_held.count("z") > 0)
+    if (keys_held.count("z") > 0)
         straight_dp += Vec3r(0, 0, position_delta);
-    if (_keys_held.count("x") > 0)
+    if (keys_held.count("x") > 0)
         straight_dp -= Vec3r(0, 0, position_delta);
 
     Vec3r straight_dR = Vec3r::Zero();
-    if (_keys_held.count("e") > 0)
+    if (keys_held.count("e") > 0)
         straight_dR += Vec3r(rotation_delta, 0, 0);
-    if (_keys_held.count("r") > 0)
+    if (keys_held.count("r") > 0)
         straight_dR -= Vec3r(rotation_delta, 0, 0);
-    if (_keys_held.count("d") > 0)
+    if (keys_held.count("d") > 0)
         straight_dR += Vec3r(0, rotation_delta, 0);
-    if (_keys_held.count("f") > 0)
+    if (keys_held.count("f") > 0)
         straight_dR -= Vec3r(0, rotation_delta, 0);
-    if (_keys_held.count("c") > 0)
+    if (keys_held.count("c") > 0)
         straight_dR += Vec3r(0, 0, rotation_delta);
-    if (_keys_held.count("v") > 0)
+    if (keys_held.count("v") > 0)
         straight_dR -= Vec3r(0, 0, rotation_delta);
 
     Mat3r straight_new_R = _straight_tool->com().orientation * Math::Exp_so3(straight_dR);
@@ -262,31 +269,31 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
 
 
     Vec3r curved_dp = Vec3r::Zero();
-    if (_keys_held.count("t") > 0)
+    if (keys_held.count("t") > 0)
         curved_dp += Vec3r(position_delta, 0, 0);
-    if (_keys_held.count("y") > 0)
+    if (keys_held.count("y") > 0)
         curved_dp -= Vec3r(position_delta, 0, 0);
-    if (_keys_held.count("g") > 0)
+    if (keys_held.count("g") > 0)
         curved_dp += Vec3r(0, position_delta, 0);
-    if (_keys_held.count("h") > 0)
+    if (keys_held.count("h") > 0)
         curved_dp -= Vec3r(0, position_delta, 0);
-    if (_keys_held.count("b") > 0)
+    if (keys_held.count("b") > 0)
         curved_dp += Vec3r(0, 0, position_delta);
-    if (_keys_held.count("n") > 0)
+    if (keys_held.count("n") > 0)
         curved_dp -= Vec3r(0, 0, position_delta);
 
     Vec3r curved_dR = Vec3r::Zero();
-    if (_keys_held.count("u") > 0)
+    if (keys_held.count("u") > 0)
         curved_dR += Vec3r(rotation_delta, 0, 0);
-    if (_keys_held.count("i") > 0)
+    if (keys_held.count("i") > 0)
         curved_dR -= Vec3r(rotation_delta, 0, 0);
-    if (_keys_held.count("j") > 0)
+    if (keys_held.count("j") > 0)
         curved_dR += Vec3r(0, rotation_delta, 0);
-    if (_keys_held.count("k") > 0)
+    if (keys_held.count("k") > 0)
         curved_dR -= Vec3r(0, rotation_delta, 0);
-    if (_keys_held.count("m") > 0)
+    if (keys_held.count("m") > 0)
         curved_dR += Vec3r(0, 0, rotation_delta);
-    if (_keys_held.count("comma") > 0)
+    if (keys_held.count("comma") > 0)
         curved_dR -= Vec3r(0, 0, rotation_delta);
 
     Mat3r curved_new_R = _curved_tool->com().orientation * Math::Exp_so3(curved_dR);
@@ -296,63 +303,81 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
 
 void SuturingSimulation::_toggleStraightToolGrasping()
 {
-    // search both threads and find the closest point on
-    int elem1, elem2;
-    Real s_hat1, s_hat2, dist1, dist2;
-    _findClosestPointOnRod(_thread1, _straight_tool_grasp_sphere->com().position, elem1, s_hat1, dist1);
-    _findClosestPointOnRod(_thread2, _straight_tool_grasp_sphere->com().position, elem2, s_hat2, dist2);
-    
-    Vec3r tip_pos = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
-    if (dist1 < _straight_tool_grasp_sphere->radius())
+    if (!_straight_tool_grasping)
     {
-        Mat3r rod_R = _thread1->elements()[elem1].orientation(s_hat1);
-        _straight_tool_grasp_rot_offset = _straight_tool->com().orientation.transpose() * rod_R;
+        // search both threads and find the closest point on
+        int elem1, elem2;
+        Real s_hat1, s_hat2, dist1, dist2;
+        _findClosestPointOnRod(_thread1, _straight_tool_grasp_sphere->com().position, elem1, s_hat1, dist1);
+        _findClosestPointOnRod(_thread2, _straight_tool_grasp_sphere->com().position, elem2, s_hat2, dist2);
+        
+        Vec3r tip_pos = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
+        if (dist1 < _straight_tool_grasp_sphere->radius())
+        {
+            Mat3r rod_R = _thread1->elements()[elem1].orientation(s_hat1);
+            _straight_tool_grasp_rot_offset = _straight_tool->com().orientation.transpose() * rod_R;
 
-        _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
-        _straight_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
-        _straight_tool_grasping = true;
-        return;
+            _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
+            _straight_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _straight_tool_grasping = true;
+            _straight_tool_grasped_rod = _thread1;
+        }
+        else if (dist2 < _straight_tool_grasp_sphere->radius())
+        {
+            Mat3r rod_R = _thread2->elements()[elem2].orientation(s_hat2);
+            _straight_tool_grasp_rot_offset = _straight_tool->com().orientation.transpose() * rod_R;
+
+            _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
+            _straight_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _straight_tool_grasping = true;
+            _straight_tool_grasped_rod = _thread2;
+        }
     }
-    if (dist2 < _straight_tool_grasp_sphere->radius())
+    else
     {
-        Mat3r rod_R = _thread2->elements()[elem2].orientation(s_hat2);
-        _straight_tool_grasp_rot_offset = _straight_tool->com().orientation.transpose() * rod_R;
-
-        _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
-        _straight_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
-        _straight_tool_grasping = true;
+        _straight_tool_grasped_rod->removeFixedMidConstraint();
+        _straight_tool_grasping = false;
     }
 }
 
 void SuturingSimulation::_toggleCurvedToolGrasping()
 {
-    // search both threads and find the closest point on
-    int elem1, elem2;
-    Real s_hat1, s_hat2, dist1, dist2;
-    Vec3r tip_pos = _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset;
-
-    _findClosestPointOnRod(_thread1, tip_pos, elem1, s_hat1, dist1);
-    _findClosestPointOnRod(_thread2, tip_pos, elem2, s_hat2, dist2);
-    
-    
-    if (dist1 < _curved_tool_grasp_sphere->radius())
+    if (!_curved_tool_grasping)
     {
-        Mat3r rod_R = _thread1->elements()[elem1].orientation(s_hat1);
-        _curved_tool_grasp_rot_offset = _curved_tool->com().orientation.transpose() * rod_R;
+        // search both threads and find the closest point on
+        int elem1, elem2;
+        Real s_hat1, s_hat2, dist1, dist2;
+        Vec3r tip_pos = _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset;
 
-        _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
-        _curved_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
-        _curved_tool_grasping = true;
-        return;
+        _findClosestPointOnRod(_thread1, tip_pos, elem1, s_hat1, dist1);
+        _findClosestPointOnRod(_thread2, tip_pos, elem2, s_hat2, dist2);
+        
+        
+        if (dist1 < _curved_tool_grasp_sphere->radius())
+        {
+            Mat3r rod_R = _thread1->elements()[elem1].orientation(s_hat1);
+            _curved_tool_grasp_rot_offset = _curved_tool->com().orientation.transpose() * rod_R;
+
+            _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
+            _curved_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _curved_tool_grasping = true;
+            _curved_tool_grasped_rod = _thread1;
+        }
+        else if (dist2 < _curved_tool_grasp_sphere->radius())
+        {
+            Mat3r rod_R = _thread2->elements()[elem2].orientation(s_hat2);
+            _curved_tool_grasp_rot_offset = _curved_tool->com().orientation.transpose() * rod_R;
+
+            _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
+            _curved_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _curved_tool_grasping = true;
+            _curved_tool_grasped_rod = _thread2;
+        }
     }
-    if (dist2 < _curved_tool_grasp_sphere->radius())
+    else
     {
-        Mat3r rod_R = _thread2->elements()[elem2].orientation(s_hat2);
-        _curved_tool_grasp_rot_offset = _curved_tool->com().orientation.transpose() * rod_R;
-
-        _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
-        _curved_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
-        _curved_tool_grasping = true;
+        _curved_tool_grasped_rod->removeFixedMidConstraint();
+        _curved_tool_grasping = false;
     }
 }
 

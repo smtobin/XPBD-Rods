@@ -53,6 +53,7 @@ public:
     void setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint);
     void setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint);
     void addFixedMidConstraint(int element_ind, Real s_hat, const Vec3r& p_ref, const Mat3r& R_ref);
+    void removeFixedMidConstraint();
 
     /** Duplicates constraints into the internal constraints of the rod */
     template <typename ConstraintType>

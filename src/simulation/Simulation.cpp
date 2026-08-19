@@ -677,12 +677,18 @@ void Simulation::notifyKeyPressed(const std::string& key)
         _updateGraphics(false);
     }
 
-    _keys_held.insert(key);
+    {
+        std::lock_guard<std::mutex> l(_keys_mutex);
+        _keys_held.insert(key);
+    }
 }
 
 void Simulation::notifyKeyReleased(const std::string& key)
 {
-    _keys_held.erase(key);
+    {
+        std::lock_guard<std::mutex> l(_keys_mutex);
+        _keys_held.erase(key);
+    }
 }
 
 void Simulation::notifyMouseMoved(double /*mx*/, double /*my*/)

@@ -81,7 +81,6 @@ target_link_libraries(BowlingSim Simulation ${VTK_LIBRARIES})
 add_executable(SuturingSim src/exec/suturing_sim.cpp)
 target_link_libraries(SuturingSim Simulation ${VTK_LIBRARIES})
 
-
 ###################################################
 # TESTS
 ###################################################

@@ -31,6 +31,7 @@
 #include <functional>
 #include <atomic>
 #include <unordered_map>
+#include <mutex>
 
 
 namespace Sim
@@ -386,6 +387,7 @@ public:
     Real _last_collision_check_time;
 
     std::unordered_set<std::string> _keys_held;
+    std::mutex _keys_mutex;
 
     XPBDConstraints_Container _constraints;
     XPBDObjects_UniquePtrContainer _objects;
