@@ -10,8 +10,8 @@ SuturingSimulation::SuturingSimulation()
 SuturingSimulation::SuturingSimulation(const Config::SimulationConfig& config)
     : Simulation(config)
 {
-    _straight_tool_tip_offset = Vec3r(127,0,0);
-    _curved_tool_tip_offset = Vec3r(133,0,-10);
+    _straight_tool_tip_offset = Vec3r(127e-3, 0, 0);
+    _curved_tool_tip_offset = Vec3r(133e-3, 0, -10e-3);
 }
 
 void SuturingSimulation::notifyKeyPressed(const std::string& key)
@@ -49,7 +49,7 @@ void SuturingSimulation::setup()
     // create threads
     Config::RodConfig thread1_config(
         "thread1",
-        Vec3r(0, 1, 0.15),
+        Vec3r(0, 1e-3, 0.25e-3),
         Vec3r(0, 0, 0),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -60,13 +60,13 @@ void SuturingSimulation::setup()
         true,
         false,
         true,
-        125,    // length
-        0.2,    // diameter
+        125e-3,    // length
+        0.2e-3,    // diameter
         200,    // num elements
-        1.1e-6, // density
-        200,   // E
+        1.1e3, // density
+        200e3,   // E
         0.4,    // nu
-        1e1,    // beta
+        0,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
@@ -76,7 +76,7 @@ void SuturingSimulation::setup()
 
     Config::RodConfig thread2_config(
         "thread2",
-        Vec3r(0, 1, -0.15),
+        Vec3r(0, 1e-3, -0.25e-3),
         Vec3r(0, 180, 0),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -87,13 +87,13 @@ void SuturingSimulation::setup()
         true,
         false,
         true,
-        65,    // length
-        0.2,    // diameter
+        65e-3,    // length
+        0.2e-3,    // diameter
         100,    // num elements
-        1.1e-6, // density
-        200,   // E
+        1.1e3, // density
+        200e3,   // E
         0.4,    // nu
-        1e1,    // beta
+        0,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
@@ -102,18 +102,18 @@ void SuturingSimulation::setup()
     _thread2 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
 
     // update the fixed base constraints on thread1 and thread2 so that they go into the ground
-    auto& base_fixed_constraint1 = _thread1->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
-    base_fixed_constraint1.setReferencePosition(Vec3r(0, 0.01, 1.0));
-    base_fixed_constraint1.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
-    auto& base_fixed_constraint2 = _thread2->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
-    base_fixed_constraint2.setReferencePosition(Vec3r(0, 0.01, -1.0));
-    base_fixed_constraint2.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
+    // auto& base_fixed_constraint1 = _thread1->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+    // base_fixed_constraint1.setReferencePosition(Vec3r(0, 0.21e-3, 1.0e-3));
+    // base_fixed_constraint1.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
+    // auto& base_fixed_constraint2 = _thread2->internalConstraints().template get<Constraint::OneSidedFixedJointConstraint>().back();
+    // base_fixed_constraint2.setReferencePosition(Vec3r(0, 0.21e-3, -1.0e-3));
+    // base_fixed_constraint2.setReferenceOrientation(Math::RotMatFromXYZEulerAngles(Vec3r(-90,0,0)));
 
 
     // create tools
     Config::XPBDRigidMeshConfig straight_tool_config(
         "straight_tool",
-        Vec3r(0, 150, 50),
+        Vec3r(0, 150e-3, 50e-3),
         Vec3r(0,0,180),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -123,7 +123,7 @@ void SuturingSimulation::setup()
         1000,
         true,
         "../resource/meshes/Scissor_Straight.stl",
-        Vec3r(1,1,1)
+        Vec3r(1e-3,1e-3,1e-3)
     );
     _addObjectFromConfig(straight_tool_config);
     _straight_tool = _objects.template get<std::unique_ptr<SimObject::XPBDRigidMesh>>().back().get();
@@ -139,7 +139,7 @@ void SuturingSimulation::setup()
         0.0,
         1000,
         true,
-        3  
+        3e-3  
     );
     straight_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
     straight_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
@@ -148,7 +148,7 @@ void SuturingSimulation::setup()
 
     Config::XPBDRigidMeshConfig curved_tool_config(
         "curved_tool",
-        Vec3r(0, 200, 50),
+        Vec3r(0, 200e-3, 50e-3),
         Vec3r(0,0,180),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -158,7 +158,7 @@ void SuturingSimulation::setup()
         1000,
         true,
         "../resource/meshes/Scissor_Curved.stl",
-        Vec3r(1,1,1)
+        Vec3r(1e-3,1e-3,1e-3)
     );
     _addObjectFromConfig(curved_tool_config);
     _curved_tool = _objects.template get<std::unique_ptr<SimObject::XPBDRigidMesh>>().back().get();
@@ -174,7 +174,7 @@ void SuturingSimulation::setup()
         0.0,
         1000,
         true,
-        3  
+        3e-3  
     );
     curved_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
     curved_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
@@ -234,7 +234,7 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
     if (keys_held.empty())
         return;
 
-    Real position_delta = 100*_dt;
+    Real position_delta = 100e-3*_dt;
     Real rotation_delta = 2*_dt;
 
     Vec3r straight_dp = Vec3r::Zero();
