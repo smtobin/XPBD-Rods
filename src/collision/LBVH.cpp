@@ -214,7 +214,7 @@ void LBVH::build(const std::vector<CollisionObject>& collision_objects)
 
     /** Assemble BVH */
     // refit pass
-    std::vector<uint8_t> visited(2 * n - 1);
+    std::vector<uint8_t> visited(2 * n - 1, 0);
 
     // start at leaves, then walk up
     for (unsigned l_idx = 0; l_idx < n; l_idx++)

@@ -6,7 +6,9 @@ solver-iters: 1
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
-exposure: 0.5
+exposure: 0.3
+
+rod-rod-collisions: true
 objects:
   - 
     type: "Rod"
@@ -52,7 +54,7 @@ objects:
     type: "Rod"
     name: "rod2"
     element-type: "Cubic"
-    initial-position: [-0.5, 10, 0.5]
+    initial-position: [-0.5, 2, 0.5]
     initial-rotation: [0, 90, 0]
     elements: 5
     E: 1e6

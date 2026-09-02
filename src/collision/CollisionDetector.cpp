@@ -50,6 +50,10 @@ void CollisionDetector::_initCollisionTable()
         CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDRigidSphere*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
     };
 
+    _collision_table[static_cast<int>(ColliderType::Sphere)][static_cast<int>(ColliderType::Plane)] = [](CollisionDetector* cd, void* a, void* b) {
+        CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDPlane*>(b), static_cast<SimObject::XPBDRigidSphere*>(a));
+    };
+
     // first type is a box
     _collision_table[static_cast<int>(ColliderType::Box)][static_cast<int>(ColliderType::Sphere)] = [](CollisionDetector* cd,void* a, void* b) {
         CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::XPBDRigidBox*>(a));     // switched
@@ -67,6 +71,10 @@ void CollisionDetector::_initCollisionTable()
         CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDRigidBox*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
     };
 
+    _collision_table[static_cast<int>(ColliderType::Box)][static_cast<int>(ColliderType::Plane)] = [](CollisionDetector* cd, void* a, void* b) {
+        CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDPlane*>(b), static_cast<SimObject::XPBDRigidBox*>(a));
+    };
+
     // first type is a rod segment
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Sphere)] = [](CollisionDetector* cd, void* a, void* b) {
         CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDRigidSphere*>(b), static_cast<SimObject::RodCollisionSegment*>(a));     // switched
@@ -82,6 +90,10 @@ void CollisionDetector::_initCollisionTable()
 
     _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Mesh)] = [](CollisionDetector* cd, void* a, void* b) {
         CollisionDetector::_checkCollision(cd, static_cast<SimObject::RodCollisionSegment*>(a), static_cast<SimObject::XPBDRigidMesh*>(b));
+    };
+
+    _collision_table[static_cast<int>(ColliderType::RodSegment)][static_cast<int>(ColliderType::Plane)] = [](CollisionDetector* cd, void* a, void* b) {
+        CollisionDetector::_checkCollision(cd, static_cast<SimObject::XPBDPlane*>(b), static_cast<SimObject::RodCollisionSegment*>(a));
     };
 
     // first type is a plane
@@ -129,9 +141,16 @@ void CollisionDetector::_initCollisionTable()
     _collision_table_initialized = true;
 }
 
+CollisionDetector::CollisionDetector()
+{
+    _initCollisionTable();
+}
+
 CollisionDetector::CollisionDetector(const Config::CollisionSceneConfig& config)
 {
     _rod_rod_collisions = config.rodRodCollisions();
+
+    _initCollisionTable();
 }
 
 const std::vector<DetectedCollision>& CollisionDetector::detectCollisions()

@@ -57,8 +57,8 @@ struct LBVH
         unsigned num_nodes = 2 * num_primitives - 1;
         min_x.resize(num_nodes); min_y.resize(num_nodes); min_z.resize(num_nodes);
         max_x.resize(num_nodes); max_y.resize(num_nodes); max_z.resize(num_nodes);
-        left.resize(num_nodes);  right.resize(num_nodes);
-        parent.resize(num_nodes);
+        left.resize(num_nodes, INVALID);  right.resize(num_nodes, INVALID);
+        parent.resize(num_nodes, INVALID);
         leaf_start.resize(num_nodes, 0);
         leaf_count.resize(num_nodes, 0);
         subtree_size.resize(num_nodes, 0);
@@ -106,7 +106,7 @@ private:
 
     static inline int countl_zero(uint64_t x)
     {
-        return x == 0 ? sizeof(x) * 8 : __builtin_clz(x);
+        return x == 0 ? sizeof(x) * 8 : __builtin_clzll(x);
     }
 
     static inline int commonPrefixLen(uint64_t code_i, unsigned i, uint64_t code_j, unsigned j)

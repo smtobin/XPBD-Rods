@@ -109,7 +109,7 @@ private:
     static void _initCollisionTable();
 
 public:
-    CollisionDetector() = default;
+    CollisionDetector();
     CollisionDetector(const Config::CollisionSceneConfig& config);
 
     /** Adds a object to the spatial hashing cd. */
