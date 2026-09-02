@@ -4,8 +4,9 @@ name: "SuturingSim"
 # sim-mode: "Frame-by-frame"      # uncomment this line to run the simulation "frame by frame" (press any key on the keyboard to step forward one time step)
 # sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
 
-time-step: 5e-4                   # the time step used by the sim
-end-time: 10000000000                  # the end time in the sim (some large number)
+time-step: 5e-4                  # the time step used by the sim
+end-time: 10000000                  # the end time in the sim (some large number)
+solver-iters: 3
 
 # logging - leave disabled
 logging: False
@@ -24,7 +25,7 @@ camera-focal-point: [0, 0, 0]
 camera-position: [120, 15, 0]
 camera-orthographic: False
 
-# hash-voxel-size: 5
+# hash-voxel-size: 2
 # num-hash-buckets: 31101
 
 # objects:

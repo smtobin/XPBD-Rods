@@ -10,8 +10,8 @@ SuturingSimulation::SuturingSimulation()
 SuturingSimulation::SuturingSimulation(const Config::SimulationConfig& config)
     : Simulation(config)
 {
-    _straight_tool_tip_offset = Vec3r(130,0,0);
-    _curved_tool_tip_offset = Vec3r(130,0,0);
+    _straight_tool_tip_offset = Vec3r(127,0,0);
+    _curved_tool_tip_offset = Vec3r(133,0,-10);
 }
 
 void SuturingSimulation::notifyKeyPressed(const std::string& key)
@@ -64,12 +64,13 @@ void SuturingSimulation::setup()
         0.2,    // diameter
         200,    // num elements
         1.1e-6, // density
-        2000,   // E
+        200,   // E
         0.4,    // nu
-        1e5,    // beta
+        1e1,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
+    thread1_config.renderConfig().setColorElements(true);
     _addObjectFromConfig(thread1_config);
     _thread1 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
 
@@ -90,12 +91,13 @@ void SuturingSimulation::setup()
         0.2,    // diameter
         100,    // num elements
         1.1e-6, // density
-        2000,   // E
+        200,   // E
         0.4,    // nu
-        1e5,    // beta
+        1e1,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
+    thread2_config.renderConfig().setColorElements(true);
     _addObjectFromConfig(thread2_config);
     _thread2 = _objects.template get<std::unique_ptr<LinearRod>>().back().get();
 
@@ -137,7 +139,7 @@ void SuturingSimulation::setup()
         0.0,
         1000,
         true,
-        10  
+        3  
     );
     straight_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
     straight_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
@@ -172,7 +174,7 @@ void SuturingSimulation::setup()
         0.0,
         1000,
         true,
-        10  
+        3  
     );
     curved_tool_grasp_sphere_config.renderConfig().setColor(Vec3r(1.0, 1.0, 0.0));
     curved_tool_grasp_sphere_config.renderConfig().setOpacity(0.3);
@@ -262,6 +264,12 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
         straight_dR += Vec3r(0, 0, rotation_delta);
     if (keys_held.count("v") > 0)
         straight_dR -= Vec3r(0, 0, rotation_delta);
+
+    if (keys_held.count("Alt_L") > 0)
+    {
+        straight_dp *= 0.1;
+        straight_dR *= 0.1;
+    }
 
     Mat3r straight_new_R = _straight_tool->com().orientation * Math::Exp_so3(straight_dR);
     Vec3r straight_tip_pos = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
