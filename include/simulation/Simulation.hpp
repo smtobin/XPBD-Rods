@@ -24,7 +24,7 @@
 
 #include "solver/GaussSeidelSolver.hpp"
 
-#include "collision/CollisionScene.hpp"
+#include "collision/CollisionDetector.hpp"
 
 #include <vector>
 #include <deque>
@@ -124,10 +124,10 @@ public:
         // iterate through any joint constraints and make sure the CollisionScene ignores collisions appropriately
         const XPBDConstraints_Container& internal_constraints = obj->internalConstraints();
         constraints.for_each_element(XPBDTwoSidedJointConstraints_TypeList{}, [&](auto& constraint) {
-            _collision_scene.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
+            _collision_detector.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
         });
         internal_constraints.for_each_element(XPBDTwoSidedJointConstraints_TypeList{}, [&](auto& constraint) {
-            _collision_scene.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
+            _collision_detector.addJoint(constraint.orientedParticles()[0], constraint.orientedParticles()[1]);
         });
     }
 
@@ -162,7 +162,7 @@ public:
             auto& objects = new_obj_ptr->objects();
             objects.for_each_element([&](auto& obj) {
                 if (obj.collisions())
-                    _collision_scene.addObject(&obj);
+                    _collision_detector.addObject(&obj);
             });
 
             // add the ObjectGroup's constraints to the solver
@@ -176,7 +176,7 @@ public:
 
             // add object to collision scene
             if (new_obj_ptr->collisions())
-                _collision_scene.addObject(new_obj_ptr);
+                _collision_detector.addObject(new_obj_ptr);
         }
         
         _graphics_scene.addObject(new_obj_ptr, obj_config);
@@ -232,7 +232,7 @@ public:
 
             // add object to collision scene
             if (new_rod_ptr->collisions())
-                _collision_scene.addObject(new_rod_ptr);
+                _collision_detector.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
@@ -254,7 +254,7 @@ public:
 
             // add object to collision scene
             if (new_rod_ptr->collisions())
-                _collision_scene.addObject(new_rod_ptr);
+                _collision_detector.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
@@ -276,7 +276,7 @@ public:
 
             // add object to collision scene
             if (new_rod_ptr->collisions())
-                _collision_scene.addObject(new_rod_ptr);
+                _collision_detector.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
@@ -298,7 +298,7 @@ public:
 
             // add object to collision scene
             if (new_rod_ptr->collisions())
-                _collision_scene.addObject(new_rod_ptr);
+                _collision_detector.addObject(new_rod_ptr);
 
             // add new rod to graphics scene to be visualized
             _graphics_scene.addObject(new_rod_ptr, rod_config);
@@ -415,7 +415,7 @@ public:
     Graphics::GraphicsScene _graphics_scene;
 
     // collisions
-    Collision::CollisionScene _collision_scene;
+    Collision::CollisionDetector _collision_detector;
 
     Config::SimulationConfig _config;
 };

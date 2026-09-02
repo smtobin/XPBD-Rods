@@ -79,6 +79,12 @@ SimObject::AABB CollisionObject::boundingBox() const
         bbox.min = center - halfsize;
         return bbox;
     }
+    else if (type == ColliderType::Plane)
+    {
+        SimObject::XPBDPlane* plane = static_cast<SimObject::XPBDPlane*>(obj);
+        SimObject::AABB bbox = plane->boundingBox();
+        return bbox;
+    }
     else
     {
         throw std::runtime_error("CollisionObject::boundingBox object type unknown!");

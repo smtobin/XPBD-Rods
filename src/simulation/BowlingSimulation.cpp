@@ -116,7 +116,7 @@ void BowlingSimulation::setup()
         // _solver.addConstraint(constraint_ref);
 
         string->setFixedTipConstraint(&internal_fixed_joint_constraints.back());
-        _collision_scene.addJoint(&string->nodes().back(), &pin->com());
+        _collision_detector.addJoint(&string->nodes().back(), &pin->com());
 
         index_in_row++;
         if (index_in_row == num_pins_in_row)

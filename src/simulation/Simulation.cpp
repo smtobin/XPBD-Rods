@@ -17,7 +17,7 @@ Simulation::Simulation()
       _solver_iters(1),
       _solver(_dt, 1),
       _graphics_scene(),
-      _collision_scene()
+      _collision_detector()
 {
     _last_collision_check_time = std::numeric_limits<Real>::lowest();
 }
@@ -29,7 +29,7 @@ Simulation::Simulation(const Config::SimulationConfig& sim_config)
     _solver_iters(sim_config.solverIters()),
     _solver(_dt, 1),
     _graphics_scene(sim_config.renderConfig()),
-    _collision_scene(sim_config.collisionSceneConfig()),
+    _collision_detector(sim_config.collisionSceneConfig()),
     _config(sim_config)
 {
     _last_collision_check_time = std::numeric_limits<Real>::lowest();
@@ -89,7 +89,7 @@ void Simulation::_addJointFromConfig(const Config::FixedJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
-        _collision_scene.addJoint(&body1->com(), &body2->com());
+        _collision_detector.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::FixedJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
@@ -150,7 +150,7 @@ void Simulation::_addJointFromConfig(const Config::RevoluteJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
-        _collision_scene.addJoint(&body1->com(), &body2->com());
+        _collision_detector.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::RevoluteJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
@@ -235,7 +235,7 @@ void Simulation::_addJointFromConfig(const Config::SphericalJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
-        _collision_scene.addJoint(&body1->com(), &body2->com());
+        _collision_detector.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::SphericalJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
@@ -318,7 +318,7 @@ void Simulation::_addJointFromConfig(const Config::PrismaticJointConfig& config)
             std::cerr << "Error adding joint. Rigid body with name \"" << config.body2().value() << "\" was not found!" << std::endl;
         }
 
-        _collision_scene.addJoint(&body1->com(), &body2->com());
+        _collision_detector.addJoint(&body1->com(), &body2->com());
 
         using ConstraintType = Constraint::PrismaticJointConstraint;
         auto& constraint_vec = _constraints.template get<ConstraintType>();
@@ -418,13 +418,13 @@ void Simulation::update()
     /** TODO: determine grid size based on object sizes */
     // _objects.for_each_element([&](auto& obj) {
     //     if (obj->collisions())
-    //         _collision_scene.addObject(obj.get());
+    //         _collision_detector.addObject(obj.get());
     // });
     // _object_groups.for_each_element([&](auto& obj_group) {
     //     auto& objects = obj_group->objects();
     //     objects.for_each_element([&](auto& obj) {
     //         if (obj.collisions())
-    //             _collision_scene.addObject(&obj);
+    //             _collision_detector.addObject(&obj);
     //     });
     // });
 
@@ -464,7 +464,7 @@ void Simulation::update()
             continue;
         }
 
-        // const XPBDCollisionConstraints_Container& new_collision_constraints = _collision_scene.detectCollisions();
+        // const XPBDCollisionConstraints_Container& new_collision_constraints = _collision_detector.detectCollisions();
         // new_collision_constraints.for_each_element([&](const auto& collision_constraint) {
         //     using ConstraintType = std::remove_cv_t<std::remove_reference_t<decltype(collision_constraint)>>;
 
@@ -765,7 +765,7 @@ void Simulation::_detectCollisions()
     _solver.clearProjectorsOfType(XPBDCollisionConstraints_TypeList{});
     // _solver.clearInactiveProjectorsOfType(XPBDCollisionConstraints_TypeList{});
 
-    const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_scene.detectCollisions();
+    const std::vector<Collision::DetectedCollision>& detected_collisions = _collision_detector.detectCollisions();
     for (const auto& detected_collision : detected_collisions)
     {
         std::visit([&](auto&& collision) {
