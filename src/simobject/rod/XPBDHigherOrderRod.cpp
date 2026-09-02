@@ -277,7 +277,7 @@ void XPBDRod_<ElementType>::_allocateSpace()
 
     /** Ensure proper setup of block banded solver */
     int bandwidth = 2*NUM_GP - 1 + (int)_fixed_mid;
-    _gradient_buffer.reserve(elastic_constraints.size());
+    _gradient_buffer.resize(elastic_constraints.size());
 
     // number of diagonals = bandwidth + 1
     _diagonals.resize(bandwidth+1);
@@ -557,9 +557,9 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
                                                                 // - _beta * dt * dt * alpha_tilde.asDiagonal() * delC_v;
 
             // last constraint index that is still in this same element (element i)
-            int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
+            int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP-1);
             // last constraint index that is in the next element (element i+1)
-            int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP);
+            int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP-1);
 
             // for constraints defined on the same element, the gradients overlap for all nodes
             // therefore we can simply take the delC^T * delC product of the entire gradient matrix
@@ -582,7 +582,7 @@ void XPBDRod_<ElementType>::internalConstraintSolve(Real dt)
                 // extract the block associated with the "last" node affected by the constraint
                 Mat6r this_block = _gradient_buffer[this_ind].template block<6,6>(0,6*(NUM_EN-1));
                 // extract the block associated with the "first" node affected by the constraint
-                Mat6r other_block = _gradient_buffer[other].template block<6,6>(0,0);
+                Mat6r other_block = _gradient_buffer.at(other).template block<6,6>(0,0);
 
                 // if the current element has a fixed constraint on it, skip a row to make space for it
                 int adjusted_diag_index = diag_index;
@@ -976,9 +976,9 @@ void XPBDRod_<ElementType>::internalConstraintVelocitySolve(Real dt)
             _RHS_vel_vec.template block<6,1>(6*diag_block_ind, 0) = -_gradient_buffer[this_ind] * node_velocities;
 
             // last constraint index that is still in this same element (element i)
-            int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP);
+            int end_of_this_element_ind = std::min(this_ind + (NUM_GP - j - 1), _num_elements * NUM_GP-1);
             // last constraint index that is in the next element (element i+1)
-            int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP);
+            int end_of_next_element_ind = std::min(this_ind + (NUM_GP - j - 1) + NUM_GP, _num_elements * NUM_GP-1);
 
             // for constraints defined on the same element, the gradients overlap for all nodes
             // therefore we can simply take the delC^T * delC product of the entire gradient matrix

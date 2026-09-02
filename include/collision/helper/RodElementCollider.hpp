@@ -162,7 +162,7 @@ static std::vector<std::pair<Real, Real>> closestPointsBetweenRodElements(const 
             Real s1 = s1_loc / order1 + Real(i) / order1;
             Real s2 = s2_loc / order2 + Real(j) / order2;
 
-            seeds[i*order1 + j] = std::make_pair(s1, s2);
+            seeds[i*order2 + j] = std::make_pair(s1, s2);
 
             // std::cout << "starting s1 and s2: " << s1 << ", " << s2 << std::endl;
         }

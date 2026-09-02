@@ -21,6 +21,7 @@ objects:
     diameter: 0.1
     length: 1
     nu: 0.3
+    beta: 1e1
     base-fixed: True
     tip-fixed: True
     render-type: "PBR"
@@ -41,6 +42,7 @@ objects:
     diameter: 0.1
     length: 1
     nu: 0.3
+    beta: 1e1
     base-fixed: True
     tip-fixed: True
     render-type: "PBR"
