@@ -66,7 +66,7 @@ void SuturingSimulation::setup()
         1.1e3, // density
         200e3,   // E
         0.4,    // nu
-        1e-10,    // beta
+        0,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
@@ -93,7 +93,7 @@ void SuturingSimulation::setup()
         1.1e3, // density
         200e3,   // E
         0.4,    // nu
-        1e-10,    // beta
+        0,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
@@ -189,11 +189,18 @@ void SuturingSimulation::_timeStep()
 
     Simulation::_timeStep();
 
-    // if (!_straight_tool_grasping)
-    // {
-    //     _thread1->addFixedMidConstraint(50, 0.5, Vec3r(0,10,10), Mat3r::Identity());
-    //     _straight_tool_grasping = true;
-    // }
+    // HACK! To help with stability/oscillations, artificially damp all particle velocities a little bit
+    Real damping_frac = 0.99;
+    for (auto& node : _thread1->nodes())
+    {
+        node.ang_velocity = damping_frac*node.ang_velocity;
+        node.lin_velocity = damping_frac*node.lin_velocity;
+    }
+    for (auto& node : _thread2->nodes())
+    {
+        node.ang_velocity = damping_frac*node.ang_velocity;
+        node.lin_velocity = damping_frac*node.lin_velocity;
+    }
 }
 
 void SuturingSimulation::_updateStraightToolPose(const Vec3r& new_pos, const Mat3r& new_rot)
