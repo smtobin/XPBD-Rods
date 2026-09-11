@@ -20,7 +20,7 @@ public:
 
 private:
     Mesh _mesh;
-    Vec3r _unoriented_size;
+    AABB _local_bbox;
 
     Collision::MeshSDF _sdf;
 };

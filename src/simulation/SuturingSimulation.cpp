@@ -62,11 +62,11 @@ void SuturingSimulation::setup()
         true,
         125e-3,    // length
         0.2e-3,    // diameter
-        200,    // num elements
+        100,    // num elements
         1.1e3, // density
         200e3,   // E
         0.4,    // nu
-        0,    // beta
+        1e-10,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread1_config.renderConfig().setColor(Vec3r(1.0, 0.0, 0.0));
@@ -89,11 +89,11 @@ void SuturingSimulation::setup()
         true,
         65e-3,    // length
         0.2e-3,    // diameter
-        100,    // num elements
+        50,    // num elements
         1.1e3, // density
         200e3,   // E
         0.4,    // nu
-        0,    // beta
+        1e-10,    // beta
         Vec3r(0,0,0)    // curvature
     );
     thread2_config.renderConfig().setColor(Vec3r(0.0, 1.0, 0.0));
@@ -327,6 +327,7 @@ void SuturingSimulation::_toggleStraightToolGrasping()
 
             _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
             _straight_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _straight_tool_rod_constraint->setAlpha(Vec6r::Constant(1));
             _straight_tool_grasping = true;
             _straight_tool_grasped_rod = _thread1;
         }
@@ -337,6 +338,7 @@ void SuturingSimulation::_toggleStraightToolGrasping()
 
             _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
             _straight_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _straight_tool_rod_constraint->setAlpha(Vec6r::Constant(1));
             _straight_tool_grasping = true;
             _straight_tool_grasped_rod = _thread2;
         }

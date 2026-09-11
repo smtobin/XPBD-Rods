@@ -5,7 +5,7 @@ name: "SuturingSim"
 # sim-mode: "AFAP"                # uncomment this line to run the simulation "As Fast As Possible"
 
 time-step: 1e-4                  # the time step used by the sim
-end-time: 1                  # the end time in the sim (some large number)
+end-time: 10000                  # the end time in the sim (some large number)
 solver-iters: 1
 # rod-rod-collisions: true
 
@@ -25,8 +25,5 @@ ground-plane: True                # whether or not to create a ground plane
 camera-focal-point: [0, 0, 0]
 camera-position: [120e-3, 15e-3, 0]
 camera-orthographic: False
-
-hash-voxel-size: 2e-3
-num-hash-buckets: 31101
 
 # objects:

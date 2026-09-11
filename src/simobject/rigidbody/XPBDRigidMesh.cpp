@@ -40,7 +40,6 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
     _mesh.applyRotation(R.transpose());
 
     AABB mesh_bbox = _mesh.boundingBox();
-    _unoriented_size = mesh_bbox.max - mesh_bbox.min;
 
     // update the orientation to reflect the rotation required for the rotational inertia to be diagonal
     _com.orientation = R * _com.orientation;
@@ -71,9 +70,10 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
     }
         
     _com.mass = mass;
+    _local_bbox = mesh_bbox;
 
     std::cout << "Mesh bbox: " << mesh_bbox.min.transpose() << " to " << mesh_bbox.max.transpose() << std::endl;
-    std::cout << "Unoriented size: " << _unoriented_size.transpose() << std::endl;
+    std::cout << "Unoriented size: " << (_local_bbox.max - _local_bbox.min).transpose() << std::endl;
     AABB bbox = boundingBox();
     std::cout << "Oriented bbox: " << bbox.min.transpose() << " to " << bbox.max.transpose() << std::endl;
     
@@ -81,11 +81,24 @@ XPBDRigidMesh::XPBDRigidMesh(const Config::XPBDRigidMeshConfig& config)
 
 AABB XPBDRigidMesh::boundingBox() const
 {
-    Vec3r size = _com.orientation.cwiseAbs() * _unoriented_size;
+    const Vec3r local_min = _local_bbox.min;
+    const Vec3r local_max = _local_bbox.max;
+
+    // center and half-extents of the local AABB
+    const Vec3r local_center = 0.5 * (local_min + local_max);
+    const Vec3r local_half_size = 0.5 * (local_max - local_min);
+
+    // transform the center.
+    const Vec3r world_center =
+        _com.position + _com.orientation * local_center;
+
+    // Rotate the half-extents into world space.
+    const Vec3r world_half_size =
+        _com.orientation.cwiseAbs() * local_half_size;
 
     AABB bbox;
-    bbox.min = _com.position - 0.5 * size;
-    bbox.max = _com.position + 0.5 * size;
+    bbox.min = world_center - world_half_size;
+    bbox.max = world_center + world_half_size;
 
     return bbox;
 }
