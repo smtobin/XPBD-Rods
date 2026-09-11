@@ -11,7 +11,7 @@ SuturingSimulation::SuturingSimulation(const Config::SimulationConfig& config)
     : Simulation(config)
 {
     _straight_tool_tip_offset = Vec3r(127e-3, 0, 0);
-    _curved_tool_tip_offset = Vec3r(133e-3, 0, -10e-3);
+    _curved_tool_tip_offset = Vec3r(140e-3, 0, -10e-3);
 }
 
 void SuturingSimulation::notifyKeyPressed(const std::string& key)
@@ -148,7 +148,7 @@ void SuturingSimulation::setup()
 
     Config::XPBDRigidMeshConfig curved_tool_config(
         "curved_tool",
-        Vec3r(0, 200e-3, 50e-3),
+        Vec3r(0e-3, 150e-3, -50e-3),
         Vec3r(0,0,180),
         Vec3r(0,0,0),
         Vec3r(0,0,0),
@@ -377,6 +377,7 @@ void SuturingSimulation::_toggleCurvedToolGrasping()
 
             _thread1->addFixedMidConstraint(elem1, s_hat1, tip_pos, rod_R);
             _curved_tool_rod_constraint = &_thread1->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _curved_tool_rod_constraint->setAlpha(Vec6r::Constant(1));
             _curved_tool_grasping = true;
             _curved_tool_grasped_rod = _thread1;
         }
@@ -387,6 +388,7 @@ void SuturingSimulation::_toggleCurvedToolGrasping()
 
             _thread2->addFixedMidConstraint(elem2, s_hat2, tip_pos, _thread2->elements()[elem2].orientation(s_hat2));
             _curved_tool_rod_constraint = &_thread2->internalConstraints().template get<Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>>().back();
+            _curved_tool_rod_constraint->setAlpha(Vec6r::Constant(1));
             _curved_tool_grasping = true;
             _curved_tool_grasped_rod = _thread2;
         }

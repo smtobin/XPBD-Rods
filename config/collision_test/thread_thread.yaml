@@ -1,0 +1,62 @@
+name: "Thread-Thread Collision"
+sim-mode: "Frame-by-frame"
+time-step: 1e-4
+end-time: 100
+solver-iters: 1
+
+hdr-image-filename: "../resource/studio_1k.hdr"
+create-skybox: True
+exposure: 0.3
+
+camera-focal-point: [0, 0, 50e-3]
+camera-position: [120e-3, 15e-3, 0]
+camera-orthographic: False
+
+ground-plane: true
+
+rod-rod-collisions: true
+objects:
+  - 
+    type: "Rod"
+    name: "thread1"
+    element-type: "Linear"
+    initial-position: [-0.2e-3, 1e-3, 0.0]
+    initial-rotation: [0, 0, 0]
+    elements: 20
+    E: 200e3
+    diameter: 0.2e-3
+    length: 100e-3
+    nu: 0.4
+    beta: 0
+    base-fixed: True
+    tip-fixed: True
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [1.0, 0.0, 0.0]
+    color-elements: true
+
+  - 
+    type: "Rod"
+    name: "thread2"
+    element-type: "Linear"
+    initial-position: [-10e-3, 5e-3, 50e-3]
+    initial-rotation: [0, 90, 0]
+    elements: 10
+    E: 200e3
+    diameter: 0.2e-3
+    length: 20e-3
+    nu: 0.4
+    beta: 0
+    base-fixed: False
+    tip-fixed: False
+    render-type: "PBR"
+    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
+    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
+    metallic: 0.0
+    roughness: 0.5
+    color: [0.0, 0.0, 1.0]
+    color-elements: true
+   

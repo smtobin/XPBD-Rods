@@ -286,84 +286,111 @@ static Real projectPointOntoLine(const Vec3r& p, const Vec3r& a, const Vec3r& b)
     return (p-a).dot(b-a) / (b-a).squaredNorm();
 }
 
-/** Find closest points on two line segments defined by (p1, p2) and (p3, p4) */
-static std::pair<Real, Real> findClosestPointsOnLineSegments(const Vec3r& p1, const Vec3r& p2, const Vec3r& p3, const Vec3r& p4)
+/** Find closest points on two line segments defined by (p1,p2) and (p3,p4).
+ *
+ * Returns (beta1, beta2), where:
+ *   point1 = p1 + beta1 * (p2 - p1)
+ *   point2 = p3 + beta2 * (p4 - p3)
+ */
+static std::pair<Real, Real>
+findClosestPointsOnLineSegments(
+    const Vec3r& p1,
+    const Vec3r& p2,
+    const Vec3r& p3,
+    const Vec3r& p4)
 {
     const Vec3r d1 = p2 - p1;
     const Vec3r d2 = p4 - p3;
-    const Vec3r w = p1 - p3;
+    const Vec3r r  = p1 - p3;
 
-    Real a = d1.dot(d1);
-    Real b = d1.dot(d2);
-    Real c = d2.dot(d2);
-    Real d = w.dot(d1);
-    Real e = w.dot(d2);
-    
-    Real den = a*c - b*b;
+    const Real a = d1.dot(d1);
+    const Real b = d1.dot(d2);
+    const Real c = d2.dot(d2);
+    const Real d = d1.dot(r);
+    const Real e = d2.dot(r);
 
-    Real beta1, beta2;
-    if (den < 1e-8) // line segments are roughly parallel
+    const Real eps = std::numeric_limits<Real>::epsilon();
+
+    // Segment 1 is a point.
+    if (a <= eps)
     {
-        Real best_dist_sq = std::numeric_limits<Real>::max();
+        const Real beta2 = (c > eps)
+            ? std::clamp(e / c, Real(0), Real(1))
+            : Real(0);
 
-        // project p1 onto (p3,p4)
-        Real beta2_1 = std::clamp(projectPointOntoLine(p1, p3, p4), 0.0, 1.0);
-        Real dist_sq1 = ((1-beta2_1)*p3 + beta2_1*p4 - p1).squaredNorm();
-        best_dist_sq = dist_sq1;
-        beta1 = 0.0;
-        beta2 = beta2_1;
-
-        // project p2 onto (p3, p4)
-        Real beta2_2 = std::clamp(projectPointOntoLine(p2, p3, p4), 0.0, 1.0);
-        Real dist_sq2 = ((1-beta2_2)*p3 + beta2_2*p4 - p2).squaredNorm();
-        if (dist_sq2 < best_dist_sq)
-        {
-            best_dist_sq = dist_sq2;
-            beta1 = 1.0;
-            beta2 = beta2_2;
-        }
-
-        // project p3 onto (p1, p2)
-        Real beta1_1 = std::clamp(projectPointOntoLine(p3, p1, p2), 0.0, 1.0);
-        Real dist_sq3 = ((1-beta1_1)*p1 + beta1_1*p2 - p3).squaredNorm();
-        if (dist_sq3 < best_dist_sq)
-        {
-            best_dist_sq = dist_sq3;
-            beta1 = beta1_1;
-            beta2 = 0.0;
-        }
-
-        // project p4 onto (p1, p2)
-        Real beta1_2 = std::clamp(projectPointOntoLine(p4, p1, p2), 0.0, 1.0);
-        Real dist_sq4 = ((1-beta1_2)*p1 + beta1_2*p2 - p4).squaredNorm();
-        if (dist_sq4 < best_dist_sq)
-        {
-            best_dist_sq = dist_sq4;
-            beta1 = beta1_2;
-            beta2 = 1.0;
-        }
-    }
-    else
-    {
-        beta1 = (b*e - c*d) / den;
-        beta2 = (a*e - b*d) / den;
-
-        if (beta1 < 0 || beta1 > 1)
-        {
-            // if beta1 was clamped, re-project to find beta2
-            beta1 = std::clamp(beta1, 0.0, 1.0);
-            beta2 = std::clamp(projectPointOntoLine((1-beta1)*p1 + beta1*p2, p3, p4), 0.0, 1.0);
-            
-        }
-        else if (beta2 < 0 || beta2 > 1)
-        {
-            // if beta2 was clamped, re-project to find beta1
-            beta2 = std::clamp(beta2, 0.0, 1.0);
-            beta1 = std::clamp(projectPointOntoLine((1-beta2)*p3 + beta2*p4, p1, p2), 0.0, 1.0);
-        }
+        return { Real(0), beta2 };
     }
 
-    return std::make_pair(beta1, beta2);
+    // Segment 2 is a point.
+    if (c <= eps)
+    {
+        const Real beta1 = std::clamp(-d / a, Real(0), Real(1));
+
+        return { beta1, Real(0) };
+    }
+
+    const Real den = a * c - b * b;
+
+    Real beta1;
+    Real beta2;
+
+    // Parallel / nearly parallel.
+    if (den <= eps * a * c)
+    {
+        // For parallel segments, the minimum occurs at an endpoint
+        // of one segment projected onto the other.
+        Real bestDistSq = std::numeric_limits<Real>::max();
+
+        auto test = [&](Real s, Real t)
+        {
+            const Vec3r q1 = p1 + s * d1;
+            const Vec3r q2 = p3 + t * d2;
+            const Real distSq = (q1 - q2).squaredNorm();
+
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                beta1 = s;
+                beta2 = t;
+            }
+        };
+
+        test(0, std::clamp((-d2.dot(p1 - p3)) / c, Real(0), Real(1)));
+        test(1, std::clamp((-d2.dot(p2 - p3)) / c, Real(0), Real(1)));
+        test(std::clamp((d1.dot(p3 - p1)) / a, Real(0), Real(1)), 0);
+        test(std::clamp((d1.dot(p4 - p1)) / a, Real(0), Real(1)), 1);
+
+        return { beta1, beta2 };
+    }
+
+    // Closest points on the infinite lines.
+    beta1 = (b * e - c * d) / den;
+    beta2 = (a * e - b * d) / den;
+
+    // Constrain to the first segment.
+    if (beta1 < 0)
+    {
+        beta1 = 0;
+        beta2 = std::clamp(e / c, Real(0), Real(1));
+    }
+    else if (beta1 > 1)
+    {
+        beta1 = 1;
+        beta2 = std::clamp((b + e) / c, Real(0), Real(1));
+    }
+    // Constrain to the second segment.
+    else if (beta2 < 0)
+    {
+        beta2 = 0;
+        beta1 = std::clamp(-d / a, Real(0), Real(1));
+    }
+    else if (beta2 > 1)
+    {
+        beta2 = 1;
+        beta1 = std::clamp((b - d) / a, Real(0), Real(1));
+    }
+
+    return { beta1, beta2 };
 }
 
 static Vec4r rotationMatrixToQuaternion(const Mat3r& mat)

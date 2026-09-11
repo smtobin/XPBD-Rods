@@ -468,6 +468,7 @@ void CollisionDetector::_checkCollision(CollisionDetector* cd, SimObject::XPBDRi
 
 void CollisionDetector::_checkCollision(CollisionDetector* cd, SimObject::RodCollisionSegment* segment1, SimObject::RodCollisionSegment* segment2)
 {
+    
     if (!cd->_rod_rod_collisions)
         return;
 
@@ -486,6 +487,7 @@ void CollisionDetector::_checkCollision(CollisionDetector* cd, SimObject::RodCol
         cd->_checkJoint(segment1->particle1(), segment2->particle2()) || cd->_checkJoint(segment1->particle2(), segment2->particle2()))
         return;
 
+    // std::cout << "Potential segment-segment collision!" << std::endl;
     /** Step 2: test if coarse collision segments are in collision or are close to colliding */
     const Vec3r& p1 = segment1->particle1()->position;
     const Vec3r& p2 = segment1->particle2()->position;
@@ -539,7 +541,6 @@ void CollisionDetector::_checkCollision(CollisionDetector* cd, SimObject::RodCol
                 Real speculative_margin = COLLISION_TOL + rel_normal_speed * COLLISION_CHECK_INTERVAL;
                 if (dist < segment1->radius() + segment2->radius() + speculative_margin)
                 {
-                    // std::cout << "Rod-rod collision!" << std::endl;
                     Vec3r normal;
                     if (dist < 1e-6)
                         normal = Vec3r(1,0,0);
