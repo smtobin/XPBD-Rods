@@ -1,7 +1,7 @@
 #include <cstdio>
 
-#include "sim_bridge/SimBridge.hpp"
-#include "simulation/Simulation.hpp"
+#include "sim_bridge/SuturingSimBridge.hpp"
+#include "simulation/SuturingSimulation.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -46,7 +46,7 @@ void startNode(SimulationType* sim)
     }
 
     // then start up the SimBridge ROS node
-    rclcpp::spin(std::make_shared<SimBridge>(sim));
+    rclcpp::spin(std::make_shared<SuturingSimBridge>(sim));
 
     sim_thread.join();
 
@@ -70,8 +70,8 @@ int main(int argc, char ** argv)
     }
 
     Config::SimulationConfig sim_config(YAML::LoadFile(config_filename));
-    Sim::Simulation sim(sim_config);
-    startNode<Sim::Simulation>(&sim);
+    Sim::SuturingSimulation sim(sim_config);
+    startNode<Sim::SuturingSimulation>(&sim);
     
 
     return 0;

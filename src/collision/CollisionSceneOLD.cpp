@@ -578,7 +578,7 @@ void CollisionScene::_checkCollision(CollisionScene* /* scene */, SimObject::XPB
 
 void CollisionScene::_checkCollision(CollisionScene* scene, SimObject::RodCollisionSegment* segment, SimObject::XPBDRigidMesh* mesh)
 {
-    std::cout << "Potential segment-mesh collision!" << std::endl;
+    // std::cout << "Potential segment-mesh collision!" << std::endl;
     scene->_checkRigidSegmentCollision(mesh, &mesh->sdf(), segment);
 }
 
@@ -647,6 +647,8 @@ void CollisionScene::_checkRigidSegmentCollision(SimObject::XPBDRigidBody_Base* 
             new_collision.normal = -sdf_grad;
             new_collision.cp_local_rb = cp_local_rb;
             _new_collisions.push_back(std::move(new_collision));
+
+            // std::cout << "Rigid-segment collision! Rigid body name: " << rb->name() << " dist: " << dist << " speculative margin: " << speculative_margin << " radius: " << segment->radius() <<std::endl;
         }
     }
 }

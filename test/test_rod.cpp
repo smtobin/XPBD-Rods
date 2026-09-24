@@ -2,7 +2,7 @@
 #include "simobject/rod/XPBDHigherOrderRod.hpp"
 #include "constraint/RodRodCollisionConstraint.hpp"
 #include "config/RodConfig.hpp"
-#include "collision/CollisionScene.hpp"
+#include "collision/CollisionDetector.hpp"
 
 #include <variant>
 #include <unordered_map>
@@ -184,7 +184,7 @@ int main()
 
     // create collision constraint(s)
     std::vector<Constraint::RodRodCollisionConstraint<1,1>> collision_constraints;
-    Collision::CollisionScene collision_scene;
+    Collision::CollisionDetector collision_scene;
     collision_scene.addObject(&rod1);
     collision_scene.addObject(&rod2);
     auto detected_collisions = collision_scene.detectCollisions();

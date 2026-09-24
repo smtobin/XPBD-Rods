@@ -55,7 +55,7 @@ target_link_libraries(Constraint Eigen3::Eigen Common SimObject)
 
 add_library(SimObject)
 add_subdirectory("src/simobject")
-target_link_libraries(SimObject Eigen3::Eigen Common Constraint)
+target_link_libraries(SimObject Eigen3::Eigen Common Constraint Collision)
 
 add_library(Graphics)
 add_subdirectory("src/graphics")
@@ -78,6 +78,8 @@ target_link_libraries(RodConvergenceSim Simulation ${VTK_LIBRARIES})
 add_executable(BowlingSim src/exec/bowling_sim.cpp)
 target_link_libraries(BowlingSim Simulation ${VTK_LIBRARIES})
 
+add_executable(SuturingSim src/exec/suturing_sim.cpp)
+target_link_libraries(SuturingSim Simulation ${VTK_LIBRARIES})
 
 ###################################################
 # TESTS
@@ -135,6 +137,11 @@ vtk_module_autoinit(
 
 vtk_module_autoinit(
   TARGETS BowlingSim
+  MODULES ${VTK_LIBRARIES}
+)
+
+vtk_module_autoinit(
+  TARGETS SuturingSim
   MODULES ${VTK_LIBRARIES}
 )
 

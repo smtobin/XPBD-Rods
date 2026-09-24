@@ -29,8 +29,22 @@ public:
         _render_mesh_configs.emplace(_render_mesh_configs.begin(), node);
     }
 
+    XPBDRigidMeshConfig(const std::string& name, const Vec3r& initial_position, const Vec3r& initial_rotation,
+        const Vec3r& initial_velocity, const Vec3r& initial_angular_velocity, bool collisions, Real mu_s, Real mu_d,
+        Real density, bool fixed,
+        const std::string& filename, const Vec3r& scale)
+        : XPBDRigidBodyConfig(name, initial_position, initial_rotation, initial_velocity, initial_angular_velocity, collisions, mu_s, mu_d, density, fixed)
+    {
+        _filename.value = filename;
+        _scale.value = scale;
+
+        _render_mesh_configs.insert(_render_mesh_configs.begin(), MeshRenderConfig());
+    }
+
     std::string filename() const { return _filename.value;}
     Vec3r scale() const { return _scale.value; }
+
+    MeshRenderConfig& meshRenderConfig() { return _render_mesh_configs[0]; }
 
 private:
     ConfigParameter<std::string> _filename = ConfigParameter<std::string>("");

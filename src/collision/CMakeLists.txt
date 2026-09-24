@@ -6,9 +6,8 @@ set(COLLISION_SRC_DIR "./")
 
 set(COLLISION_HEADERS
     ${COLLISION_INCLUDE_DIR}/CollisionObject.hpp
-    ${COLLISION_INCLUDE_DIR}/CollisionBucket.hpp
-    ${COLLISION_INCLUDE_DIR}/SpatialHasher.hpp
-    ${COLLISION_INCLUDE_DIR}/CollisionScene.hpp
+    ${COLLISION_INCLUDE_DIR}/LBVH.hpp
+    ${COLLISION_INCLUDE_DIR}/CollisionDetector.hpp
 
     # SDFs
     ${COLLISION_INCLUDE_DIR}/sdf/SDF.hpp
@@ -20,8 +19,8 @@ set(COLLISION_HEADERS
 
 set(COLLISION_SOURCES
     ${COLLISION_SRC_DIR}/CollisionObject.cpp
-    ${COLLISION_SRC_DIR}/SpatialHasher.cpp
-    ${COLLISION_SRC_DIR}/CollisionScene.cpp
+    ${COLLISION_SRC_DIR}/LBVH.cpp
+    ${COLLISION_SRC_DIR}/CollisionDetector.cpp
 
     # SDFs
     ${COLLISION_SRC_DIR}/sdf/SphereSDF.cpp

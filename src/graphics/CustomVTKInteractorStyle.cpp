@@ -26,7 +26,7 @@ void CustomVTKInteractorStyle::OnKeyPress()
     if (_sim)
         _sim->notifyKeyPressed(key);
 
-    vtkInteractorStyleTrackballCamera::OnKeyPress();
+    // vtkInteractorStyleTrackballCamera::OnKeyPress();
 }
 
 void CustomVTKInteractorStyle::OnKeyRelease()
@@ -38,8 +38,13 @@ void CustomVTKInteractorStyle::OnKeyRelease()
     if (_sim)
         _sim->notifyKeyReleased(key);
 
-    vtkInteractorStyleTrackballCamera::OnKeyRelease();
+    // vtkInteractorStyleTrackballCamera::OnKeyRelease();
 }
+
+void CustomVTKInteractorStyle::OnChar()
+{
+}
+
 
 void CustomVTKInteractorStyle::OnMouseMove()
 {

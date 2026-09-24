@@ -66,7 +66,7 @@ Mesh Mesh::loadFromFile(const std::string& filename)
 
 SimObject::AABB Mesh::boundingBox() const
 {
-    SimObject::AABB aabb;
+    SimObject::AABB aabb = SimObject::AABB::empty();
     for (const auto& vert : _vertices)
     {
         aabb.min = aabb.min.cwiseMin(vert);

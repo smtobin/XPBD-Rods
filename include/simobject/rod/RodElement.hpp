@@ -22,6 +22,7 @@ public:
     using NodeArrayType = std::array<OrientedParticle*, NumNodes>;
     using StrainGradientMatType = Eigen::Matrix<Real, 6, 6*(NumNodes)>;
     using ContactPointGradientMatType = Eigen::Matrix<Real, 3, 6*(NumNodes)>;
+    using OrientationGradientMatType = Eigen::Matrix<Real, 3, 3*(NumNodes)>;
 
     RodElement(const NodeArrayType& nodes_list, Real rest_length, const Vec3r& curvature);
 
@@ -63,6 +64,8 @@ public:
     Vec3r previousContactPoint(Real s_hat, const Vec3r& cp_local) const;
     Vec3r contactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
     Vec3r previousContactPointVelocity(Real s_hat, const Vec3r& cp_local) const;
+
+    OrientationGradientMatType orientationGradient(Real s_hat) const;
 
 
 private:

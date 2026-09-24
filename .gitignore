@@ -4,5 +4,6 @@ output/
 
 ros_workspace/log/
 ros_workspace/install/
+ros_workspace/.sdf/
 __pycache__/
 *.pyc

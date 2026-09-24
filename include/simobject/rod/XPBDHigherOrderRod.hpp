@@ -52,6 +52,8 @@ public:
 
     void setFixedBaseConstraint(const Constraint::FixedJointConstraint* new_fixed_base_constraint);
     void setFixedTipConstraint(const Constraint::FixedJointConstraint* new_fixed_tip_constraint);
+    void addFixedMidConstraint(int element_ind, Real s_hat, const Vec3r& p_ref, const Mat3r& R_ref);
+    void removeFixedMidConstraint();
 
     /** Duplicates constraints into the internal constraints of the rod */
     template <typename ConstraintType>
@@ -123,6 +125,14 @@ protected:
      */
     std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_base_constraint;
     std::variant<const Constraint::OneSidedFixedJointConstraint*, const Constraint::FixedJointConstraint*> _fixed_tip_constraint;
+
+    /** Optional fixed constraint in the middle of the rod */
+    bool _fixed_mid = false;
+    const Constraint::RodMidElementFixedConstraint<ElementType>* _fixed_mid_constraint = nullptr;
+    /** If there is a fixed constraint in the middle of rod, store the element index.
+     * this is important for constraint ordering so that the system we solve stays block-banded
+     */
+    int _fixed_element_ind = -1;
 
     /** Whether or not to do a global solve for all the constraints.
      * If false, the constraints will be added to the top-level Gauss-Seidel solver.

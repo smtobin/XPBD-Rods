@@ -174,6 +174,9 @@ namespace Constraint
     template <typename ElementType>
     class RodElasticGaussPointConstraint;
 
+    template <typename ElementType>
+    class RodMidElementFixedConstraint;
+
     class PointLineConstraint;
 
     class RigidBodyCollisionConstraint;
@@ -248,6 +251,10 @@ using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<2>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::RodElement<3>>,
     Constraint::RodElasticGaussPointConstraint<SimObject::CubicHermiteRodElement>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<0>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<2>>,
+    Constraint::RodMidElementFixedConstraint<SimObject::RodElement<3>>,
     Constraint::PointLineConstraint
 >;
 
@@ -386,7 +393,7 @@ using XPBDJointConfigs_Container = VariadicVectorContainerFromTypeList<XPBDJoint
 
 /** Universal constants used by the simulation */
 #define G_ACCEL 9.81    // acceleration due to gravity
-#define COLLISION_TOL 1e-2      // if the distance between objects is less than this, register a collision and generate collision constraints
-#define COLLISION_CHECK_INTERVAL 0//1.0/500.0 // time between collision detection
+#define COLLISION_TOL 1e-4      // if the distance between objects is less than this, register a collision and generate collision constraints
+#define COLLISION_CHECK_INTERVAL 1e-4//1.0/500.0 // time between collision detection
 #define CONSTRAINT_EPS 1e-13    // epsilon for constraints - i.e. any number less than this is treated as 0
 #define GEOMETRY_EPS 1e-8       // epsilon for geometry math
