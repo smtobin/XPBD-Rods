@@ -18,6 +18,7 @@ class MeshSDF : public SDF
 
     /** Default constructor - no memory allocated */
     MeshSDF() = default;
+    virtual ~MeshSDF() = default;
 
     /** Construct a SDF from input vertices and triangles.
      * @param verts - the vertices of the mesh

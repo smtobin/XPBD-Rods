@@ -67,15 +67,34 @@ add_executable(${PROJECT_NAME}_node
   src/SimBridge.cpp
 )
 
+add_executable(suturing_sim_bridge_node
+  src/suturing_sim_bridge_node.cpp
+  src/SuturingSimBridge.cpp
+)
+
 # ROS dependencies
 ament_target_dependencies(${PROJECT_NAME}_node rclcpp std_msgs geometry_msgs)
+ament_target_dependencies(suturing_sim_bridge_node rclcpp std_msgs geometry_msgs)
 
 target_link_libraries(${PROJECT_NAME}_node
   Common
-  Collision
   Solver
   Constraint
   SimObject
+  Collision
+  Graphics
+  Simulation
+  assimp
+  Eigen3::Eigen
+  yaml-cpp::yaml-cpp
+  ${VTK_LIBRARIES}
+)
+target_link_libraries(suturing_sim_bridge_node
+  Common
+  Solver
+  Constraint
+  SimObject
+  Collision
   Graphics
   Simulation
   assimp
@@ -89,12 +108,25 @@ vtk_module_autoinit(
   MODULES ${VTK_LIBRARIES}
 )
 
+vtk_module_autoinit(
+  TARGETS suturing_sim_bridge_node
+  MODULES ${VTK_LIBRARIES}
+)
+
 target_include_directories(${PROJECT_NAME}_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 target_compile_features(${PROJECT_NAME}_node PUBLIC c_std_99 cxx_std_17)
 
 install(TARGETS ${PROJECT_NAME}_node
+  DESTINATION lib/${PROJECT_NAME})
+
+target_include_directories(suturing_sim_bridge_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(suturing_sim_bridge_node PUBLIC c_std_99 cxx_std_17)
+
+install(TARGETS suturing_sim_bridge_node
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

@@ -25,15 +25,19 @@ public:
     virtual void notifyKeyPressed(const std::string& key) override;
     virtual void notifyKeyReleased(const std::string& key) override;
 
+    void setStraightToolGrasping(bool state);
+    void setCurvedToolGrasping(bool state);
+
+    void updateStraightToolGraspPose(const Vec3r& new_pos, const Mat3r& new_rot);
+    void updateCurvedToolGraspPose(const Vec3r& new_pos, const Mat3r& new_rot);
+    
+    void updateStraightToolPose(const Vec3r& new_pos, const Mat3r& new_rot);
+    void updateCurvedToolPose(const Vec3r& new_pos, const Mat3r& new_rot);
+
 protected:
     virtual void _timeStep() override;
 
-    void _updateStraightToolPose(const Vec3r& new_pos, const Mat3r& new_rot);
-    void _updateCurvedToolPose(const Vec3r& new_pos, const Mat3r& new_rot);
-
     void _updateToolPositionsFromKeyboard();
-    void _toggleStraightToolGrasping();
-    void _toggleCurvedToolGrasping();
     void _findClosestPointOnRod(LinearRod* rod, const Vec3r& p, int& element_ind, Real& s_hat, Real& dist);
 
 private:

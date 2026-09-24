@@ -11,7 +11,7 @@ SuturingSimulation::SuturingSimulation(const Config::SimulationConfig& config)
     : Simulation(config)
 {
     _straight_tool_tip_offset = Vec3r(127e-3, 0, 0);
-    _curved_tool_tip_offset = Vec3r(140e-3, 0, -10e-3);
+    _curved_tool_tip_offset = Vec3r(135e-3, 0, -10e-3);
 }
 
 void SuturingSimulation::notifyKeyPressed(const std::string& key)
@@ -20,11 +20,11 @@ void SuturingSimulation::notifyKeyPressed(const std::string& key)
 
     if (key == "Shift_L")
     {
-        addCallback([this]() { this->_toggleStraightToolGrasping(); });
+        addCallback([this]() { this->setStraightToolGrasping(!_straight_tool_grasping); });
     }
     if (key == "Shift_R")
     {
-        addCallback([this]() { this->_toggleCurvedToolGrasping(); });
+        addCallback([this]() { this->setCurvedToolGrasping(!_curved_tool_grasping); });
     }
 
     // std::cout << "Key pressed: " << key << std::endl;
@@ -203,7 +203,17 @@ void SuturingSimulation::_timeStep()
     }
 }
 
-void SuturingSimulation::_updateStraightToolPose(const Vec3r& new_pos, const Mat3r& new_rot)
+void SuturingSimulation::updateStraightToolGraspPose(const Vec3r& new_tip_pos, const Mat3r& new_tip_rot)
+{
+    updateStraightToolPose(new_tip_pos - new_tip_rot * _straight_tool_tip_offset, new_tip_rot);
+}
+
+void SuturingSimulation::updateCurvedToolGraspPose(const Vec3r& new_tip_pos, const Mat3r& new_tip_rot)
+{
+    updateCurvedToolPose(new_tip_pos - new_tip_rot * _curved_tool_tip_offset, new_tip_rot);
+}
+
+void SuturingSimulation::updateStraightToolPose(const Vec3r& new_pos, const Mat3r& new_rot)
 {
     _straight_tool->com().position = new_pos;
     _straight_tool->com().orientation = new_rot;
@@ -216,7 +226,7 @@ void SuturingSimulation::_updateStraightToolPose(const Vec3r& new_pos, const Mat
     _straight_tool_grasp_sphere->com().position = straight_tool_tip_pos;
 }
 
-void SuturingSimulation::_updateCurvedToolPose(const Vec3r& new_pos, const Mat3r& new_rot)
+void SuturingSimulation::updateCurvedToolPose(const Vec3r& new_pos, const Mat3r& new_rot)
 {
     _curved_tool->com().position = new_pos;
     _curved_tool->com().orientation = new_rot;
@@ -280,7 +290,7 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
 
     Mat3r straight_new_R = _straight_tool->com().orientation * Math::Exp_so3(straight_dR);
     Vec3r straight_tip_pos = _straight_tool->com().position + _straight_tool->com().orientation * _straight_tool_tip_offset;
-    _updateStraightToolPose(straight_tip_pos - straight_new_R * _straight_tool_tip_offset + straight_dp, straight_new_R);
+    updateStraightToolGraspPose(straight_tip_pos + straight_dp, straight_new_R);
 
 
     Vec3r curved_dp = Vec3r::Zero();
@@ -313,12 +323,12 @@ void SuturingSimulation::_updateToolPositionsFromKeyboard()
 
     Mat3r curved_new_R = _curved_tool->com().orientation * Math::Exp_so3(curved_dR);
     Vec3r curved_tip_pos = _curved_tool->com().position + _curved_tool->com().orientation * _curved_tool_tip_offset;
-    _updateCurvedToolPose(curved_tip_pos - curved_new_R * _curved_tool_tip_offset + curved_dp, curved_new_R);
+    updateCurvedToolGraspPose(curved_tip_pos + curved_dp, curved_new_R);
 }
 
-void SuturingSimulation::_toggleStraightToolGrasping()
+void SuturingSimulation::setStraightToolGrasping(bool state)
 {
-    if (!_straight_tool_grasping)
+    if (state && !_straight_tool_grasping)
     {
         // search both threads and find the closest point on
         int elem1, elem2;
@@ -350,16 +360,16 @@ void SuturingSimulation::_toggleStraightToolGrasping()
             _straight_tool_grasped_rod = _thread2;
         }
     }
-    else
+    else if (!state && _straight_tool_grasping)
     {
         _straight_tool_grasped_rod->removeFixedMidConstraint();
         _straight_tool_grasping = false;
     }
 }
 
-void SuturingSimulation::_toggleCurvedToolGrasping()
+void SuturingSimulation::setCurvedToolGrasping(bool state)
 {
-    if (!_curved_tool_grasping)
+    if (state && !_curved_tool_grasping)
     {
         // search both threads and find the closest point on
         int elem1, elem2;
@@ -393,7 +403,7 @@ void SuturingSimulation::_toggleCurvedToolGrasping()
             _curved_tool_grasped_rod = _thread2;
         }
     }
-    else
+    else if (!state && _curved_tool_grasping)
     {
         _curved_tool_grasped_rod->removeFixedMidConstraint();
         _curved_tool_grasping = false;

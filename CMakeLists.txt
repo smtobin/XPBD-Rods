@@ -55,7 +55,7 @@ target_link_libraries(Constraint Eigen3::Eigen Common SimObject)
 
 add_library(SimObject)
 add_subdirectory("src/simobject")
-target_link_libraries(SimObject Eigen3::Eigen Common Constraint)
+target_link_libraries(SimObject Eigen3::Eigen Common Constraint Collision)
 
 add_library(Graphics)
 add_subdirectory("src/graphics")
