@@ -50,7 +50,47 @@ PointLineConstraint::GradientMatType PointLineConstraint::gradient() const
         grad.block<1,3>(0,12) = dC_dx2;
     }
 
-    
+    return grad;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+OneSidedPointLineConstraint::OneSidedPointLineConstraint(SimObject::OrientedParticle* point, const Vec3r& endpoint1, const Vec3r& endpoint2)
+    : XPBDConstraint<1,1,0>({point}, AlphaVecType::Zero())
+    , _endpoint1(endpoint1)
+    , _endpoint2(endpoint2)
+{
+
+}
+
+OneSidedPointLineConstraint::ConstraintVecType OneSidedPointLineConstraint::evaluate() const
+{
+    ConstraintVecType C;
+    const Vec3r& p = _oriented_particles[0]->position;    // the point
+    const Vec3r& cross_p = (p - _endpoint1).cross(p - _endpoint2);
+    C[0] = cross_p.norm() / (_endpoint2 - _endpoint1).norm();
+
+    return C;
+}
+
+OneSidedPointLineConstraint::GradientMatType OneSidedPointLineConstraint::gradient() const
+{
+    GradientMatType grad = GradientMatType::Zero();
+
+    const Vec3r& p = _oriented_particles[0]->position;    // the point
+    const Vec3r& cross_p = (p - _endpoint1).cross(p - _endpoint2);
+    const Real norm_cross_p = cross_p.norm();
+    const Real norm_x1x2 = (_endpoint2 - _endpoint1).norm();
+
+    const Real C = norm_cross_p / norm_x1x2;
+
+    if (C >= 1e-10)
+    {
+        const Vec3r dC_dp = cross_p.transpose() / norm_cross_p * Math::Skew3(_endpoint2 - _endpoint1) / norm_x1x2;
+
+        grad.block<1,3>(0,0) = dC_dp;
+    }
 
     return grad;
 }

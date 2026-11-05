@@ -18,11 +18,20 @@ XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(const Config::XPBDConcentricTub
     _inner_tube_config = config.innerTubeConfig();
     _outer_tube_config = config.outerTubeConfig();
 
-    _inner_tube_config.setInitialPosition(config.initialPosition());
-    _inner_tube_config.setInitialRotation(config.initialRotation());
+    // initialize the tube positions such that their tip is at the base position
+    Vec3r inner_tube_pos = _base_position - _base_orientation.col(2)*config.innerTubeConfig().length();
+    Vec3r outer_tube_pos = _base_position - _base_orientation.col(2)*config.outerTubeConfig().length();
+    _inner_tube_config.setInitialPosition(inner_tube_pos);
+    _outer_tube_config.setInitialPosition(outer_tube_pos);
 
-    _outer_tube_config.setInitialPosition(config.initialPosition());
+    // initial tube rotations to align with base orientation
+    _inner_tube_config.setInitialRotation(config.initialRotation());
     _outer_tube_config.setInitialRotation(config.initialRotation());
+
+    _inner_tube_translation = 0;
+    _inner_tube_rotation = 0;
+    _outer_tube_translation = 0;
+    _outer_tube_rotation = 0;
 }
 
 void XPBDConcentricTubeRobot::setup()
@@ -70,29 +79,87 @@ void XPBDConcentricTubeRobot::setup()
 
 
     // add fixed base constraint for outer rod
-    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(_base_position, _base_orientation, &_outer_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
+    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(
+        _outer_rod->nodes().front().position, _outer_rod->nodes().front().orientation,
+         &_outer_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
 
     // add fixed base constraint for inner rod
-    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(_base_position, _base_orientation, &_inner_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
+    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(
+        _inner_rod->nodes().front().position, _inner_rod->nodes().front().orientation,
+         &_inner_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
+
+    _outer_rod_base_constraint = &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>()[0];
+    _inner_rod_base_constraint = &_internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>()[1];
 
     // create the initial point-on-line constraints
     _updateConcentricityConstraints();
     
 }
 
+void XPBDConcentricTubeRobot::setInnerTubeTranslation(Real it_trans)
+{
+    Vec3r inner_tube_pos = _base_position - _base_orientation.col(2)*(_inner_tube_config.length() - it_trans);
+    _inner_rod_base_constraint->setReferencePosition(inner_tube_pos);
+    _inner_tube_translation = it_trans;
+}
+
+void XPBDConcentricTubeRobot::setInnerTubeRotation(Real it_rot)
+{
+    Mat3r inner_tube_rot = _base_orientation * Math::RotMatFromXYZEulerAngles(Vec3r(0, 0, it_rot));
+    _inner_rod_base_constraint->setReferenceOrientation(inner_tube_rot);
+    _inner_tube_rotation = it_rot;
+}
+
+void XPBDConcentricTubeRobot::setOuterTubeTranslation(Real ot_trans)
+{
+    Vec3r outer_tube_pos = _base_position - _base_orientation.col(2)*(_outer_tube_config.length() - ot_trans);
+    _outer_rod_base_constraint->setReferencePosition(outer_tube_pos);
+    _outer_tube_translation = ot_trans;
+}
+
+void XPBDConcentricTubeRobot::setOuterTubeRotation(Real ot_rot)
+{
+    Mat3r outer_tube_rot = _base_orientation * Math::RotMatFromXYZEulerAngles(Vec3r(0, 0, ot_rot));
+    _outer_rod_base_constraint->setReferenceOrientation(outer_tube_rot);
+    _outer_tube_rotation = ot_rot;
+}
+
+
 void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 {
     // for now, clear the point-on-line constraints every time
+    _internal_constraints.template clear<Constraint::OneSidedPointLineConstraint>();
     _internal_constraints.template clear<Constraint::PointLineConstraint>();
 
     std::vector<OrientedParticle>& outer_nodes = _outer_rod->nodes();
     std::vector<OrientedParticle>& inner_nodes = _inner_rod->nodes();
 
+    // go through each outer node and determine if it is inside the rigid sheath
+    for (unsigned outer_node_index = 1; outer_node_index < outer_nodes.size(); outer_node_index++)
+    {
+        OrientedParticle& outer_node = outer_nodes[outer_node_index];
+        Real s = Real(outer_node_index) / (outer_nodes.size() - 1) * _outer_tube_config.length();
+        if (s + _outer_tube_translation <= _outer_tube_config.length())
+        {
+            // this node is inside the sheath
+            _addInternalConstraint<Constraint::OneSidedPointLineConstraint>(&outer_node, _base_position, _base_position + _base_orientation.col(2)*_outer_tube_config.length());
+            continue;
+        }
+    }
+
     // go through each inner node and project it onto a line segment in the outer tube
     // std::cout <<"\nFinding concentricity correspondences..." << std::endl;
-    for (unsigned inner_node_index = 0; inner_node_index < inner_nodes.size(); inner_node_index++)
+    for (unsigned inner_node_index = 1; inner_node_index < inner_nodes.size(); inner_node_index++)
     {
         OrientedParticle& inner_node = inner_nodes[inner_node_index];
+
+        Real s = Real(inner_node_index) / (inner_nodes.size() - 1) * _inner_tube_config.length();
+        if (s + _inner_tube_translation <= _inner_tube_config.length())
+        {
+            // this node is inside the sheath
+            _addInternalConstraint<Constraint::OneSidedPointLineConstraint>(&inner_node, _base_position, _base_position + _base_orientation.col(2)*_inner_tube_config.length());
+            continue;
+        }
 
         // project onto the first segment of the outer tube - if t is negative we are outside of the outer tube
         Real t1 = Math::projectPointOntoLine(inner_node.position, outer_nodes[0].position, outer_nodes[1].position);
@@ -129,7 +196,6 @@ void XPBDConcentricTubeRobot::_updateConcentricityConstraints()
 
 void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
 {
-
     _updateConcentricityConstraints();
 
     const XPBDConstraints_Container& outer_rod_all_constraints = _outer_rod->internalConstraints();
@@ -142,11 +208,18 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     // std::cout << "Num inner rod constraints: " << inner_rod_constraints.size() << std::endl;
     const std::vector<Constraint::OneSidedFixedJointConstraint>& fixed_base_constraints = _internal_constraints.template get<Constraint::OneSidedFixedJointConstraint>();
 
+    const std::vector<Constraint::PointLineConstraint>& concentricity_constraints = _internal_constraints.template get<Constraint::PointLineConstraint>();
+    const std::vector<Constraint::OneSidedPointLineConstraint>& sheath_constraints = _internal_constraints.template get<Constraint::OneSidedPointLineConstraint>();
+
+    std::cout << "Number of concentricity constraints: " << concentricity_constraints.size() << std::endl;
+    std::cout << "Number of sheath constraints: " << sheath_constraints.size() << std::endl;
+
     // calculate number of constraints
     int num_constraints = fixed_base_constraints.size()*Constraint::OneSidedFixedJointConstraint::ConstraintDim + 
                           outer_rod_constraints.size()*ElasticConstraintType::ConstraintDim +
                           inner_rod_constraints.size()*ElasticConstraintType::ConstraintDim + 
-                          _internal_constraints.template get<Constraint::PointLineConstraint>().size()*Constraint::PointLineConstraint::ConstraintDim;
+                          concentricity_constraints.size()*Constraint::PointLineConstraint::ConstraintDim +
+                          sheath_constraints.size()*Constraint::OneSidedPointLineConstraint::ConstraintDim;
     
     _RHS_vec.conservativeResize(num_constraints, 1);
     _alpha.conservativeResize(num_constraints, 1);
@@ -208,7 +281,7 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
         row_offset += ElasticConstraintType::ConstraintDim;
     }
 
-    for (const auto& constraint : _internal_constraints.template get<Constraint::PointLineConstraint>())
+    for (const auto& constraint : concentricity_constraints)
     {
         Real C = constraint.evaluate()[0];
         _RHS_vec[row_offset] = -C;
@@ -236,6 +309,32 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
             _alpha[row_offset] = constraint.alpha()[0];
 
         row_offset += Constraint::PointLineConstraint::ConstraintDim;
+    }
+
+    for (const auto& constraint : sheath_constraints)
+    {
+        Real C = constraint.evaluate()[0];
+        _RHS_vec[row_offset] = -C;
+
+        // std::cout << "Point on line constraint: " << C << std::endl;
+
+        Constraint::OneSidedPointLineConstraint::GradientMatType grad = constraint.gradient();
+        int pos1_index = _particle_ptr_to_index.at(constraint.orientedParticles()[0]);
+        _delC_mat.block<1,6>(row_offset, pos1_index*6) = grad.block<1,6>(0,0);
+
+        /** TODO: when the point lies on the line (i.e. C=0), then the constraint gradient is undefined.
+         * For now, we set the entire constraint gradient to all zeros. But, this creates a singular LHS matrix since
+         * alpha is also 0. 
+         * 
+         * Option 1: detect this and remove these constraints from the system
+         * Option 2 (used below): change alpha temporarily to be nonzero so that the matrix is not singular. Doesn't matter anyway since the RHS is 0.
+         */
+        if (abs(C) < 1e-10)
+            _alpha[row_offset] = 1e-3;
+        else
+            _alpha[row_offset] = constraint.alpha()[0];
+
+        row_offset += Constraint::OneSidedPointLineConstraint::ConstraintDim;
     }
 
     // compute LHS
@@ -347,6 +446,16 @@ std::vector<ConstraintAndLambda> XPBDConcentricTubeRobot::internalConstraintsAnd
     }
 
     return constraints_and_lambdas;
+}
+
+void XPBDConcentricTubeRobot::velocityUpdate(Real dt)
+{
+    XPBDObjectGroup_Base::velocityUpdate(dt);
+
+    // create some sliding motion
+    setInnerTubeTranslation(std::sin(0.5*_t));
+
+    _t += dt;
 }
 
 } // namespace SimObject

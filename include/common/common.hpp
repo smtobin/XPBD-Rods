@@ -178,6 +178,7 @@ namespace Constraint
     class RodMidElementFixedConstraint;
 
     class PointLineConstraint;
+    class OneSidedPointLineConstraint;
 
     class RigidBodyCollisionConstraint;
     class OneSidedRigidBodyCollisionConstraint;
@@ -255,7 +256,8 @@ using XPBDRodConstraints_TypeList = TypeList<
     Constraint::RodMidElementFixedConstraint<SimObject::RodElement<1>>,
     Constraint::RodMidElementFixedConstraint<SimObject::RodElement<2>>,
     Constraint::RodMidElementFixedConstraint<SimObject::RodElement<3>>,
-    Constraint::PointLineConstraint
+    Constraint::PointLineConstraint,
+    Constraint::OneSidedPointLineConstraint
 >;
 
 using XPBDCollisionConstraints_TypeList = TypeList<

@@ -1,7 +1,7 @@
 name: "CTR Sim"
-sim-mode: "Frame-by-frame"
+# sim-mode: "Frame-by-frame"
 time-step: 5e-3
-end-time: 5 
+end-time: 10 
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
