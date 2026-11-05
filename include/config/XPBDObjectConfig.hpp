@@ -74,7 +74,9 @@ public:
     }
 
     const Vec3r& initialPosition() const { return _initial_position.value; }
+    void setInitialPosition(const Vec3r& p) { _initial_position.value = p; }
     const Vec3r& initialRotation() const { return _initial_rotation.value; }
+    void setInitialRotation(const Vec3r& r) { _initial_rotation.value = r; }
     const Vec3r& initialVelocity() const { return _initial_velocity.value; }
     const Vec3r& initialAngularVelocity() const { return _initial_angular_velocity.value; }
 

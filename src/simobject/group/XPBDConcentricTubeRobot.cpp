@@ -14,25 +14,22 @@ XPBDConcentricTubeRobot::XPBDConcentricTubeRobot(const Config::XPBDConcentricTub
 {
     _base_position = config.initialPosition();
     _base_orientation = Math::RotMatFromXYZEulerAngles(config.initialRotation());
+
+    _inner_tube_config = config.innerTubeConfig();
+    _outer_tube_config = config.outerTubeConfig();
+
+    _inner_tube_config.setInitialPosition(config.initialPosition());
+    _inner_tube_config.setInitialRotation(config.initialRotation());
+
+    _outer_tube_config.setInitialPosition(config.initialPosition());
+    _outer_tube_config.setInitialRotation(config.initialRotation());
 }
 
 void XPBDConcentricTubeRobot::setup()
 {
-    Config::RodConfig outer_rod_config(
-        "outer", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.4, 0.2,
-        Config::RodElementType::LINEAR, true, false, true,
-        1, 0.1, 20, 1000, 1e6, 0.3, 0, Vec3r(0,0,0)
-    );
-
-    Config::RodConfig inner_rod_config(
-        "inner", _base_position, Vec3r(0,0,0), Vec3r(0,0,0), Vec3r(0,0,0), false, 0.4, 0.2,
-        Config::RodElementType::LINEAR, true, false, true,
-        1.5, 0.08, 20, 1000, 1e6, 0.3, 0, Vec3r(0,0,0)
-    );
-
     _objects.template reserve<XPBDRod_<RodElement<1>>>(2);
-    _outer_rod = &_addObject<XPBDRod_<RodElement<1>>>(outer_rod_config);
-    _inner_rod = &_addObject<XPBDRod_<RodElement<1>>>(inner_rod_config);
+    _outer_rod = &_addObject<XPBDRod_<RodElement<1>>>(_outer_tube_config);
+    _inner_rod = &_addObject<XPBDRod_<RodElement<1>>>(_inner_tube_config);
 
     _outer_rod->setup();
     _inner_rod->setup();
@@ -73,7 +70,10 @@ void XPBDConcentricTubeRobot::setup()
 
 
     // add fixed base constraint for outer rod
-    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(Vec3r::Zero(), Mat3r::Identity(), &_outer_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
+    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(_base_position, _base_orientation, &_outer_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
+
+    // add fixed base constraint for inner rod
+    _addInternalConstraint<Constraint::OneSidedFixedJointConstraint>(_base_position, _base_orientation, &_inner_rod->nodes().front(), Vec3r::Zero(), Mat3r::Identity());
 
     // create the initial point-on-line constraints
     _updateConcentricityConstraints();
@@ -150,8 +150,8 @@ void XPBDConcentricTubeRobot::internalConstraintSolve(Real dt)
     
     _RHS_vec.conservativeResize(num_constraints, 1);
     _alpha.conservativeResize(num_constraints, 1);
-    _delC_mat.conservativeResize(num_constraints, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6);
-    _LHS_mat.conservativeResize(_outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6 );
+    _delC_mat = MatXr::Zero(num_constraints, _outer_rod->nodes().size()*6 + _inner_rod->nodes().size()*6);
+    _LHS_mat.conservativeResize(num_constraints, num_constraints );
     // start assembling global system
     int row_offset = 0;
     // fix the outer tube base

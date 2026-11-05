@@ -1,20 +1,35 @@
 name: "CTR Sim"
-time-step: 5e-4
+sim-mode: "Frame-by-frame"
+time-step: 5e-3
 end-time: 5 
 
 hdr-image-filename: "../resource/studio_1k.hdr"
 create-skybox: True
 
+ground-plane: True
+
 objects:
   - 
     type: "CTR"
     name: "ctr"
-    num-bodies: 1
-    initial-angle: 60
-    projector-type: "block"
-    render-type: "PBR"
-    # orm-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_ORM.png"
-    # base-color-texture-filename: "../resource/textures/Metal050A_4K-PNG/Metal050A_4K-PNG_Color.png"
-    metallic: 0.2
-    roughness: 0.5
-    color: [1.0, 1.0, 1.0]
+    initial-position: [0, 1, 0]
+    outer-tube:
+      element-type: "Linear"
+      E: 5e6
+      nu: 0.4
+      # beta: 1e2
+      diameter: 0.1
+      length: 1
+      density: 1000
+      elements: 20
+      collisions: false
+    inner-tube:
+      element-type: "Linear"
+      E: 5e6
+      nu: 0.4
+      # beta: 1e2
+      diameter: 0.08
+      length: 1.5
+      density: 1000
+      elements: 20
+      collisions: false

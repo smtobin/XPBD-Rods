@@ -27,6 +27,9 @@ private:
     Vec3r _base_position;
     Mat3r _base_orientation;
 
+    Config::RodConfig _outer_tube_config;
+    Config::RodConfig _inner_tube_config;
+
     // separate variables for convenience
     XPBDRod_<RodElement<1>>* _outer_rod;
     XPBDRod_<RodElement<1>>* _inner_rod;
